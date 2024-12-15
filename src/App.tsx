@@ -82,7 +82,7 @@ function App() {
   }
 
   return (
-    <Router basename="/class-manager">
+    <Router basename="/class-manager-">
       <GlobalStyle />
       <Routes>
         <Route
