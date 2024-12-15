@@ -17,17 +17,19 @@ const limiter = rateLimit({
 })
 
 // Configure CORS
-const corsOptions = {
-  origin: ['https://leqso7.github.io', 'http://localhost:5173'],
-  methods: ['GET', 'POST'],
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type']
-}
+}))
 
 // Security middleware
-app.use(cors(corsOptions))
 app.use(helmet())
 app.use(limiter)
 app.use(express.json())
+
+// Pre-flight requests
+app.options('*', cors())
 
 // Routes
 app.use('/api/requests', requestRoutes)

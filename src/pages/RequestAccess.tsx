@@ -22,6 +22,7 @@ const Card = styled.div`
   max-width: 400px;
   width: 100%;
   margin: 0 auto;
+  text-align: center;
 `;
 
 const Title = styled.h1`
@@ -31,29 +32,11 @@ const Title = styled.h1`
   font-size: 24px;
 `;
 
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-`;
-
-const Input = styled.input`
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 16px;
-  
-  &:focus {
-    outline: none;
-    border-color: #4285f4;
-  }
-`;
-
 const Button = styled.button`
   background: #4285f4;
   color: white;
   border: none;
-  padding: 12px;
+  padding: 12px 24px;
   border-radius: 5px;
   font-size: 16px;
   cursor: pointer;
@@ -70,34 +53,39 @@ const Button = styled.button`
 `;
 
 const Message = styled.div<{ type: 'success' | 'error' }>`
-  padding: 10px;
+  padding: 15px;
   border-radius: 5px;
   text-align: center;
-  margin-top: 10px;
+  margin-top: 20px;
   background: ${props => props.type === 'success' ? '#d4edda' : '#f8d7da'};
   color: ${props => props.type === 'success' ? '#155724' : '#721c24'};
+  font-size: 16px;
+`;
+
+const Code = styled.span`
+  font-weight: bold;
+  font-size: 24px;
+  color: #4285f4;
+  display: block;
+  margin-top: 10px;
 `;
 
 const RequestAccess = () => {
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
   const [requestCode, setRequestCode] = useState<string | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleRequest = async () => {
     setLoading(true)
     setMessage(null)
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://class-manager-backend.onrender.com'
-      const response = await fetch(`${apiUrl}/api/requests/create`, {
+      const response = await fetch('https://class-manager-backend.onrender.com/api/requests/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ firstName, lastName }),
+        body: JSON.stringify({}),
       })
 
       if (!response.ok) {
@@ -105,11 +93,11 @@ const RequestAccess = () => {
       }
 
       const data = await response.json()
-
+      
       if (data.success) {
         setRequestCode(data.requestCode)
         setMessage({
-          text: 'მოთხოვნა წარმატებით გაიგზავნა! თქვენი კოდია: ' + data.requestCode,
+          text: 'მოთხოვნა წარმატებით გაიგზავნა!',
           type: 'success'
         })
         
@@ -130,10 +118,9 @@ const RequestAccess = () => {
   }
 
   const startStatusPolling = (code: string) => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'https://class-manager-backend.onrender.com'
     const pollInterval = setInterval(async () => {
       try {
-        const response = await fetch(`${apiUrl}/api/requests/status/${code}`)
+        const response = await fetch(`https://class-manager-backend.onrender.com/api/requests/status/${code}`)
         const data = await response.json()
 
         if (data.success && data.status === 'approved') {
@@ -143,9 +130,8 @@ const RequestAccess = () => {
       } catch (error) {
         console.error('Error polling status:', error)
       }
-    }, 5000) // Poll every 5 seconds
+    }, 5000)
 
-    // Cleanup interval on component unmount
     return () => clearInterval(pollInterval)
   }
 
@@ -157,28 +143,13 @@ const RequestAccess = () => {
     <Container>
       <Card>
         <Title>მოთხოვნის გაგზავნა</Title>
-        <Form onSubmit={handleSubmit}>
-          <Input
-            type="text"
-            placeholder="სახელი"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            required
-          />
-          <Input
-            type="text"
-            placeholder="გვარი"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            required
-          />
-          <Button type="submit" disabled={loading}>
-            {loading ? 'იგზავნება...' : 'მოთხოვნის გაგზავნა'}
-          </Button>
-        </Form>
+        <Button onClick={handleRequest} disabled={loading}>
+          {loading ? 'იგზავნება...' : 'მოთხოვნის გაგზავნა'}
+        </Button>
         {message && (
           <Message type={message.type}>
             {message.text}
+            {requestCode && <Code>{requestCode}</Code>}
           </Message>
         )}
       </Card>
