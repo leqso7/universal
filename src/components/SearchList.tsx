@@ -4,31 +4,38 @@ import { Button } from '../styles';
 
 const Container = styled.div`
   display: flex;
-  flex-direction: column;
   width: 100%;
-  max-width: 800px;
+  max-width: 1600px;
   position: relative;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 15px;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  gap: 20px;
 `;
 
 const TopBar = styled.div`
+  position: fixed;
+  top: 20px;
+  left: 0;
+  right: 0;
+  padding: 0 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
-  margin-bottom: 20px;
+  z-index: 100;
+`;
+
+const SearchGroup = styled.div`
+  display: flex;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
 `;
 
 const ContentWrapper = styled.div<{ showGroups: boolean }>`
   display: flex;
   gap: 20px;
   width: 100%;
-  max-width: ${props => props.showGroups ? '1600px' : '500px'};
-  margin-top: 60px;
-  transition: max-width 0.3s ease-in-out;
+  transition: transform 0.3s ease-in-out;
 `;
 
 const MainContainer = styled.div<{ showGroups: boolean }>`
@@ -39,13 +46,7 @@ const MainContainer = styled.div<{ showGroups: boolean }>`
   padding: 20px;
   width: 500px;
   min-height: 400px;
-  transform: translateX(${props => props.showGroups ? '-10px' : '0'});
-  transition: transform 0.3s ease-in-out;
-`;
-
-const SearchGroup = styled.div`
-  display: flex;
-  gap: 10px;
+  margin-top: 80px;
 `;
 
 const SearchInput = styled.input`
@@ -113,8 +114,9 @@ const GroupsContainer = styled.div<{ isOpen: boolean }>`
   transform: translateX(${props => props.isOpen ? '0' : '100%'});
   opacity: ${props => props.isOpen ? '1' : '0'};
   transition: all 0.3s ease-in-out;
+  margin-top: 80px;
+  height: calc(100vh - 120px);
   overflow-y: auto;
-  max-height: calc(100vh - 120px);
 `;
 
 const GroupsWrapper = styled.div`
