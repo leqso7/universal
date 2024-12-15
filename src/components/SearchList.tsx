@@ -21,9 +21,20 @@ const Container = styled.div`
 `;
 
 const ContentWrapper = styled.div`
+  display: flex;
+  gap: 20px;
   width: 100%;
-  max-width: 800px;
+  max-width: 1600px;
   margin-top: 60px;
+`;
+
+const MainContainer = styled.div`
+  flex: 1;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  max-width: 800px;
 `;
 
 const SearchGroup = styled.div`
@@ -81,22 +92,40 @@ const StudentItem = styled.div`
 `;
 
 const GroupsContainer = styled.div<{ isOpen: boolean }>`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90%;
-  max-width: 1200px;
-  height: auto;
+  width: 800px;
   background: white;
-  transition: all 0.3s ease;
   padding: 20px;
-  display: ${props => props.isOpen ? 'grid' : 'none'};
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  transform: translateX(${props => props.isOpen ? '0' : '100%'});
+  opacity: ${props => props.isOpen ? '1' : '0'};
+  transition: all 0.3s ease-in-out;
+  overflow-y: auto;
+  max-height: calc(100vh - 120px);
+`;
+
+const GroupsWrapper = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+`;
+
+const GroupCard = styled.div`
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  
+  h3 {
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 18px;
+  }
+  
+  p {
+    color: #666;
+    margin: 5px 0;
+  }
 `;
 
 const CloseButton = styled.button`
@@ -111,22 +140,6 @@ const CloseButton = styled.button`
   
   &:hover {
     color: #333;
-  }
-`;
-
-const GroupCard = styled.div`
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 15px;
-  
-  h3 {
-    margin-bottom: 10px;
-    color: #333;
-  }
-  
-  p {
-    color: #666;
   }
 `;
 
@@ -190,21 +203,6 @@ const NumberButton = styled(Button)<{ active?: boolean }>`
   }
 `;
 
-const MainContainer = styled.div`
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  margin-top: 20px;
-`;
-
-const ButtonsContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 20px;
-`;
-
 const StudentList = styled.div`
   overflow-y: auto;
   max-height: 400px;
@@ -241,7 +239,7 @@ interface Class {
 }
 
 const SearchList = () => {
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchText, setSearchText] = useState('')
   const [students, setStudents] = useState<Student[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [className, setClassName] = useState('')
@@ -249,17 +247,18 @@ const SearchList = () => {
   const [showSuccess, setShowSuccess] = useState(false)
   const [message, setMessage] = useState('')
   const [showMessage, setShowMessage] = useState(false)
-  const [selectedNumber, setSelectedNumber] = useState<number | null>(null)
+  const [selectedGroupCount, setSelectedGroupCount] = useState<number | null>(null)
   const [showGroups, setShowGroups] = useState(false)
+  const [groups, setGroups] = useState<Student[][]>([])
   const [classes, setClasses] = useState<Class[]>(() => {
     const saved = localStorage.getItem('classes')
     return saved ? JSON.parse(saved) : []
   })
 
   const handleAddStudent = () => {
-    if (!searchTerm.trim()) return
+    if (!searchText.trim()) return
     
-    const matchingClass = classes.find(c => c.name === searchTerm)
+    const matchingClass = classes.find(c => c.name === searchText)
     if (matchingClass) {
       const newStudents = matchingClass.students.map(name => ({
         name,
@@ -268,11 +267,11 @@ const SearchList = () => {
       setStudents(prev => [...newStudents, ...prev])
     } else {
       setStudents(prev => [
-        { name: searchTerm.trim(), timestamp: Date.now() },
+        { name: searchText.trim(), timestamp: Date.now() },
         ...prev
       ])
     }
-    setSearchTerm('')
+    setSearchText('')
   }
 
   const handleSaveClass = () => {
@@ -308,9 +307,19 @@ const SearchList = () => {
     setTimeout(() => setShowMessage(false), 6000)
   }
 
-  const handleNumberClick = (number: number) => {
-    setSelectedNumber(number)
+  const handleGroupButtonClick = (number: number) => {
+    setSelectedGroupCount(number)
     setShowGroups(true)
+    const shuffledStudents = [...students]
+    for (let i = shuffledStudents.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledStudents[i], shuffledStudents[j]] = [shuffledStudents[j], shuffledStudents[i]];
+    }
+    const groups = []
+    for (let i = 0; i < shuffledStudents.length; i += number) {
+      groups.push(shuffledStudents.slice(i, i + number))
+    }
+    setGroups(groups)
   }
 
   return (
@@ -319,9 +328,9 @@ const SearchList = () => {
         <SearchGroup>
           <SearchInput
             type="text"
-            placeholder="მოსწავლის ძებნა..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            placeholder="მოსწავლის სახელი..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
           />
           <Button onClick={handleAddStudent}>დამატება</Button>
         </SearchGroup>
@@ -330,31 +339,46 @@ const SearchList = () => {
 
       <ContentWrapper>
         <MainContainer>
-          <ButtonsContainer>
-            <NumberButtons>
-              {[2, 3, 4, 5, 6, 7].map(number => (
-                <NumberButton
-                  key={number}
-                  active={selectedNumber === number}
-                  onClick={() => handleNumberClick(number)}
-                >
-                  {number}
-                </NumberButton>
-              ))}
-            </NumberButtons>
-            <RandomButton onClick={selectRandomStudent}>
-              შემთხვევითი მოსწავლის შერჩევა
-            </RandomButton>
-          </ButtonsContainer>
+          <NumberButtons>
+            {[2, 3, 4, 5, 6, 7].map((num) => (
+              <NumberButton
+                key={num}
+                active={selectedGroupCount === num}
+                onClick={() => handleGroupButtonClick(num)}
+              >
+                {num}
+              </NumberButton>
+            ))}
+          </NumberButtons>
+          <RandomButton onClick={selectRandomStudent}>
+            შემთხვევითი მოსწავლე
+          </RandomButton>
           
           <StudentList>
-            {students.map((student, index) => (
-              <StudentItem key={student.timestamp + index}>
+            {students.map((student) => (
+              <StudentItem key={student.timestamp}>
                 {student.name}
               </StudentItem>
             ))}
           </StudentList>
         </MainContainer>
+
+        <GroupsContainer isOpen={showGroups}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ margin: 0 }}>შექმნილი ჯგუფები</h2>
+            <CloseButton onClick={() => setShowGroups(false)}>✕</CloseButton>
+          </div>
+          <GroupsWrapper>
+            {groups.map((group, index) => (
+              <GroupCard key={index}>
+                <h3>ჯგუფი {index + 1}</h3>
+                {group.map((student, studentIndex) => (
+                  <p key={studentIndex}>{student.name}</p>
+                ))}
+              </GroupCard>
+            ))}
+          </GroupsWrapper>
+        </GroupsContainer>
       </ContentWrapper>
 
       <AddClassModal isOpen={isModalOpen}>
@@ -363,12 +387,12 @@ const SearchList = () => {
           type="text"
           placeholder="კლასის სახელი"
           value={className}
-          onChange={e => setClassName(e.target.value)}
+          onChange={(e) => setClassName(e.target.value)}
         />
         <TextArea
           placeholder="მოსწავლეების სია (თითო ხაზზე ერთი მოსწავლე)"
           value={studentList}
-          onChange={e => setStudentList(e.target.value)}
+          onChange={(e) => setStudentList(e.target.value)}
         />
         <Button onClick={handleSaveClass}>შენახვა</Button>
         <Button onClick={() => setIsModalOpen(false)} style={{ marginTop: '10px', background: '#dc3545' }}>
@@ -376,23 +400,11 @@ const SearchList = () => {
         </Button>
       </AddClassModal>
 
-      <GroupsContainer isOpen={showGroups}>
-        <CloseButton onClick={() => setShowGroups(false)}>✕</CloseButton>
-        {selectedNumber && Array.from({ length: selectedNumber }).map((_, index) => (
-          <GroupCard key={index}>
-            <h3>ჯგუფი {index + 1}</h3>
-            <p>სახელსახელი</p>
-            <p>სახელსახელი</p>
-            <p>სახელსახელი</p>
-          </GroupCard>
-        ))}
-      </GroupsContainer>
-
       <Message isVisible={showMessage}>
         {message}
       </Message>
     </Container>
-  )
-}
+  );
+};
 
 export default SearchList
