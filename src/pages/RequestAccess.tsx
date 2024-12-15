@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react'
 import styled from 'styled-components'
+import { createClient } from '@supabase/supabase-js'
+
+// Initialize Supabase client
+const supabase = createClient(
+  'https://loyzwjzsjnikmnuqilmv.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxveXp3anpzam5pa21udXFpbG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDI2NTY2ODgsImV4cCI6MjAxODIzMjY4OH0.XkKZyNtS9p6g6qsVgEGGhqrGz_jxXD0qKAGBRtB5PFM'
+)
 
 const Container = styled.div`
   min-height: 100vh;
@@ -74,35 +81,60 @@ const Code = styled.span`
 const RequestAccess = () => {
   const [loading, setLoading] = useState(false)
   const [requestCode, setRequestCode] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const generateCode = () => {
     return Math.floor(10000 + Math.random() * 90000).toString()
   }
 
-  const handleRequest = () => {
+  const handleRequest = async () => {
     setLoading(true)
+    setError(null)
     
-    // გენერირებული კოდის ლოკალურ storage-ში შენახვა
-    const code = generateCode()
-    localStorage.setItem('requestCode', code)
-    
-    setTimeout(() => {
+    try {
+      const code = generateCode()
+      
+      // Insert into Supabase
+      const { error } = await supabase
+        .from('access_requests')
+        .insert([
+          {
+            code: code,
+            status: 'pending',
+            created_at: new Date().toISOString()
+          }
+        ])
+
+      if (error) throw error
+
       setRequestCode(code)
+    } catch (err) {
+      console.error('Error:', err)
+      setError('მოთხოვნის გაგზავნა ვერ მოხერხდა. გთხოვთ სცადოთ თავიდან.')
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
 
-  const checkAccess = () => {
-    const code = localStorage.getItem('requestCode')
-    return code === requestCode
-  }
-
-  // თუ კოდი უკვე გენერირებულია, შევამოწმოთ ყოველ 5 წამში
+  // Check request status every 5 seconds
   useEffect(() => {
     if (requestCode) {
-      const interval = setInterval(() => {
-        if (checkAccess()) {
-          window.location.href = '/class-manager/app'
+      const interval = setInterval(async () => {
+        try {
+          const { data, error } = await supabase
+            .from('access_requests')
+            .select('status')
+            .eq('code', requestCode)
+            .single()
+
+          if (error) throw error
+
+          if (data?.status === 'approved') {
+            clearInterval(interval)
+            window.location.href = '/class-manager/app'
+          }
+        } catch (err) {
+          console.error('Error checking status:', err)
         }
       }, 5000)
 
@@ -117,6 +149,11 @@ const RequestAccess = () => {
         <Button onClick={handleRequest} disabled={loading || !!requestCode}>
           {loading ? 'იგზავნება...' : 'მოთხოვნის გაგზავნა'}
         </Button>
+        {error && (
+          <Message type="error">
+            {error}
+          </Message>
+        )}
         {requestCode && (
           <Message type="success">
             მოთხოვნა წარმატებით გაიგზავნა!
