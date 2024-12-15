@@ -1,25 +1,31 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import styled from 'styled-components'
 
 const Container = styled.div`
   width: 100%;
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  position: relative;
 `;
 
 const SearchContainer = styled.div`
   display: flex;
-  gap: 10px;
+  justify-content: space-between;
   margin-bottom: 20px;
 `;
 
+const SearchGroup = styled.div`
+  display: flex;
+  gap: 10px;
+`;
+
 const SearchInput = styled.input`
-  flex: 1;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 16px;
+  width: 250px;
   
   &:focus {
     outline: none;
@@ -46,7 +52,26 @@ const StudentList = styled.div`
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  overflow-y: auto;
+  max-height: 400px;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+    
+    &:hover {
+      background: #555;
+    }
+  }
 `;
 
 const StudentItem = styled.div`
@@ -70,6 +95,7 @@ const AddClassModal = styled.div<{ isOpen: boolean }>`
   transition: right 0.3s ease;
   display: flex;
   flex-direction: column;
+  z-index: 1000;
 `;
 
 const TextArea = styled.textarea`
@@ -97,6 +123,7 @@ const SuccessMessage = styled.div`
   border-radius: 5px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   animation: slideIn 0.3s ease, slideOut 0.3s ease 2.7s forwards;
+  z-index: 1000;
   
   @keyframes slideIn {
     from { transform: translateX(100%); }
@@ -134,10 +161,19 @@ const SearchList = () => {
   const handleAddStudent = () => {
     if (!searchTerm.trim()) return
     
-    setStudents(prev => [
-      { name: searchTerm.trim(), timestamp: Date.now() },
-      ...prev
-    ])
+    const matchingClass = classes.find(c => c.name === searchTerm)
+    if (matchingClass) {
+      const newStudents = matchingClass.students.map(name => ({
+        name,
+        timestamp: Date.now()
+      }))
+      setStudents(prev => [...newStudents, ...prev])
+    } else {
+      setStudents(prev => [
+        { name: searchTerm.trim(), timestamp: Date.now() },
+        ...prev
+      ])
+    }
     setSearchTerm('')
   }
 
@@ -162,30 +198,23 @@ const SearchList = () => {
     setTimeout(() => setShowSuccess(false), 3000)
   }
 
-  const displayedStudents = searchTerm
-    ? classes
-        .find(c => c.name === searchTerm)
-        ?.students.map(name => ({ name, timestamp: Date.now() })) || 
-      students.filter(student => 
-        student.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : students
-
   return (
     <Container>
       <SearchContainer>
-        <SearchInput
-          type="text"
-          placeholder="მოსწავლის ძებნა..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-        />
-        <Button onClick={handleAddStudent}>დამატება</Button>
+        <SearchGroup>
+          <SearchInput
+            type="text"
+            placeholder="მოსწავლის ძებნა..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
+          <Button onClick={handleAddStudent}>დამატება</Button>
+        </SearchGroup>
         <Button onClick={() => setIsModalOpen(true)}>კლასის დამატება</Button>
       </SearchContainer>
 
       <StudentList>
-        {displayedStudents.map((student, index) => (
+        {students.map((student, index) => (
           <StudentItem key={student.timestamp + index}>
             {student.name}
           </StudentItem>
