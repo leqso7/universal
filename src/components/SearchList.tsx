@@ -37,7 +37,7 @@ const SearchGroup = styled.div`
 const MainContainer = styled.div`
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   gap: 20px;
   padding: 20px;
@@ -51,6 +51,8 @@ const SearchContainer = styled.div`
   flex-direction: column;
   gap: 10px;
   width: 450px;
+  max-height: 80vh;
+  margin-top: -10vh;
   background: white;
   padding: 20px;
   border-radius: 15px;
@@ -59,9 +61,29 @@ const SearchContainer = styled.div`
 
 const StudentList = styled.div`
   flex: 1;
+  max-height: 400px;
   overflow-y: auto;
   border-top: 1px solid #eee;
   padding-top: 20px;
+  margin-bottom: 20px;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
 `;
 
 const ButtonContainer = styled.div`
@@ -123,7 +145,7 @@ const StudentItem = styled.div`
 
 const GroupsContainer = styled.div<{ isOpen: boolean; isExpanded?: boolean }>`
   width: ${props => props.isExpanded ? '100vw' : '450px'};
-  height: ${props => props.isExpanded ? '100vh' : '550px'};
+  height: ${props => props.isExpanded ? '100vh' : '80vh'};
   background: white;
   padding: 20px;
   border-radius: ${props => props.isExpanded ? '0' : '15px'};
@@ -136,10 +158,28 @@ const GroupsContainer = styled.div<{ isOpen: boolean; isExpanded?: boolean }>`
   transition: all 0.3s ease-in-out;
   opacity: ${props => props.isOpen ? '1' : '0'};
   transform: ${props => props.isOpen 
-    ? 'translateX(0)' 
+    ? 'translateX(0) translateY(-10vh)' 
     : 'translateX(100%)'
   };
   visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
 `;
 
 const GroupsWrapper = styled.div<{ isExpanded?: boolean }>`
