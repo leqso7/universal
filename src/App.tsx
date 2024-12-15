@@ -72,7 +72,6 @@ function App() {
     const savedStatus = localStorage.getItem('approvalStatus');
     setHasAccess(savedStatus === 'approved');
 
-    // Check if we're on the app route and redirect if no access
     if (location.pathname.includes('/app') && savedStatus !== 'approved') {
       window.location.href = '/class-manager-./request';
     }
