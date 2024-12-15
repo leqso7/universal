@@ -73,10 +73,30 @@ const GroupsContainer = styled.div<{ isOpen: boolean; isExpanded?: boolean }>`
   transform: translateX(${props => props.isOpen ? '0' : '100%'});
 `;
 
+const GroupsWrapper = styled.div<{ isExpanded?: boolean }>`
+  display: grid;
+  grid-template-columns: ${props => props.isExpanded ? 'repeat(auto-fill, minmax(300px, 1fr))' : '1fr'};
+  gap: ${props => props.isExpanded ? '20px' : '10px'};
+  padding: ${props => props.isExpanded ? '20px' : '0'};
+`;
+
+const GroupCard = styled.div<{ isExpanded?: boolean }>`
+  background: #f5f5f5;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  font-size: ${props => props.isExpanded ? '1.2em' : '1em'};
+
+  h3 {
+    margin: 0 0 10px 0;
+    font-size: ${props => props.isExpanded ? '1.5em' : '1.2em'};
+  }
+`;
+
 const ExpandButton = styled.button`
   position: absolute;
   top: 10px;
-  right: 10px;
+  right: 50px;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -86,6 +106,22 @@ const ExpandButton = styled.button`
   
   &:hover {
     color: #666;
+  }
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.3s;
+  
+  &:hover {
+    color: #333;
   }
 `;
 
@@ -108,49 +144,6 @@ const NumberButtons = styled.div`
   justify-content: center;
   flex-wrap: wrap;
   margin-bottom: 10px;
-`;
-
-const GroupsWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  padding-top: 20px;
-  height: calc(100% - 40px);
-  overflow-y: auto;
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #666;
-  transition: color 0.3s;
-  
-  &:hover {
-    color: #333;
-  }
-`;
-
-const GroupCard = styled.div`
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-
-  h3 {
-    margin: 0 0 10px 0;
-    color: #333;
-    font-size: 1.1em;
-  }
-
-  p {
-    margin: 5px 0;
-    color: #666;
-  }
 `;
 
 const SearchInput = styled.input`
@@ -383,9 +376,9 @@ const SearchList: React.FC = () => {
           <ExpandButton onClick={() => setIsExpanded(!isExpanded)}>
             {isExpanded ? '✖' : '⛶'}
           </ExpandButton>
-          <GroupsWrapper>
+          <GroupsWrapper isExpanded={isExpanded}>
             {groups.map((group, index) => (
-              <GroupCard key={index}>
+              <GroupCard key={index} isExpanded={isExpanded}>
                 <h3>ჯგუფი {index + 1}</h3>
                 {group.map((student, studentIndex) => (
                   <p key={studentIndex}>{student.name}</p>
