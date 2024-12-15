@@ -102,11 +102,11 @@ const StudentItem = styled.div`
 `;
 
 const GroupsContainer = styled.div<{ isOpen: boolean }>`
-  position: fixed;
+  position: absolute;
   top: 0;
   right: ${props => props.isOpen ? '0' : '-100%'};
   width: 100%;
-  height: 100vh;
+  height: 100%;
   background: white;
   transition: right 0.3s ease;
   padding: 20px;
@@ -114,6 +114,8 @@ const GroupsContainer = styled.div<{ isOpen: boolean }>`
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   overflow-y: auto;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 `;
 
 const GroupCard = styled.div`
