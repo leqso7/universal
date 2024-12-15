@@ -164,112 +164,86 @@ interface Class {
 }
 
 const SearchList: React.FC = () => {
-  const [searchText, setSearchText] = useState('')
-  const [students, setStudents] = useState<Student[]>([])
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [className, setClassName] = useState('')
-  const [studentList, setStudentList] = useState('')
-  const [showSuccess, setShowSuccess] = useState(false)
-  const [message, setMessage] = useState('')
-  const [showMessage, setShowMessage] = useState(false)
-  const [selectedGroupCount, setSelectedGroupCount] = useState<number | null>(null)
-  const [showGroups, setShowGroups] = useState(false)
-  const [groups, setGroups] = useState<Student[][]>([])
+  const [searchText, setSearchText] = useState('');
+  const [students, setStudents] = useState<Student[]>([]);
+  const [groupSize, setGroupSize] = useState(2);
+  const [groups, setGroups] = useState<Student[][]>([]);
+  const [showGroups, setShowGroups] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [className, setClassName] = useState('');
+  const [studentList, setStudentList] = useState('');
   const [classes, setClasses] = useState<Class[]>(() => {
-    const saved = localStorage.getItem('classes')
-    return saved ? JSON.parse(saved) : []
-  })
+    const savedClasses = localStorage.getItem('classes');
+    return savedClasses ? JSON.parse(savedClasses) : [];
+  });
 
   const handleAddStudent = () => {
-    if (!searchText.trim()) return
+    if (!searchText.trim()) return;
     
-    const matchingClass = classes.find(c => c.name === searchText)
+    const matchingClass = classes.find(c => c.name === searchText);
     if (matchingClass) {
       const newStudents = matchingClass.students.map(name => ({
-        id: Date.now(),
+        id: Date.now() + Math.random(),
         name,
         timestamp: Date.now()
-      }))
-      setStudents(prev => [...newStudents, ...prev])
+      }));
+      setStudents(prev => [...newStudents, ...prev]);
     } else {
       setStudents(prev => [
-        { id: Date.now(), name: searchText.trim(), timestamp: Date.now() },
+        { id: Date.now() + Math.random(), name: searchText.trim(), timestamp: Date.now() },
         ...prev
-      ])
+      ]);
     }
-    setSearchText('')
-  }
-
-  const handleSaveClass = () => {
-    if (!className.trim() || !studentList.trim()) return
-    
-    const newClass: Class = {
-      name: className.trim(),
-      students: studentList.split('\n').filter(s => s.trim())
-    }
-    
-    setClasses(prev => {
-      const updated = [...prev, newClass]
-      localStorage.setItem('classes', JSON.stringify(updated))
-      return updated
-    })
-    
-    setClassName('')
-    setStudentList('')
-    setIsModalOpen(false)
-    setMessage('კლასი წარმატებით დაემატა!')
-    setShowMessage(true)
-    setTimeout(() => setShowMessage(false), 6000)
-  }
+    setSearchText('');
+  };
 
   const selectRandomStudent = () => {
-    if (students.length === 0) return
+    if (students.length === 0) return;
     
-    const randomIndex = Math.floor(Math.random() * students.length)
-    const student = students[randomIndex]
+    const randomIndex = Math.floor(Math.random() * students.length);
+    const selectedStudent = students[randomIndex];
     
-    setMessage(`შერჩეულია: ${student.name}`)
-    setShowMessage(true)
-    setTimeout(() => setShowMessage(false), 6000)
-  }
+    alert(`შერჩეულია: ${selectedStudent.name}`);
+  };
 
-  const handleGroupButtonClick = (number: number) => {
-    setSelectedGroupCount(number)
-    setShowGroups(true)
-    const shuffledStudents = [...students]
-    for (let i = shuffledStudents.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledStudents[i], shuffledStudents[j]] = [shuffledStudents[j], shuffledStudents[i]];
-    }
-    const groups = []
-    for (let i = 0; i < shuffledStudents.length; i += number) {
-      groups.push(shuffledStudents.slice(i, i + number))
-    }
-    setGroups(groups)
-  }
+  const createGroups = () => {
+    if (students.length === 0) return;
+    
+    const shuffledStudents = [...students].sort(() => Math.random() - 0.5);
+    const numberOfGroups = Math.ceil(students.length / groupSize);
+    const groups: Student[][] = Array.from({ length: numberOfGroups }, () => []);
+    
+    shuffledStudents.forEach((student, index) => {
+      const groupIndex = index % numberOfGroups;
+      groups[groupIndex].push(student);
+    });
+    
+    setGroups(groups);
+    setShowGroups(true);
+  };
 
   const handleDeleteStudent = (id: number) => {
-    setStudents(prev => prev.filter(student => student.id !== id))
-  }
+    setStudents(prev => prev.filter(student => student.id !== id));
+  };
 
   const handleAddClass = () => {
-    if (!className.trim() || !studentList.trim()) return
+    if (!className.trim()) return;
     
     const newClass: Class = {
       name: className.trim(),
       students: studentList.split('\n').filter(s => s.trim())
-    }
+    };
     
     setClasses(prev => {
-      const updated = [...prev, newClass]
-      localStorage.setItem('classes', JSON.stringify(updated))
-      return updated
-    })
+      const updated = [...prev, newClass];
+      localStorage.setItem('classes', JSON.stringify(updated));
+      return updated;
+    });
     
-    setClassName('')
-    setStudentList('')
-    setIsModalOpen(false)
-  }
+    setClassName('');
+    setStudentList('');
+    setIsModalOpen(false);
+  };
 
   return (
     <Container>
@@ -294,8 +268,8 @@ const SearchList: React.FC = () => {
               {[2, 3, 4, 5, 6, 7].map((num) => (
                 <NumberButton
                   key={num}
-                  active={selectedGroupCount === num}
-                  onClick={() => handleGroupButtonClick(num)}
+                  active={groupSize === num}
+                  onClick={() => setGroupSize(num)}
                 >
                   {num}
                 </NumberButton>
@@ -304,6 +278,7 @@ const SearchList: React.FC = () => {
             <RandomButton onClick={selectRandomStudent}>
               შემთხვევითი მოსწავლე
             </RandomButton>
+            <Button onClick={createGroups}>ჯგუფების შექმნა</Button>
           </ButtonContainer>
           <StudentList>
             {students.map((student) => (
@@ -317,7 +292,7 @@ const SearchList: React.FC = () => {
           </StudentList>
         </MainContainer>
 
-        <GroupsContainer>
+        <GroupsContainer showGroups={showGroups}>
           {groups.map((group, index) => (
             <div key={index}>
               <h3>ჯგუფი {index + 1}</h3>
@@ -340,10 +315,11 @@ const SearchList: React.FC = () => {
               onChange={(e) => setClassName(e.target.value)}
             />
             <Input
-              type="text"
+              as="textarea"
               placeholder="მოსწავლეების სია (თითო ხაზზე ერთი მოსწავლე)"
               value={studentList}
               onChange={(e) => setStudentList(e.target.value)}
+              style={{ height: '150px', resize: 'vertical' }}
             />
             <ButtonGroup>
               <Button onClick={() => setIsModalOpen(false)}>გაუქმება</Button>
@@ -356,4 +332,4 @@ const SearchList: React.FC = () => {
   );
 };
 
-export default SearchList
+export default SearchList;
