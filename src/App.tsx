@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { createGlobalStyle } from 'styled-components'
 import RequestAccess from './pages/RequestAccess'
 import SearchList from './components/SearchList'
@@ -88,7 +88,7 @@ function App() {
   }
 
   return (
-    <Router basename="/class-manager-.">
+    <>
       <GlobalStyle />
       <Routes>
         <Route
@@ -116,7 +116,7 @@ function App() {
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </Router>
+    </>
   );
 }
 
