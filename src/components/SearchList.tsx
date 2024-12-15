@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import styled from 'styled-components'
+import FacebookButton from './FacebookButton';
 
 const TopBar = styled.div`
   position: fixed;
@@ -232,6 +233,12 @@ const StudentList = styled.div`
   }
 `;
 
+const ButtonContainer = styled.div`
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+`;
+
 interface Student {
   name: string;
   timestamp: number;
@@ -242,7 +249,7 @@ interface Class {
   students: string[];
 }
 
-const SearchList = () => {
+const SearchList: React.FC = () => {
   const [searchText, setSearchText] = useState('')
   const [students, setStudents] = useState<Student[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -343,21 +350,23 @@ const SearchList = () => {
 
       <ContentWrapper showGroups={showGroups}>
         <MainContainer showGroups={showGroups}>
-          <NumberButtons>
-            {[2, 3, 4, 5, 6, 7].map((num) => (
-              <NumberButton
-                key={num}
-                active={selectedGroupCount === num}
-                onClick={() => handleGroupButtonClick(num)}
-              >
-                {num}
-              </NumberButton>
-            ))}
-          </NumberButtons>
-          <RandomButton onClick={selectRandomStudent}>
-            შემთხვევითი მოსწავლე
-          </RandomButton>
-          
+          <ButtonContainer>
+            <FacebookButton />
+            <NumberButtons>
+              {[2, 3, 4, 5, 6, 7].map((num) => (
+                <NumberButton
+                  key={num}
+                  active={selectedGroupCount === num}
+                  onClick={() => handleGroupButtonClick(num)}
+                >
+                  {num}
+                </NumberButton>
+              ))}
+            </NumberButtons>
+            <RandomButton onClick={selectRandomStudent}>
+              შემთხვევითი მოსწავლე
+            </RandomButton>
+          </ButtonContainer>
           <StudentList>
             {students.map((student) => (
               <StudentItem key={student.timestamp}>
