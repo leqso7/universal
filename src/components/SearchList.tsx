@@ -24,7 +24,7 @@ const ContentWrapper = styled.div<{ showGroups: boolean }>`
   display: flex;
   gap: 20px;
   width: 100%;
-  max-width: ${props => props.showGroups ? '1600px' : '800px'};
+  max-width: ${props => props.showGroups ? '1600px' : '500px'};
   margin-top: 60px;
   transition: max-width 0.3s ease-in-out;
 `;
@@ -35,7 +35,8 @@ const MainContainer = styled.div<{ showGroups: boolean }>`
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
-  max-width: 800px;
+  width: 500px;
+  min-height: 400px;
   transform: translateX(${props => props.showGroups ? '-10px' : '0'});
   transition: transform 0.3s ease-in-out;
 `;

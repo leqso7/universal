@@ -4,6 +4,7 @@ import RequestAccess from './pages/RequestAccess'
 import SearchList from './components/SearchList'
 import InstallPWA from './components/InstallPWA'
 import styled from 'styled-components'
+import { useState } from 'react'
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -61,13 +62,27 @@ const NavButton = styled.button`
 `;
 
 const MainApp = () => {
+  const [hasAccess, setHasAccess] = useState(() => {
+    const savedAccess = localStorage.getItem('hasAccess');
+    return savedAccess === 'true';
+  });
+
+  const handleAccessGranted = () => {
+    setHasAccess(true);
+    localStorage.setItem('hasAccess', 'true');
+  };
+
+  if (!hasAccess) {
+    return <RequestAccess onAccessGranted={handleAccessGranted} />;
+  }
+
   return (
     <AppContainer>
       <SearchList />
       <InstallPWA />
     </AppContainer>
-  )
-}
+  );
+};
 
 function App() {
   return (

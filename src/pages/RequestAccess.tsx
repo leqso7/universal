@@ -8,6 +8,10 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 )
 
+interface RequestAccessProps {
+  onAccessGranted: () => void;
+}
+
 const Container = styled.div`
   min-height: 100vh;
   width: 100vw;
@@ -82,7 +86,7 @@ const Code = styled.span`
   letter-spacing: 2px;
 `;
 
-const RequestAccess = () => {
+const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
   const [loading, setLoading] = useState(false)
   const [requestCode, setRequestCode] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -135,7 +139,7 @@ const RequestAccess = () => {
 
           if (data?.status === 'approved') {
             clearInterval(interval)
-            window.location.href = '/class-manager/app'
+            onAccessGranted()
           }
         } catch (err) {
           console.error('Error checking status:', err)
@@ -144,7 +148,7 @@ const RequestAccess = () => {
 
       return () => clearInterval(interval)
     }
-  }, [requestCode])
+  }, [requestCode, onAccessGranted])
 
   return (
     <Container>
