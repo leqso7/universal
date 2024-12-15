@@ -72,6 +72,15 @@ function App() {
     setHasAccess(savedStatus === 'approved');
   }, []);
 
+  useEffect(() => {
+    const isApproved = localStorage.getItem('isApproved') === 'true';
+    const currentPath = window.location.pathname;
+    
+    if (!isApproved && currentPath.endsWith('/app')) {
+      window.location.href = '/class-manager-./request';
+    }
+  }, []);
+
   const handleAccessGranted = () => {
     setHasAccess(true);
     localStorage.setItem('approvalStatus', 'approved');

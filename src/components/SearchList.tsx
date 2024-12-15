@@ -5,14 +5,12 @@ import { Button } from '../styles';
 const Container = styled.div`
   display: flex;
   width: 100%;
-  max-width: 1600px;
+  height: 100vh;
   position: relative;
   gap: 20px;
   justify-content: center;
+  align-items: center;
   margin: 0 auto;
-  min-height: 100vh;
-  align-items: flex-start;
-  padding-top: 80px;
 `;
 
 const TopBar = styled.div`
@@ -38,29 +36,29 @@ const SearchGroup = styled.div`
 
 const MainContainer = styled.div<{ showGroups: boolean; hasStudents: boolean }>`
   position: relative;
-  flex: 0 0 ${props => props.hasStudents ? '400px' : '500px'};
+  width: 450px;
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
-  height: ${props => props.hasStudents ? 'auto' : '500px'};
-  min-height: ${props => props.hasStudents ? '500px' : 'auto'};
-  max-height: calc(100vh - 120px);
+  height: 550px;
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease-in-out;
+  transform: translateX(${props => props.showGroups ? '-235px' : '0'});
 `;
 
 const ContentWrapper = styled.div<{ showGroups: boolean }>`
   display: flex;
   gap: 20px;
-  width: 100%;
   transition: all 0.3s ease-in-out;
   justify-content: center;
+  position: relative;
 `;
 
 const GroupsContainer = styled.div<{ isOpen: boolean }>`
-  width: 400px;
+  width: 450px;
+  height: 550px;
   background: white;
   padding: 20px;
   border-radius: 10px;
@@ -68,25 +66,9 @@ const GroupsContainer = styled.div<{ isOpen: boolean }>`
   transform: translateX(${props => props.isOpen ? '0' : '100%'});
   opacity: ${props => props.isOpen ? '1' : '0'};
   transition: all 0.3s ease-in-out;
-  height: 500px;
   overflow-y: auto;
-  position: relative;
-`;
-
-const CloseButton = styled.button`
   position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #666;
-  transition: color 0.3s;
-  
-  &:hover {
-    color: #333;
-  }
+  right: -235px;
 `;
 
 const StudentList = styled.div`
@@ -115,6 +97,24 @@ const GroupsWrapper = styled.div`
   flex-direction: column;
   gap: 15px;
   padding-top: 20px;
+  height: calc(100% - 40px);
+  overflow-y: auto;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.3s;
+  
+  &:hover {
+    color: #333;
+  }
 `;
 
 const GroupCard = styled.div`
