@@ -56,19 +56,37 @@ const ContentWrapper = styled.div<{ showGroups: boolean }>`
   position: relative;
 `;
 
-const GroupsContainer = styled.div<{ isOpen: boolean }>`
-  width: 450px;
-  height: 550px;
+const GroupsContainer = styled.div<{ isOpen: boolean; isExpanded?: boolean }>`
+  width: ${props => props.isExpanded ? '100vw' : '450px'};
+  height: ${props => props.isExpanded ? '100vh' : '550px'};
   background: white;
   padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transform: translateX(${props => props.isOpen ? '0' : '100%'});
-  opacity: ${props => props.isOpen ? '1' : '0'};
-  transition: all 0.3s ease-in-out;
+  border-radius: ${props => props.isExpanded ? '0' : '15px'};
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
+  position: ${props => props.isExpanded ? 'fixed' : 'absolute'};
+  top: ${props => props.isExpanded ? '0' : 'auto'};
+  left: ${props => props.isExpanded ? '0' : '-235px'};
+  z-index: ${props => props.isExpanded ? '1000' : '1'};
+  transition: all 0.3s ease-in-out;
+  opacity: ${props => props.isOpen ? '1' : '0'};
+  transform: translateX(${props => props.isOpen ? '0' : '100%'});
+`;
+
+const ExpandButton = styled.button`
   position: absolute;
-  right: -235px;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: #333;
+  z-index: 1001;
+  
+  &:hover {
+    color: #666;
+  }
 `;
 
 const StudentList = styled.div`
@@ -248,6 +266,7 @@ const SearchList: React.FC = () => {
     const saved = localStorage.getItem('classes');
     return saved ? JSON.parse(saved) : [];
   });
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleAddStudent = () => {
     if (!searchText.trim()) return;
@@ -359,8 +378,11 @@ const SearchList: React.FC = () => {
           </ButtonContainer>
         </MainContainer>
 
-        <GroupsContainer isOpen={showGroups}>
+        <GroupsContainer isOpen={showGroups} isExpanded={isExpanded}>
           <CloseButton onClick={() => setShowGroups(false)}>✕</CloseButton>
+          <ExpandButton onClick={() => setIsExpanded(!isExpanded)}>
+            {isExpanded ? '✖' : '⛶'}
+          </ExpandButton>
           <GroupsWrapper>
             {groups.map((group, index) => (
               <GroupCard key={index}>
