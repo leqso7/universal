@@ -64,92 +64,63 @@ const Message = styled.div<{ type: 'success' | 'error' }>`
 
 const Code = styled.span`
   font-weight: bold;
-  font-size: 24px;
+  font-size: 32px;
   color: #4285f4;
   display: block;
-  margin-top: 10px;
+  margin-top: 15px;
+  letter-spacing: 2px;
 `;
 
 const RequestAccess = () => {
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
   const [requestCode, setRequestCode] = useState<string | null>(null)
 
-  const handleRequest = async () => {
-    setLoading(true)
-    setMessage(null)
-
-    try {
-      const response = await fetch('https://class-manager-backend.onrender.com/api/requests/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),
-      })
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok')
-      }
-
-      const data = await response.json()
-      
-      if (data.success) {
-        setRequestCode(data.requestCode)
-        setMessage({
-          text: 'მოთხოვნა წარმატებით გაიგზავნა!',
-          type: 'success'
-        })
-        
-        // Start polling for status
-        startStatusPolling(data.requestCode)
-      } else {
-        throw new Error(data.error || 'Failed to create request')
-      }
-    } catch (error) {
-      console.error('Error:', error)
-      setMessage({
-        text: 'მოთხოვნის გაგზავნა ვერ მოხერხდა. გთხოვთ სცადოთ თავიდან.',
-        type: 'error'
-      })
-    } finally {
-      setLoading(false)
-    }
+  const generateCode = () => {
+    return Math.floor(10000 + Math.random() * 90000).toString()
   }
 
-  const startStatusPolling = (code: string) => {
-    const pollInterval = setInterval(async () => {
-      try {
-        const response = await fetch(`https://class-manager-backend.onrender.com/api/requests/status/${code}`)
-        const data = await response.json()
+  const handleRequest = () => {
+    setLoading(true)
+    
+    // გენერირებული კოდის ლოკალურ storage-ში შენახვა
+    const code = generateCode()
+    localStorage.setItem('requestCode', code)
+    
+    setTimeout(() => {
+      setRequestCode(code)
+      setLoading(false)
+    }, 1000)
+  }
 
-        if (data.success && data.status === 'approved') {
-          clearInterval(pollInterval)
+  const checkAccess = () => {
+    const code = localStorage.getItem('requestCode')
+    return code === requestCode
+  }
+
+  // თუ კოდი უკვე გენერირებულია, შევამოწმოთ ყოველ 5 წამში
+  useEffect(() => {
+    if (requestCode) {
+      const interval = setInterval(() => {
+        if (checkAccess()) {
           window.location.href = '/class-manager/app'
         }
-      } catch (error) {
-        console.error('Error polling status:', error)
-      }
-    }, 5000)
+      }, 5000)
 
-    return () => clearInterval(pollInterval)
-  }
-
-  useEffect(() => {
-    return () => clearInterval(pollInterval)
-  }, [])
+      return () => clearInterval(interval)
+    }
+  }, [requestCode])
 
   return (
     <Container>
       <Card>
         <Title>მოთხოვნის გაგზავნა</Title>
-        <Button onClick={handleRequest} disabled={loading}>
+        <Button onClick={handleRequest} disabled={loading || !!requestCode}>
           {loading ? 'იგზავნება...' : 'მოთხოვნის გაგზავნა'}
         </Button>
-        {message && (
-          <Message type={message.type}>
-            {message.text}
-            {requestCode && <Code>{requestCode}</Code>}
+        {requestCode && (
+          <Message type="success">
+            მოთხოვნა წარმატებით გაიგზავნა!
+            <Code>{requestCode}</Code>
           </Message>
         )}
       </Card>
