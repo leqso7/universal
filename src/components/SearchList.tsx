@@ -20,21 +20,24 @@ const Container = styled.div`
   position: relative;
 `;
 
-const ContentWrapper = styled.div`
+const ContentWrapper = styled.div<{ showGroups: boolean }>`
   display: flex;
   gap: 20px;
   width: 100%;
-  max-width: 1600px;
+  max-width: ${props => props.showGroups ? '1600px' : '800px'};
   margin-top: 60px;
+  transition: max-width 0.3s ease-in-out;
 `;
 
-const MainContainer = styled.div`
+const MainContainer = styled.div<{ showGroups: boolean }>`
   flex: 1;
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
   max-width: 800px;
+  transform: translateX(${props => props.showGroups ? '-10px' : '0'});
+  transition: transform 0.3s ease-in-out;
 `;
 
 const SearchGroup = styled.div`
@@ -337,8 +340,8 @@ const SearchList = () => {
         <Button onClick={() => setIsModalOpen(true)}>კლასის დამატება</Button>
       </TopBar>
 
-      <ContentWrapper>
-        <MainContainer>
+      <ContentWrapper showGroups={showGroups}>
+        <MainContainer showGroups={showGroups}>
           <NumberButtons>
             {[2, 3, 4, 5, 6, 7].map((num) => (
               <NumberButton
