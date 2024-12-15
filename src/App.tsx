@@ -1,3 +1,5 @@
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import RequestAccess from './pages/RequestAccess'
 import SearchList from './components/SearchList'
 import InstallPWA from './components/InstallPWA'
 import styled from 'styled-components'
@@ -34,7 +36,7 @@ const NavButton = styled.button`
   }
 `;
 
-function App() {
+const MainApp = () => {
   return (
     <AppContainer>
       <NavigationBar>
@@ -45,6 +47,18 @@ function App() {
       <SearchList />
       <InstallPWA />
     </AppContainer>
+  )
+}
+
+function App() {
+  return (
+    <Router basename="/class-manager">
+      <Routes>
+        <Route path="/" element={<RequestAccess />} />
+        <Route path="/app" element={<MainApp />} />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </Router>
   )
 }
 
