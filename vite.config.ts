@@ -17,6 +17,7 @@ export default defineConfig({
         short_name: 'Class Manager',
         description: 'A simple class management application',
         theme_color: '#ffffff',
+        start_url: '/class-manager-/',
         icons: [
           {
             src: 'vite.svg',
