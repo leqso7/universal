@@ -165,22 +165,21 @@ const SearchList = () => {
   const displayedStudents = searchTerm
     ? classes
         .find(c => c.name === searchTerm)
-        ?.students.map(name => ({ name, timestamp: Date.now() })) || students
+        ?.students.map(name => ({ name, timestamp: Date.now() })) || 
+      students.filter(student => 
+        student.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
     : students
-
-  const showSearchBar = students.length >= 5
 
   return (
     <Container>
       <SearchContainer>
-        {showSearchBar && (
-          <SearchInput
-            type="text"
-            placeholder="მოსწავლის ძებნა..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-          />
-        )}
+        <SearchInput
+          type="text"
+          placeholder="მოსწავლის ძებნა..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+        />
         <Button onClick={handleAddStudent}>დამატება</Button>
         <Button onClick={() => setIsModalOpen(true)}>კლასის დამატება</Button>
       </SearchContainer>
