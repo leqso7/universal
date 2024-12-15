@@ -4,18 +4,18 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/class/',
+  base: '/class-manager/',
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'Class Application',
-        short_name: 'Class App',
+        name: 'Class Manager',
+        short_name: 'Class Manager',
         description: 'Class Management Application',
         theme_color: '#ffffff',
-        start_url: '/class/',
+        start_url: '/class-manager/',
         icons: [
           {
             src: 'pwa-192x192.png',
