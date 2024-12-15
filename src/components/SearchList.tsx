@@ -13,11 +13,17 @@ const TopBar = styled.div`
 `;
 
 const Container = styled.div`
+  display: flex;
+  justify-content: center;
   width: 100%;
-  max-width: 800px;
-  margin: 80px auto 0;
   padding: 20px;
   position: relative;
+`;
+
+const ContentWrapper = styled.div`
+  width: 100%;
+  max-width: 800px;
+  margin-top: 60px;
 `;
 
 const SearchGroup = styled.div`
@@ -75,20 +81,37 @@ const StudentItem = styled.div`
 `;
 
 const GroupsContainer = styled.div<{ isOpen: boolean }>`
-  position: absolute;
-  top: 0;
-  right: ${props => props.isOpen ? '0' : '-100%'};
-  width: 100%;
-  height: 100%;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 1200px;
+  height: auto;
   background: white;
-  transition: right 0.3s ease;
+  transition: all 0.3s ease;
   padding: 20px;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: ${props => props.isOpen ? 'grid' : 'none'};
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
-  overflow-y: auto;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+  
+  &:hover {
+    color: #333;
+  }
 `;
 
 const GroupCard = styled.div`
@@ -305,32 +328,34 @@ const SearchList = () => {
         <Button onClick={() => setIsModalOpen(true)}>კლასის დამატება</Button>
       </TopBar>
 
-      <MainContainer>
-        <ButtonsContainer>
-          <NumberButtons>
-            {[2, 3, 4, 5, 6, 7].map(number => (
-              <NumberButton
-                key={number}
-                active={selectedNumber === number}
-                onClick={() => handleNumberClick(number)}
-              >
-                {number}
-              </NumberButton>
+      <ContentWrapper>
+        <MainContainer>
+          <ButtonsContainer>
+            <NumberButtons>
+              {[2, 3, 4, 5, 6, 7].map(number => (
+                <NumberButton
+                  key={number}
+                  active={selectedNumber === number}
+                  onClick={() => handleNumberClick(number)}
+                >
+                  {number}
+                </NumberButton>
+              ))}
+            </NumberButtons>
+            <RandomButton onClick={selectRandomStudent}>
+              შემთხვევითი მოსწავლის შერჩევა
+            </RandomButton>
+          </ButtonsContainer>
+          
+          <StudentList>
+            {students.map((student, index) => (
+              <StudentItem key={student.timestamp + index}>
+                {student.name}
+              </StudentItem>
             ))}
-          </NumberButtons>
-          <RandomButton onClick={selectRandomStudent}>
-            შემთხვევითი მოსწავლის შერჩევა
-          </RandomButton>
-        </ButtonsContainer>
-        
-        <StudentList>
-          {students.map((student, index) => (
-            <StudentItem key={student.timestamp + index}>
-              {student.name}
-            </StudentItem>
-          ))}
-        </StudentList>
-      </MainContainer>
+          </StudentList>
+        </MainContainer>
+      </ContentWrapper>
 
       <AddClassModal isOpen={isModalOpen}>
         <h2>კლასის დამატება</h2>
@@ -352,12 +377,7 @@ const SearchList = () => {
       </AddClassModal>
 
       <GroupsContainer isOpen={showGroups}>
-        <Button 
-          onClick={() => setShowGroups(false)}
-          style={{ position: 'absolute', top: '20px', right: '20px', background: '#dc3545' }}
-        >
-          დახურვა
-        </Button>
+        <CloseButton onClick={() => setShowGroups(false)}>✕</CloseButton>
         {selectedNumber && Array.from({ length: selectedNumber }).map((_, index) => (
           <GroupCard key={index}>
             <h3>ჯგუფი {index + 1}</h3>
