@@ -38,10 +38,12 @@ const MainContainer = styled.div`
   display: flex;
   flex-direction: row;
   align-items: flex-start;
+  justify-content: center;
   gap: 20px;
   padding: 20px;
   position: relative;
   width: 100%;
+  min-height: 100vh;
 `;
 
 const SearchContainer = styled.div`
@@ -135,7 +137,7 @@ const GroupsContainer = styled.div<{ isOpen: boolean; isExpanded?: boolean }>`
   opacity: ${props => props.isOpen ? '1' : '0'};
   transform: ${props => props.isOpen 
     ? 'translateX(0)' 
-    : 'translateX(-100%)'
+    : 'translateX(100%)'
   };
   visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
 `;
@@ -347,23 +349,6 @@ const SearchList: React.FC = () => {
       </TopBar>
 
       <MainContainer>
-        <GroupsContainer isOpen={showGroups} isExpanded={isExpanded}>
-          <CloseButton onClick={() => setShowGroups(false)}>✕</CloseButton>
-          <ExpandButton onClick={() => setIsExpanded(!isExpanded)}>
-            {isExpanded ? '✖' : '⛶'}
-          </ExpandButton>
-          <GroupsWrapper isExpanded={isExpanded}>
-            {groups.map((group, index) => (
-              <GroupCard key={index} isExpanded={isExpanded}>
-                <h3>ჯგუფი {index + 1}</h3>
-                {group.map((student, studentIndex) => (
-                  <p key={studentIndex}>{student.name}</p>
-                ))}
-              </GroupCard>
-            ))}
-          </GroupsWrapper>
-        </GroupsContainer>
-
         <SearchContainer>
           <StudentList>
             {students.map((student) => (
@@ -390,6 +375,23 @@ const SearchList: React.FC = () => {
             </RandomButton>
           </ButtonContainer>
         </SearchContainer>
+
+        <GroupsContainer isOpen={showGroups} isExpanded={isExpanded}>
+          <CloseButton onClick={() => setShowGroups(false)}>✕</CloseButton>
+          <ExpandButton onClick={() => setIsExpanded(!isExpanded)}>
+            {isExpanded ? '✖' : '⛶'}
+          </ExpandButton>
+          <GroupsWrapper isExpanded={isExpanded}>
+            {groups.map((group, index) => (
+              <GroupCard key={index} isExpanded={isExpanded}>
+                <h3>ჯგუფი {index + 1}</h3>
+                {group.map((student, studentIndex) => (
+                  <p key={studentIndex}>{student.name}</p>
+                ))}
+              </GroupCard>
+            ))}
+          </GroupsWrapper>
+        </GroupsContainer>
       </MainContainer>
 
       <AddClassModal isOpen={isModalOpen}>
