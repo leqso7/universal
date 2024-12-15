@@ -65,33 +65,6 @@ const RandomButton = styled(Button)`
   }
 `;
 
-const StudentList = styled.div`
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  overflow-y: auto;
-  max-height: 400px;
-  margin-bottom: 20px;
-  
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
-    
-    &:hover {
-      background: #555;
-    }
-  }
-`;
-
 const StudentItem = styled.div`
   padding: 15px;
   border-bottom: 1px solid #eee;
@@ -183,7 +156,6 @@ const NumberButtons = styled.div`
   display: flex;
   gap: 10px;
   justify-content: center;
-  margin-top: 20px;
 `;
 
 const NumberButton = styled(Button)<{ active?: boolean }>`
@@ -192,6 +164,46 @@ const NumberButton = styled(Button)<{ active?: boolean }>`
   
   &:hover {
     background: ${props => props.active ? '#3367d6' : '#d5d5d5'};
+  }
+`;
+
+const MainContainer = styled.div`
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-top: 20px;
+`;
+
+const ButtonsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+`;
+
+const StudentList = styled.div`
+  overflow-y: auto;
+  max-height: 400px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+    
+    &:hover {
+      background: #555;
+    }
   }
 `;
 
@@ -279,7 +291,7 @@ const SearchList = () => {
   }
 
   return (
-    <>
+    <Container>
       <TopBar>
         <SearchGroup>
           <SearchInput
@@ -293,7 +305,24 @@ const SearchList = () => {
         <Button onClick={() => setIsModalOpen(true)}>კლასის დამატება</Button>
       </TopBar>
 
-      <Container>
+      <MainContainer>
+        <ButtonsContainer>
+          <NumberButtons>
+            {[2, 3, 4, 5, 6, 7].map(number => (
+              <NumberButton
+                key={number}
+                active={selectedNumber === number}
+                onClick={() => handleNumberClick(number)}
+              >
+                {number}
+              </NumberButton>
+            ))}
+          </NumberButtons>
+          <RandomButton onClick={selectRandomStudent}>
+            შემთხვევითი მოსწავლის შერჩევა
+          </RandomButton>
+        </ButtonsContainer>
+        
         <StudentList>
           {students.map((student, index) => (
             <StudentItem key={student.timestamp + index}>
@@ -301,23 +330,7 @@ const SearchList = () => {
             </StudentItem>
           ))}
         </StudentList>
-
-        <RandomButton onClick={selectRandomStudent}>
-          შემთხვევითი მოსწავლის შერჩევა
-        </RandomButton>
-
-        <NumberButtons>
-          {[2, 3, 4, 5, 6, 7].map(number => (
-            <NumberButton
-              key={number}
-              active={selectedNumber === number}
-              onClick={() => handleNumberClick(number)}
-            >
-              {number}
-            </NumberButton>
-          ))}
-        </NumberButtons>
-      </Container>
+      </MainContainer>
 
       <AddClassModal isOpen={isModalOpen}>
         <h2>კლასის დამატება</h2>
@@ -358,7 +371,7 @@ const SearchList = () => {
       <Message isVisible={showMessage}>
         {message}
       </Message>
-    </>
+    </Container>
   )
 }
 
