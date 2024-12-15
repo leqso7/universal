@@ -2,18 +2,20 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Class Manager</title>
+    <title>Class Manager - Redirecting...</title>
     <script>
-        // Redirect to request page if accessing /app directly
-        if (window.location.pathname.includes('/app')) {
-            window.location.replace('https://leqso7.github.io/class-manager-./request');
+        // Simple redirect logic
+        const path = window.location.pathname;
+        const baseUrl = 'https://leqso7.github.io/class-manager-.';
+        
+        if (path.includes('/app')) {
+            window.location.replace(baseUrl + '/request');
         } else {
-            // Redirect to home page for all other 404s
-            window.location.replace('https://leqso7.github.io/class-manager-./');
+            window.location.replace(baseUrl + '/');
         }
     </script>
 </head>
 <body>
-    <p>გთხოვთ დაელოდოთ...</p>
+    <h2>გთხოვთ დაელოდოთ, მიმდინარეობს გადამისამართება...</h2>
 </body>
 </html>
