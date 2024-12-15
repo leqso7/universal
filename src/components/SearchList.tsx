@@ -10,6 +10,9 @@ const Container = styled.div`
   gap: 20px;
   justify-content: center;
   margin: 0 auto;
+  min-height: 100vh;
+  align-items: flex-start;
+  padding-top: 80px;
 `;
 
 const TopBar = styled.div`
@@ -33,17 +36,19 @@ const SearchGroup = styled.div`
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
 `;
 
-const MainContainer = styled.div<{ showGroups: boolean }>`
+const MainContainer = styled.div<{ showGroups: boolean; hasStudents: boolean }>`
   position: relative;
-  flex: 0 0 400px;
+  flex: 0 0 ${props => props.hasStudents ? '400px' : '500px'};
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
-  height: calc(100vh - 120px);
-  margin-top: 80px;
+  height: ${props => props.hasStudents ? 'auto' : '500px'};
+  min-height: ${props => props.hasStudents ? '500px' : 'auto'};
+  max-height: calc(100vh - 120px);
   display: flex;
   flex-direction: column;
+  transition: all 0.3s ease-in-out;
 `;
 
 const ContentWrapper = styled.div<{ showGroups: boolean }>`
@@ -63,8 +68,7 @@ const GroupsContainer = styled.div<{ isOpen: boolean }>`
   transform: translateX(${props => props.isOpen ? '0' : '100%'});
   opacity: ${props => props.isOpen ? '1' : '0'};
   transition: all 0.3s ease-in-out;
-  margin-top: 80px;
-  height: calc(100vh - 120px);
+  height: 500px;
   overflow-y: auto;
   position: relative;
 `;
@@ -328,7 +332,7 @@ const SearchList: React.FC = () => {
       </TopBar>
 
       <ContentWrapper showGroups={showGroups}>
-        <MainContainer showGroups={showGroups}>
+        <MainContainer showGroups={showGroups} hasStudents={students.length > 0}>
           <StudentList>
             {students.map((student) => (
               <StudentItem key={student.timestamp}>
