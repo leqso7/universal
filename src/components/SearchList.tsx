@@ -2,23 +2,60 @@ import { useState } from 'react'
 import styled from 'styled-components'
 import FacebookButton from './FacebookButton';
 
-const TopBar = styled.div`
-  position: fixed;
-  top: 20px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 20px;
-  z-index: 1000;
-`;
-
 const Container = styled.div`
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
   width: 100%;
-  padding: 20px;
+  max-width: 800px;
   position: relative;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 15px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+`;
+
+const TopBar = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+`;
+
+const ButtonsContainer = styled.div`
+  display: flex;
+  gap: 10px;
+  align-items: center;
+`;
+
+const RandomStudentButton = styled.button`
+  padding: 10px 20px;
+  background: linear-gradient(45deg, #2196F3, #21CBF3);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+  }
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+`;
+
+const FacebookButtonWrapper = styled.div`
+  position: fixed;
+  left: 20px;
+  top: 20px;
 `;
 
 const ContentWrapper = styled.div<{ showGroups: boolean }>`
@@ -77,13 +114,18 @@ const Button = styled.button`
   }
 `;
 
-const RandomButton = styled(Button)`
-  margin: 20px auto;
-  display: block;
-  background: #9c27b0;
+const NumberButtons = styled.div`
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+`;
+
+const NumberButton = styled(Button)<{ active?: boolean }>`
+  background: ${props => props.active ? '#4285f4' : '#e0e0e0'};
+  color: ${props => props.active ? 'white' : '#333'};
   
   &:hover {
-    background: #7b1fa2;
+    background: ${props => props.active ? '#3367d6' : '#d5d5d5'};
   }
 `;
 
@@ -191,21 +233,6 @@ const Message = styled.div<{ isVisible: boolean }>`
   transition: all 0.3s ease;
   opacity: ${props => props.isVisible ? 1 : 0};
   z-index: 1100;
-`;
-
-const NumberButtons = styled.div`
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-`;
-
-const NumberButton = styled(Button)<{ active?: boolean }>`
-  background: ${props => props.active ? '#4285f4' : '#e0e0e0'};
-  color: ${props => props.active ? 'white' : '#333'};
-  
-  &:hover {
-    background: ${props => props.active ? '#3367d6' : '#d5d5d5'};
-  }
 `;
 
 const StudentList = styled.div`
@@ -335,23 +362,24 @@ const SearchList: React.FC = () => {
 
   return (
     <Container>
+      <FacebookButtonWrapper>
+        <FacebookButton />
+      </FacebookButtonWrapper>
+      
       <TopBar>
-        <SearchGroup>
-          <SearchInput
-            type="text"
-            placeholder="მოსწავლის სახელი..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-          <Button onClick={handleAddStudent}>დამატება</Button>
-        </SearchGroup>
-        <Button onClick={() => setIsModalOpen(true)}>კლასის დამატება</Button>
+        <ButtonsContainer>
+          <RandomStudentButton
+            onClick={selectRandomStudent}
+            disabled={!students.length}
+          >
+            შემთხვევითი მოსწავლე
+          </RandomStudentButton>
+        </ButtonsContainer>
       </TopBar>
 
       <ContentWrapper showGroups={showGroups}>
         <MainContainer showGroups={showGroups}>
           <ButtonContainer>
-            <FacebookButton />
             <NumberButtons>
               {[2, 3, 4, 5, 6, 7].map((num) => (
                 <NumberButton
@@ -363,9 +391,6 @@ const SearchList: React.FC = () => {
                 </NumberButton>
               ))}
             </NumberButtons>
-            <RandomButton onClick={selectRandomStudent}>
-              შემთხვევითი მოსწავლე
-            </RandomButton>
           </ButtonContainer>
           <StudentList>
             {students.map((student) => (
