@@ -10,7 +10,7 @@ const supabase = createClient(
 
 const Container = styled.div`
   min-height: 100vh;
-  width: 100%;
+  width: 100vw;
   max-width: 100vw;
   background: linear-gradient(120deg, #ffeb3b 0%, #8bc34a 100%);
   display: flex;
@@ -19,6 +19,10 @@ const Container = styled.div`
   padding: 20px;
   box-sizing: border-box;
   overflow-x: hidden;
+  margin: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
 `;
 
 const Card = styled.div`

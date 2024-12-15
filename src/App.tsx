@@ -1,8 +1,29 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { createGlobalStyle } from 'styled-components'
 import RequestAccess from './pages/RequestAccess'
 import SearchList from './components/SearchList'
 import InstallPWA from './components/InstallPWA'
 import styled from 'styled-components'
+
+const GlobalStyle = createGlobalStyle`
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body, #root {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+`;
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -11,6 +32,9 @@ const AppContainer = styled.div`
   align-items: center;
   justify-content: center;
   padding: 20px;
+  margin: 0;
+  width: 100vw;
+  position: relative;
 `;
 
 const NavigationBar = styled.nav`
@@ -53,6 +77,7 @@ const MainApp = () => {
 function App() {
   return (
     <Router basename="/class-manager">
+      <GlobalStyle />
       <Routes>
         <Route path="/" element={<RequestAccess />} />
         <Route path="/app" element={<MainApp />} />
