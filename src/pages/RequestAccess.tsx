@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react'
-import styled from 'styled-components'
-import { createClient } from '@supabase/supabase-js'
+import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
+import { createClient } from '@supabase/supabase-js';
 
 // Initialize Supabase client
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_ANON_KEY
-)
+);
 
 interface RequestAccessProps {
   onAccessGranted: () => void;
@@ -29,7 +29,7 @@ const Container = styled.div`
   left: 0;
 `;
 
-const Card = styled.div`
+const Form = styled.form`
   background: white;
   padding: 30px;
   border-radius: 10px;
@@ -67,23 +67,24 @@ const Button = styled.button`
   }
 `;
 
-const Message = styled.div<{ type: 'success' | 'error' }>`
-  padding: 15px;
-  border-radius: 5px;
-  text-align: center;
+const CodeDisplay = styled.div`
   margin-top: 20px;
-  background: ${props => props.type === 'success' ? '#d4edda' : '#f8d7da'};
-  color: ${props => props.type === 'success' ? '#155724' : '#721c24'};
-  font-size: 16px;
 `;
 
-const Code = styled.span`
+const CodeText = styled.p`
   font-weight: bold;
-  font-size: 32px;
-  color: #4285f4;
-  display: block;
-  margin-top: 15px;
-  letter-spacing: 2px;
+  font-size: 18px;
+  color: #333;
+`;
+
+const StatusText = styled.p`
+  font-size: 16px;
+  color: #666;
+`;
+
+const ErrorText = styled.p`
+  font-size: 16px;
+  color: #721c24;
 `;
 
 const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
@@ -102,13 +103,13 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
       if (!requestCode) return;
 
       try {
-        const { data, error } = await supabase
+        const { data, error: fetchError } = await supabase
           .from('access_requests')
           .select('status')
           .eq('code', requestCode)
           .single();
 
-        if (error) throw error;
+        if (fetchError) throw fetchError;
 
         if (data?.status === 'approved') {
           localStorage.setItem('approvalStatus', 'approved');
@@ -132,16 +133,23 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
 
     try {
       const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const { error } = await supabase
+      
+      const { error: insertError } = await supabase
         .from('access_requests')
-        .insert([{ code, status: 'pending' }]);
+        .insert([{ 
+          code, 
+          status: 'pending',
+          created_at: new Date().toISOString()
+        }]);
 
-      if (error) throw error;
+      if (insertError) {
+        throw insertError;
+      }
 
       setRequestCode(code);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error submitting request:', err);
-      setError('დაფიქსირდა შეცდომა, სცადეთ თავიდან');
+      setError(err.message || 'მოთხოვნის გაგზავნა ვერ მოხერხდა');
     } finally {
       setLoading(false);
     }
@@ -149,25 +157,22 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
 
   return (
     <Container>
-      <Card>
+      <Form onSubmit={handleSubmit}>
         <Title>მოთხოვნის გაგზავნა</Title>
-        <Button onClick={handleSubmit} disabled={loading || !!requestCode}>
-          {loading ? 'იგზავნება...' : 'მოთხოვნის გაგზავნა'}
-        </Button>
-        {error && (
-          <Message type="error">
-            {error}
-          </Message>
+        {requestCode ? (
+          <CodeDisplay>
+            <CodeText>თქვენი კოდი: {requestCode}</CodeText>
+            <StatusText>სტატუსი: მოლოდინში...</StatusText>
+          </CodeDisplay>
+        ) : (
+          <Button type="submit" disabled={loading}>
+            {loading ? 'იგზავნება...' : 'მოთხოვნის გაგზავნა'}
+          </Button>
         )}
-        {requestCode && (
-          <Message type="success">
-            მოთხოვნა წარმატებით გაიგზავნა!
-            <Code>{requestCode}</Code>
-          </Message>
-        )}
-      </Card>
+        {error && <ErrorText>{error}</ErrorText>}
+      </Form>
     </Container>
-  )
-}
+  );
+};
 
-export default RequestAccess
+export default RequestAccess;

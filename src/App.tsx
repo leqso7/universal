@@ -51,17 +51,19 @@ const NavigationBar = styled.nav`
 const NavButton = styled.button`
   background: white;
   border: none;
-  padding: 8px 15px;
+  padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 14px;
-  
+  font-size: 16px;
+  color: #333;
+  transition: all 0.3s ease;
+
   &:hover {
-    background: #f5f5f5;
+    background: #f0f0f0;
   }
 `;
 
-const MainApp = () => {
+function App() {
   const [hasAccess, setHasAccess] = useState(() => {
     const savedStatus = localStorage.getItem('approvalStatus');
     return savedStatus === 'approved';
@@ -72,30 +74,26 @@ const MainApp = () => {
     localStorage.setItem('approvalStatus', 'approved');
   };
 
-  if (!hasAccess) {
-    return <RequestAccess onAccessGranted={handleAccessGranted} />;
-  }
-
   return (
-    <AppContainer>
-      <GlobalStyle />
-      <SearchList />
-      <InstallPWA />
-    </AppContainer>
-  );
-};
-
-function App() {
-  return (
-    <Router basename="/class-manager">
+    <Router>
       <GlobalStyle />
       <Routes>
-        <Route path="/" element={<RequestAccess />} />
-        <Route path="/app" element={<MainApp />} />
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route 
+          path="/" 
+          element={
+            hasAccess ? (
+              <AppContainer>
+                <SearchList />
+                <InstallPWA />
+              </AppContainer>
+            ) : (
+              <RequestAccess onAccessGranted={handleAccessGranted} />
+            )
+          } 
+        />
       </Routes>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;
