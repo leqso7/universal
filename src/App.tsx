@@ -4,7 +4,7 @@ import RequestAccess from './pages/RequestAccess'
 import SearchList from './components/SearchList'
 import InstallPWA from './components/InstallPWA'
 import styled from 'styled-components'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -64,22 +64,39 @@ const NavButton = styled.button`
 `;
 
 function App() {
-  const [hasAccess, setHasAccess] = useState(() => {
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+
+  useEffect(() => {
     const savedStatus = localStorage.getItem('approvalStatus');
-    return savedStatus === 'approved';
-  });
+    setHasAccess(savedStatus === 'approved');
+  }, []);
 
   const handleAccessGranted = () => {
     setHasAccess(true);
     localStorage.setItem('approvalStatus', 'approved');
   };
 
+  // თუ ჯერ არ შემოწმებულა სტატუსი, არაფერს არ ვაჩვენებთ
+  if (hasAccess === null) {
+    return null;
+  }
+
   return (
-    <Router>
+    <Router basename="/class-manager">
       <GlobalStyle />
       <Routes>
-        <Route 
-          path="/" 
+        <Route
+          path="/"
+          element={
+            hasAccess ? (
+              <Navigate to="/app" replace />
+            ) : (
+              <RequestAccess onAccessGranted={handleAccessGranted} />
+            )
+          }
+        />
+        <Route
+          path="/app"
           element={
             hasAccess ? (
               <AppContainer>
@@ -87,10 +104,11 @@ function App() {
                 <InstallPWA />
               </AppContainer>
             ) : (
-              <RequestAccess onAccessGranted={handleAccessGranted} />
+              <Navigate to="/" replace />
             )
-          } 
+          }
         />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
