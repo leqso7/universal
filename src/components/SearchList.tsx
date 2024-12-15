@@ -1,18 +1,23 @@
 import { useState } from 'react'
 import styled from 'styled-components'
 
-const Container = styled.div`
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  position: relative;
-`;
-
-const SearchContainer = styled.div`
+const TopBar = styled.div`
+  position: fixed;
+  top: 20px;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20px;
+  padding: 0 20px;
+  z-index: 1000;
+`;
+
+const Container = styled.div`
+  width: 100%;
+  max-width: 800px;
+  margin: 80px auto 0;
+  padding: 20px;
+  position: relative;
 `;
 
 const SearchGroup = styled.div`
@@ -26,6 +31,7 @@ const SearchInput = styled.input`
   border-radius: 5px;
   font-size: 16px;
   width: 250px;
+  background: white;
   
   &:focus {
     outline: none;
@@ -41,10 +47,21 @@ const Button = styled.button`
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
-  transition: background 0.2s;
+  transition: all 0.2s;
   
   &:hover {
     background: #3367d6;
+    transform: translateY(-2px);
+  }
+`;
+
+const RandomButton = styled(Button)`
+  margin: 20px auto;
+  display: block;
+  background: #9c27b0;
+  
+  &:hover {
+    background: #7b1fa2;
   }
 `;
 
@@ -54,6 +71,7 @@ const StudentList = styled.div`
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
   max-height: 400px;
+  margin-bottom: 20px;
   
   &::-webkit-scrollbar {
     width: 8px;
@@ -80,6 +98,37 @@ const StudentItem = styled.div`
   
   &:last-child {
     border-bottom: none;
+  }
+`;
+
+const GroupsContainer = styled.div<{ isOpen: boolean }>`
+  position: fixed;
+  top: 0;
+  right: ${props => props.isOpen ? '0' : '-100%'};
+  width: 100%;
+  height: 100vh;
+  background: white;
+  transition: right 0.3s ease;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  overflow-y: auto;
+`;
+
+const GroupCard = styled.div`
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  
+  h3 {
+    margin-bottom: 10px;
+    color: #333;
+  }
+  
+  p {
+    color: #666;
   }
 `;
 
@@ -113,26 +162,34 @@ const TextArea = styled.textarea`
   }
 `;
 
-const SuccessMessage = styled.div`
+const Message = styled.div<{ isVisible: boolean }>`
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(${props => props.isVisible ? 1 : 0});
   background: #4caf50;
   color: white;
-  padding: 15px 20px;
-  border-radius: 5px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  animation: slideIn 0.3s ease, slideOut 0.3s ease 2.7s forwards;
-  z-index: 1000;
+  padding: 20px 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  opacity: ${props => props.isVisible ? 1 : 0};
+  z-index: 1100;
+`;
+
+const NumberButtons = styled.div`
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+`;
+
+const NumberButton = styled(Button)<{ active?: boolean }>`
+  background: ${props => props.active ? '#4285f4' : '#e0e0e0'};
+  color: ${props => props.active ? 'white' : '#333'};
   
-  @keyframes slideIn {
-    from { transform: translateX(100%); }
-    to { transform: translateX(0); }
-  }
-  
-  @keyframes slideOut {
-    from { transform: translateX(0); }
-    to { transform: translateX(100%); }
+  &:hover {
+    background: ${props => props.active ? '#3367d6' : '#d5d5d5'};
   }
 `;
 
@@ -153,6 +210,10 @@ const SearchList = () => {
   const [className, setClassName] = useState('')
   const [studentList, setStudentList] = useState('')
   const [showSuccess, setShowSuccess] = useState(false)
+  const [message, setMessage] = useState('')
+  const [showMessage, setShowMessage] = useState(false)
+  const [selectedNumber, setSelectedNumber] = useState<number | null>(null)
+  const [showGroups, setShowGroups] = useState(false)
   const [classes, setClasses] = useState<Class[]>(() => {
     const saved = localStorage.getItem('classes')
     return saved ? JSON.parse(saved) : []
@@ -194,13 +255,30 @@ const SearchList = () => {
     setClassName('')
     setStudentList('')
     setIsModalOpen(false)
-    setShowSuccess(true)
-    setTimeout(() => setShowSuccess(false), 3000)
+    setMessage('კლასი წარმატებით დაემატა!')
+    setShowMessage(true)
+    setTimeout(() => setShowMessage(false), 6000)
+  }
+
+  const selectRandomStudent = () => {
+    if (students.length === 0) return
+    
+    const randomIndex = Math.floor(Math.random() * students.length)
+    const student = students[randomIndex]
+    
+    setMessage(`შერჩეულია: ${student.name}`)
+    setShowMessage(true)
+    setTimeout(() => setShowMessage(false), 6000)
+  }
+
+  const handleNumberClick = (number: number) => {
+    setSelectedNumber(number)
+    setShowGroups(true)
   }
 
   return (
-    <Container>
-      <SearchContainer>
+    <>
+      <TopBar>
         <SearchGroup>
           <SearchInput
             type="text"
@@ -211,15 +289,33 @@ const SearchList = () => {
           <Button onClick={handleAddStudent}>დამატება</Button>
         </SearchGroup>
         <Button onClick={() => setIsModalOpen(true)}>კლასის დამატება</Button>
-      </SearchContainer>
+      </TopBar>
 
-      <StudentList>
-        {students.map((student, index) => (
-          <StudentItem key={student.timestamp + index}>
-            {student.name}
-          </StudentItem>
-        ))}
-      </StudentList>
+      <Container>
+        <StudentList>
+          {students.map((student, index) => (
+            <StudentItem key={student.timestamp + index}>
+              {student.name}
+            </StudentItem>
+          ))}
+        </StudentList>
+
+        <RandomButton onClick={selectRandomStudent}>
+          შემთხვევითი მოსწავლის შერჩევა
+        </RandomButton>
+
+        <NumberButtons>
+          {[2, 3, 4, 5, 6, 7].map(number => (
+            <NumberButton
+              key={number}
+              active={selectedNumber === number}
+              onClick={() => handleNumberClick(number)}
+            >
+              {number}
+            </NumberButton>
+          ))}
+        </NumberButtons>
+      </Container>
 
       <AddClassModal isOpen={isModalOpen}>
         <h2>კლასის დამატება</h2>
@@ -240,12 +336,27 @@ const SearchList = () => {
         </Button>
       </AddClassModal>
 
-      {showSuccess && (
-        <SuccessMessage>
-          კლასი წარმატებით დაემატა!
-        </SuccessMessage>
-      )}
-    </Container>
+      <GroupsContainer isOpen={showGroups}>
+        <Button 
+          onClick={() => setShowGroups(false)}
+          style={{ position: 'absolute', top: '20px', right: '20px', background: '#dc3545' }}
+        >
+          დახურვა
+        </Button>
+        {selectedNumber && Array.from({ length: selectedNumber }).map((_, index) => (
+          <GroupCard key={index}>
+            <h3>ჯგუფი {index + 1}</h3>
+            <p>სახელსახელი</p>
+            <p>სახელსახელი</p>
+            <p>სახელსახელი</p>
+          </GroupCard>
+        ))}
+      </GroupsContainer>
+
+      <Message isVisible={showMessage}>
+        {message}
+      </Message>
+    </>
   )
 }
 
