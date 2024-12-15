@@ -34,95 +34,25 @@ const SearchGroup = styled.div`
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
 `;
 
-const MainContainer = styled.div<{ showGroups: boolean; hasStudents: boolean }>`
-  position: relative;
-  width: 450px;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+const MainContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 20px;
   padding: 20px;
-  height: 550px;
+  position: relative;
+  width: 100%;
+`;
+
+const SearchContainer = styled.div`
   display: flex;
   flex-direction: column;
-  transition: all 0.3s ease-in-out;
-  transform: translateX(${props => props.showGroups ? '-235px' : '0'});
-`;
-
-const ContentWrapper = styled.div<{ showGroups: boolean }>`
-  display: flex;
-  gap: 20px;
-  transition: all 0.3s ease-in-out;
-  justify-content: center;
-  position: relative;
-`;
-
-const GroupsContainer = styled.div<{ isOpen: boolean; isExpanded?: boolean }>`
-  width: ${props => props.isExpanded ? '100vw' : '450px'};
-  height: ${props => props.isExpanded ? '100vh' : '550px'};
+  gap: 10px;
+  width: 450px;
   background: white;
   padding: 20px;
-  border-radius: ${props => props.isExpanded ? '0' : '15px'};
+  border-radius: 15px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  overflow-y: auto;
-  position: ${props => props.isExpanded ? 'fixed' : 'absolute'};
-  top: ${props => props.isExpanded ? '0' : 'auto'};
-  left: ${props => props.isExpanded ? '0' : '-235px'};
-  z-index: ${props => props.isExpanded ? '1000' : '1'};
-  transition: all 0.3s ease-in-out;
-  opacity: ${props => props.isOpen ? '1' : '0'};
-  transform: translateX(${props => props.isOpen ? '0' : '100%'});
-`;
-
-const GroupsWrapper = styled.div<{ isExpanded?: boolean }>`
-  display: grid;
-  grid-template-columns: ${props => props.isExpanded ? 'repeat(auto-fill, minmax(300px, 1fr))' : '1fr'};
-  gap: ${props => props.isExpanded ? '20px' : '10px'};
-  padding: ${props => props.isExpanded ? '20px' : '0'};
-`;
-
-const GroupCard = styled.div<{ isExpanded?: boolean }>`
-  background: #f5f5f5;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-  font-size: ${props => props.isExpanded ? '1.2em' : '1em'};
-
-  h3 {
-    margin: 0 0 10px 0;
-    font-size: ${props => props.isExpanded ? '1.5em' : '1.2em'};
-  }
-`;
-
-const ExpandButton = styled.button`
-  position: absolute;
-  top: 10px;
-  right: 50px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 24px;
-  color: #333;
-  z-index: 1001;
-  
-  &:hover {
-    color: #666;
-  }
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #666;
-  transition: color 0.3s;
-  
-  &:hover {
-    color: #333;
-  }
 `;
 
 const StudentList = styled.div`
@@ -186,6 +116,79 @@ const StudentItem = styled.div`
   
   &:last-child {
     border-bottom: none;
+  }
+`;
+
+const GroupsContainer = styled.div<{ isOpen: boolean; isExpanded?: boolean }>`
+  width: ${props => props.isExpanded ? '100vw' : '450px'};
+  height: ${props => props.isExpanded ? '100vh' : '550px'};
+  background: white;
+  padding: 20px;
+  border-radius: ${props => props.isExpanded ? '0' : '15px'};
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  position: ${props => props.isExpanded ? 'fixed' : 'relative'};
+  top: ${props => props.isExpanded ? '0' : 'auto'};
+  left: ${props => props.isExpanded ? '0' : 'auto'};
+  z-index: ${props => props.isExpanded ? '1000' : '1'};
+  transition: all 0.3s ease-in-out;
+  opacity: ${props => props.isOpen ? '1' : '0'};
+  transform: ${props => props.isOpen 
+    ? 'translateX(0)' 
+    : 'translateX(-100%)'
+  };
+  visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
+`;
+
+const GroupsWrapper = styled.div<{ isExpanded?: boolean }>`
+  display: grid;
+  grid-template-columns: ${props => props.isExpanded ? 'repeat(auto-fill, minmax(300px, 1fr))' : '1fr'};
+  gap: ${props => props.isExpanded ? '20px' : '10px'};
+  padding: ${props => props.isExpanded ? '20px' : '0'};
+`;
+
+const GroupCard = styled.div<{ isExpanded?: boolean }>`
+  background: #f5f5f5;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  font-size: ${props => props.isExpanded ? '1.2em' : '1em'};
+
+  h3 {
+    margin: 0 0 10px 0;
+    font-size: ${props => props.isExpanded ? '1.5em' : '1.2em'};
+  }
+`;
+
+const ExpandButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 50px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: #333;
+  z-index: 1001;
+  
+  &:hover {
+    color: #666;
+  }
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.3s;
+  
+  &:hover {
+    color: #333;
   }
 `;
 
@@ -343,8 +346,25 @@ const SearchList: React.FC = () => {
         <Button onClick={() => setIsModalOpen(true)}>კლასის დამატება</Button>
       </TopBar>
 
-      <ContentWrapper showGroups={showGroups}>
-        <MainContainer showGroups={showGroups} hasStudents={students.length > 0}>
+      <MainContainer>
+        <GroupsContainer isOpen={showGroups} isExpanded={isExpanded}>
+          <CloseButton onClick={() => setShowGroups(false)}>✕</CloseButton>
+          <ExpandButton onClick={() => setIsExpanded(!isExpanded)}>
+            {isExpanded ? '✖' : '⛶'}
+          </ExpandButton>
+          <GroupsWrapper isExpanded={isExpanded}>
+            {groups.map((group, index) => (
+              <GroupCard key={index} isExpanded={isExpanded}>
+                <h3>ჯგუფი {index + 1}</h3>
+                {group.map((student, studentIndex) => (
+                  <p key={studentIndex}>{student.name}</p>
+                ))}
+              </GroupCard>
+            ))}
+          </GroupsWrapper>
+        </GroupsContainer>
+
+        <SearchContainer>
           <StudentList>
             {students.map((student) => (
               <StudentItem key={student.timestamp}>
@@ -369,25 +389,8 @@ const SearchList: React.FC = () => {
               შემთხვევითი მოსწავლე
             </RandomButton>
           </ButtonContainer>
-        </MainContainer>
-
-        <GroupsContainer isOpen={showGroups} isExpanded={isExpanded}>
-          <CloseButton onClick={() => setShowGroups(false)}>✕</CloseButton>
-          <ExpandButton onClick={() => setIsExpanded(!isExpanded)}>
-            {isExpanded ? '✖' : '⛶'}
-          </ExpandButton>
-          <GroupsWrapper isExpanded={isExpanded}>
-            {groups.map((group, index) => (
-              <GroupCard key={index} isExpanded={isExpanded}>
-                <h3>ჯგუფი {index + 1}</h3>
-                {group.map((student, studentIndex) => (
-                  <p key={studentIndex}>{student.name}</p>
-                ))}
-              </GroupCard>
-            ))}
-          </GroupsWrapper>
-        </GroupsContainer>
-      </ContentWrapper>
+        </SearchContainer>
+      </MainContainer>
 
       <AddClassModal isOpen={isModalOpen}>
         <h2>კლასის დამატება</h2>
