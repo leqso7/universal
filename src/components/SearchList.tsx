@@ -8,6 +8,7 @@ const Container = styled.div`
   max-width: 1600px;
   position: relative;
   gap: 20px;
+  justify-content: center;
 `;
 
 const TopBar = styled.div`
@@ -35,18 +36,20 @@ const ContentWrapper = styled.div<{ showGroups: boolean }>`
   display: flex;
   gap: 20px;
   width: 100%;
-  transition: transform 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+  justify-content: center;
 `;
 
 const MainContainer = styled.div<{ showGroups: boolean }>`
-  flex: 1;
+  flex: 0 0 400px;
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
-  width: 500px;
-  min-height: 400px;
+  min-height: calc(100vh - 120px);
   margin-top: 80px;
+  transition: all 0.3s ease-in-out;
+  transform: translateX(${props => props.showGroups ? '-200px' : '0'});
 `;
 
 const SearchInput = styled.input`
@@ -67,6 +70,8 @@ const NumberButtons = styled.div`
   display: flex;
   gap: 10px;
   justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
 `;
 
 const NumberButton = styled(Button)<{ active?: boolean }>`
@@ -90,9 +95,10 @@ const RandomButton = styled(Button)`
 
 const StudentList = styled.div`
   overflow-y: auto;
-  max-height: 400px;
+  max-height: calc(100vh - 300px);
   border-top: 1px solid #eee;
   padding-top: 20px;
+  margin-bottom: 20px;
 `;
 
 const StudentItem = styled.div`
@@ -117,6 +123,23 @@ const GroupsContainer = styled.div<{ isOpen: boolean }>`
   margin-top: 80px;
   height: calc(100vh - 120px);
   overflow-y: auto;
+  position: relative;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.3s;
+  
+  &:hover {
+    color: #333;
+  }
 `;
 
 const GroupsWrapper = styled.div`
@@ -189,9 +212,7 @@ const Message = styled.div<{ isVisible: boolean }>`
 `;
 
 const ButtonContainer = styled.div`
-  display: flex;
-  gap: 10px;
-  justify-content: center;
+  margin-top: 20px;
 `;
 
 interface Student {
@@ -304,6 +325,14 @@ const SearchList: React.FC = () => {
 
       <ContentWrapper showGroups={showGroups}>
         <MainContainer showGroups={showGroups}>
+          <StudentList>
+            {students.map((student) => (
+              <StudentItem key={student.timestamp}>
+                {student.name}
+              </StudentItem>
+            ))}
+          </StudentList>
+          
           <ButtonContainer>
             <NumberButtons>
               {[2, 3, 4, 5, 6, 7].map((num) => (
@@ -320,16 +349,10 @@ const SearchList: React.FC = () => {
               შემთხვევითი მოსწავლე
             </RandomButton>
           </ButtonContainer>
-          <StudentList>
-            {students.map((student) => (
-              <StudentItem key={student.timestamp}>
-                {student.name}
-              </StudentItem>
-            ))}
-          </StudentList>
         </MainContainer>
 
         <GroupsContainer isOpen={showGroups}>
+          <CloseButton onClick={() => setShowGroups(false)}>✕</CloseButton>
           <GroupsWrapper>
             {groups.map((group, index) => (
               <GroupCard key={index}>
