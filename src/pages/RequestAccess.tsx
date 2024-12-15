@@ -1,13 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 
 const Container = styled.div`
   min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
   background: linear-gradient(120deg, #ffeb3b 0%, #8bc34a 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  box-sizing: border-box;
+  overflow-x: hidden;
 `;
 
 const Card = styled.div`
@@ -17,6 +21,7 @@ const Card = styled.div`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   max-width: 400px;
   width: 100%;
+  margin: 0 auto;
 `;
 
 const Title = styled.h1`
@@ -86,13 +91,18 @@ const RequestAccess = () => {
     setMessage(null)
 
     try {
-      const response = await fetch('${process.env.REACT_APP_API_URL}/api/requests/create', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://class-manager-backend.onrender.com'
+      const response = await fetch(`${apiUrl}/api/requests/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ firstName, lastName }),
       })
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
 
       const data = await response.json()
 
@@ -109,6 +119,7 @@ const RequestAccess = () => {
         throw new Error(data.error || 'Failed to create request')
       }
     } catch (error) {
+      console.error('Error:', error)
       setMessage({
         text: 'მოთხოვნის გაგზავნა ვერ მოხერხდა. გთხოვთ სცადოთ თავიდან.',
         type: 'error'
@@ -119,20 +130,28 @@ const RequestAccess = () => {
   }
 
   const startStatusPolling = (code: string) => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://class-manager-backend.onrender.com'
     const pollInterval = setInterval(async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/requests/status/${code}`)
+        const response = await fetch(`${apiUrl}/api/requests/status/${code}`)
         const data = await response.json()
 
         if (data.success && data.status === 'approved') {
           clearInterval(pollInterval)
-          window.location.href = '/app.tsx'
+          window.location.href = '/class-manager/app'
         }
       } catch (error) {
         console.error('Error polling status:', error)
       }
     }, 5000) // Poll every 5 seconds
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(pollInterval)
   }
+
+  useEffect(() => {
+    return () => clearInterval(pollInterval)
+  }, [])
 
   return (
     <Container>
