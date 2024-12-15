@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { createGlobalStyle } from 'styled-components'
 import RequestAccess from './pages/RequestAccess'
 import SearchList from './components/SearchList'
@@ -65,21 +65,18 @@ const NavButton = styled.button`
 `;
 
 function App() {
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  const [hasAccess, setHasAccess] = useState<boolean>(false);
+  const location = useLocation();
 
   useEffect(() => {
     const savedStatus = localStorage.getItem('approvalStatus');
     setHasAccess(savedStatus === 'approved');
-  }, []);
 
-  useEffect(() => {
-    const isApproved = localStorage.getItem('isApproved') === 'true';
-    const currentPath = window.location.pathname;
-    
-    if (!isApproved && currentPath.endsWith('/app')) {
+    // Check if we're on the app route and redirect if no access
+    if (location.pathname.includes('/app') && savedStatus !== 'approved') {
       window.location.href = '/class-manager-./request';
     }
-  }, []);
+  }, [location]);
 
   const handleAccessGranted = () => {
     setHasAccess(true);
