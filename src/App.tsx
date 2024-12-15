@@ -49,17 +49,18 @@ const NavigationBar = styled.nav`
 `;
 
 const NavButton = styled.button`
-  background: white;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
-  padding: 10px 20px;
+  padding: 8px 16px;
+  color: white;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 16px;
-  color: #333;
-  transition: all 0.3s ease;
-
+  font-size: 14px;
+  backdrop-filter: blur(5px);
+  transition: background 0.3s;
+  
   &:hover {
-    background: #f0f0f0;
+    background: rgba(255, 255, 255, 0.3);
   }
 `;
 
@@ -82,7 +83,7 @@ function App() {
   }
 
   return (
-    <Router basename="/class-manager-">
+    <Router basename="/class-manager-.">
       <GlobalStyle />
       <Routes>
         <Route
