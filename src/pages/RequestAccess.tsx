@@ -92,6 +92,11 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
   const [requestCode, setRequestCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const generateCode = () => {
+    // Generate a 5-digit number between 10000 and 99999
+    return Math.floor(10000 + Math.random() * 90000).toString();
+  };
+
   useEffect(() => {
     const checkApprovalStatus = async () => {
       const savedStatus = localStorage.getItem('approvalStatus');
@@ -132,7 +137,7 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
     setError(null);
 
     try {
-      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const code = generateCode();
       
       const { error: insertError } = await supabase
         .from('access_requests')
@@ -149,7 +154,7 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
       setRequestCode(code);
     } catch (err: any) {
       console.error('Error submitting request:', err);
-      setError(err.message || 'მოთხოვნის გაგზავნა ვერ მოხერხდა');
+      setError('მოთხოვნის გაგზავნა ვერ მოხერხდა. გთხოვთ სცადოთ თავიდან.');
     } finally {
       setLoading(false);
     }
