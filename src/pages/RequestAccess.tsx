@@ -87,74 +87,71 @@ const Code = styled.span`
 `;
 
 const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
-  const [loading, setLoading] = useState(false)
-  const [requestCode, setRequestCode] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false);
+  const [requestCode, setRequestCode] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const generateCode = () => {
-    return Math.floor(10000 + Math.random() * 90000).toString()
-  }
-
-  const handleRequest = async () => {
-    setLoading(true)
-    setError(null)
-    
-    try {
-      const code = generateCode()
-      
-      // Insert into Supabase
-      const { error: insertError } = await supabase
-        .from('access_requests')
-        .insert([
-          {
-            code: code,
-            status: 'pending',
-            created_at: new Date().toISOString()
-          }
-        ])
-
-      if (insertError) throw insertError
-
-      setRequestCode(code)
-    } catch (err) {
-      console.error('Error:', err)
-      setError('მოთხოვნის გაგზავნა ვერ მოხერხდა. გთხოვთ სცადოთ თავიდან.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Check request status every 5 seconds
   useEffect(() => {
-    if (requestCode) {
-      const interval = setInterval(async () => {
-        try {
-          const { data, error } = await supabase
-            .from('access_requests')
-            .select('status')
-            .eq('code', requestCode)
-            .single()
+    const checkApprovalStatus = async () => {
+      const savedStatus = localStorage.getItem('approvalStatus');
+      if (savedStatus === 'approved') {
+        onAccessGranted();
+        return;
+      }
 
-          if (error) throw error
+      if (!requestCode) return;
 
-          if (data?.status === 'approved') {
-            clearInterval(interval)
-            onAccessGranted()
-          }
-        } catch (err) {
-          console.error('Error checking status:', err)
+      try {
+        const { data, error } = await supabase
+          .from('access_requests')
+          .select('status')
+          .eq('code', requestCode)
+          .single();
+
+        if (error) throw error;
+
+        if (data?.status === 'approved') {
+          localStorage.setItem('approvalStatus', 'approved');
+          onAccessGranted();
         }
-      }, 5000)
+      } catch (err) {
+        console.error('Error checking status:', err);
+      }
+    };
 
-      return () => clearInterval(interval)
+    checkApprovalStatus();
+    const interval = setInterval(checkApprovalStatus, 5000);
+
+    return () => clearInterval(interval);
+  }, [requestCode, onAccessGranted]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const { error } = await supabase
+        .from('access_requests')
+        .insert([{ code, status: 'pending' }]);
+
+      if (error) throw error;
+
+      setRequestCode(code);
+    } catch (err) {
+      console.error('Error submitting request:', err);
+      setError('დაფიქსირდა შეცდომა, სცადეთ თავიდან');
+    } finally {
+      setLoading(false);
     }
-  }, [requestCode, onAccessGranted])
+  };
 
   return (
     <Container>
       <Card>
         <Title>მოთხოვნის გაგზავნა</Title>
-        <Button onClick={handleRequest} disabled={loading || !!requestCode}>
+        <Button onClick={handleSubmit} disabled={loading || !!requestCode}>
           {loading ? 'იგზავნება...' : 'მოთხოვნის გაგზავნა'}
         </Button>
         {error && (

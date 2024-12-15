@@ -63,13 +63,13 @@ const NavButton = styled.button`
 
 const MainApp = () => {
   const [hasAccess, setHasAccess] = useState(() => {
-    const savedAccess = localStorage.getItem('hasAccess');
-    return savedAccess === 'true';
+    const savedStatus = localStorage.getItem('approvalStatus');
+    return savedStatus === 'approved';
   });
 
   const handleAccessGranted = () => {
     setHasAccess(true);
-    localStorage.setItem('hasAccess', 'true');
+    localStorage.setItem('approvalStatus', 'approved');
   };
 
   if (!hasAccess) {
@@ -78,6 +78,7 @@ const MainApp = () => {
 
   return (
     <AppContainer>
+      <GlobalStyle />
       <SearchList />
       <InstallPWA />
     </AppContainer>
