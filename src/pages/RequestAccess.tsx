@@ -4,8 +4,8 @@ import { createClient } from '@supabase/supabase-js'
 
 // Initialize Supabase client
 const supabase = createClient(
-  'https://loyzwjzsjnikmnuqilmv.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxveXp3anpzam5pa21udXFpbG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDI2NTY2ODgsImV4cCI6MjAxODIzMjY4OH0.XkKZyNtS9p6g6qsVgEGGhqrGz_jxXD0qKAGBRtB5PFM'
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
 )
 
 const Container = styled.div`
@@ -95,7 +95,7 @@ const RequestAccess = () => {
       const code = generateCode()
       
       // Insert into Supabase
-      const { error } = await supabase
+      const { error: insertError } = await supabase
         .from('access_requests')
         .insert([
           {
@@ -105,7 +105,7 @@ const RequestAccess = () => {
           }
         ])
 
-      if (error) throw error
+      if (insertError) throw insertError
 
       setRequestCode(code)
     } catch (err) {
