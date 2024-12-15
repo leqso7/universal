@@ -63,11 +63,6 @@ const NavButton = styled.button`
 const MainApp = () => {
   return (
     <AppContainer>
-      <NavigationBar>
-        <NavButton>შეკითხვის მომზადება</NavButton>
-        <NavButton>დამატება</NavButton>
-        <NavButton>ქვიზის დამატება</NavButton>
-      </NavigationBar>
       <SearchList />
       <InstallPWA />
     </AppContainer>
