@@ -60,7 +60,7 @@ const Tooltip = styled.div<{ visible: boolean }>`
   }
 `;
 
-const FacebookButton = () => {
+export default function FacebookButton() {
   const [isHovered, setIsHovered] = useState(false);
 
   const handleClick = () => {
@@ -85,5 +85,3 @@ const FacebookButton = () => {
     </TooltipWrapper>
   );
 }
-
-export default FacebookButton;
