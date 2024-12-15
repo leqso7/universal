@@ -4,6 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/class/',
   plugins: [
     react(),
     VitePWA({
@@ -14,6 +15,7 @@ export default defineConfig({
         short_name: 'Class App',
         description: 'Class Management Application',
         theme_color: '#ffffff',
+        start_url: '/class/',
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -29,6 +31,5 @@ export default defineConfig({
         ]
       }
     })
-  ],
-  base: '/class/'
+  ]
 })
