@@ -9,6 +9,7 @@ const Container = styled.div`
   position: relative;
   gap: 20px;
   justify-content: center;
+  margin: 0 auto;
 `;
 
 const TopBar = styled.div`
@@ -32,6 +33,19 @@ const SearchGroup = styled.div`
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
 `;
 
+const MainContainer = styled.div<{ showGroups: boolean }>`
+  position: relative;
+  flex: 0 0 400px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  height: calc(100vh - 120px);
+  margin-top: 80px;
+  display: flex;
+  flex-direction: column;
+`;
+
 const ContentWrapper = styled.div<{ showGroups: boolean }>`
   display: flex;
   gap: 20px;
@@ -40,79 +54,8 @@ const ContentWrapper = styled.div<{ showGroups: boolean }>`
   justify-content: center;
 `;
 
-const MainContainer = styled.div<{ showGroups: boolean }>`
-  flex: 0 0 400px;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  min-height: calc(100vh - 120px);
-  margin-top: 80px;
-  transition: all 0.3s ease-in-out;
-  transform: translateX(${props => props.showGroups ? '-200px' : '0'});
-`;
-
-const SearchInput = styled.input`
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 16px;
-  width: 250px;
-  background: white;
-  
-  &:focus {
-    outline: none;
-    border-color: #4285f4;
-  }
-`;
-
-const NumberButtons = styled.div`
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-`;
-
-const NumberButton = styled(Button)<{ active?: boolean }>`
-  background: ${props => props.active ? '#4285f4' : '#e0e0e0'};
-  color: ${props => props.active ? 'white' : '#333'};
-  
-  &:hover {
-    background: ${props => props.active ? '#3367d6' : '#d5d5d5'};
-  }
-`;
-
-const RandomButton = styled(Button)`
-  margin: 20px auto;
-  display: block;
-  background: #9c27b0;
-  
-  &:hover {
-    background: #7b1fa2;
-  }
-`;
-
-const StudentList = styled.div`
-  overflow-y: auto;
-  max-height: calc(100vh - 300px);
-  border-top: 1px solid #eee;
-  padding-top: 20px;
-  margin-bottom: 20px;
-`;
-
-const StudentItem = styled.div`
-  background: white;
-  padding: 15px;
-  border-bottom: 1px solid #eee;
-  
-  &:last-child {
-    border-bottom: none;
-  }
-`;
-
 const GroupsContainer = styled.div<{ isOpen: boolean }>`
-  width: 800px;
+  width: 400px;
   background: white;
   padding: 20px;
   border-radius: 10px;
@@ -142,27 +85,92 @@ const CloseButton = styled.button`
   }
 `;
 
+const StudentList = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+`;
+
+const ButtonContainer = styled.div`
+  padding: 20px 0;
+  border-top: 1px solid #eee;
+  margin-top: auto;
+`;
+
+const NumberButtons = styled.div`
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+`;
+
 const GroupsWrapper = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding-top: 20px;
 `;
 
 const GroupCard = styled.div`
-  background: white;
+  background: #f8f9fa;
   border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   padding: 15px;
-  
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
   h3 {
-    margin-bottom: 10px;
+    margin: 0 0 10px 0;
     color: #333;
-    font-size: 18px;
+    font-size: 1.1em;
   }
-  
+
   p {
-    color: #666;
     margin: 5px 0;
+    color: #666;
+  }
+`;
+
+const SearchInput = styled.input`
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  width: 250px;
+  background: white;
+  
+  &:focus {
+    outline: none;
+    border-color: #4285f4;
+  }
+`;
+
+const NumberButton = styled(Button)<{ active?: boolean }>`
+  background: ${props => props.active ? '#4285f4' : '#e0e0e0'};
+  color: ${props => props.active ? 'white' : '#333'};
+  
+  &:hover {
+    background: ${props => props.active ? '#3367d6' : '#d5d5d5'};
+  }
+`;
+
+const RandomButton = styled(Button)`
+  margin: 20px auto;
+  display: block;
+  background: #9c27b0;
+  
+  &:hover {
+    background: #7b1fa2;
+  }
+`;
+
+const StudentItem = styled.div`
+  background: white;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  
+  &:last-child {
+    border-bottom: none;
   }
 `;
 
@@ -209,10 +217,6 @@ const Message = styled.div<{ isVisible: boolean }>`
   transition: all 0.3s ease;
   opacity: ${props => props.isVisible ? 1 : 0};
   z-index: 1100;
-`;
-
-const ButtonContainer = styled.div`
-  margin-top: 20px;
 `;
 
 interface Student {
