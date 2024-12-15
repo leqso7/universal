@@ -1,5 +1,5 @@
-import { useState } from 'react'
 import SearchList from './components/SearchList'
+import InstallPWA from './components/InstallPWA'
 import styled from 'styled-components'
 
 const AppContainer = styled.div`
@@ -43,6 +43,7 @@ function App() {
         <NavButton>ქვიზის დამატება</NavButton>
       </NavigationBar>
       <SearchList />
+      <InstallPWA />
     </AppContainer>
   )
 }
