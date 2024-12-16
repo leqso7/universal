@@ -73,9 +73,9 @@ const AddClassButton = styled.button`
 
 const MainContainer = styled.div<{ isGroupsOpen: boolean }>`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: ${props => props.isGroupsOpen ? 'space-between' : 'center'};
-  gap: 20px;
+  gap: 15px;
   padding: 20px;
   position: relative;
   width: 100%;
@@ -85,14 +85,15 @@ const MainContainer = styled.div<{ isGroupsOpen: boolean }>`
   margin-top: 80px;
 `;
 
-const ListContainer = styled.div`
-  width: ${props => props.isGroupsOpen ? '45%' : '500px'};
+const ListContainer = styled.div<{ isGroupsOpen: boolean }>`
+  width: ${props => props.isGroupsOpen ? '48%' : '500px'};
   background: rgba(255, 255, 255, 0.9);
   border-radius: 15px;
   padding: 20px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  min-height: 500px;
+  height: calc(100vh - 140px);
   position: relative;
+  transition: width 0.3s ease-in-out;
 
   h2 {
     display: flex;
@@ -103,15 +104,15 @@ const ListContainer = styled.div`
 `;
 
 const GroupsContainer = styled.div<{ isOpen: boolean }>`
-  width: 45%;
+  width: 48%;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 15px;
   padding: 20px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  min-height: 500px;
+  height: calc(100vh - 140px);
   opacity: ${props => props.isOpen ? 1 : 0};
-  transform: ${props => props.isOpen ? 'translateX(0)' : 'translateX(50px)'};
-  transition: all 0.3s ease-in-out;
+  transform: ${props => props.isOpen ? 'translateX(0)' : 'translateX(30px)'};
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
   position: relative;
 
@@ -140,12 +141,13 @@ const CloseButton = styled.button`
 `;
 
 const StudentList = styled.div`
-  flex: 1;
-  max-height: 400px;
-  overflow-y: auto;
-  border-top: 1px solid #eee;
-  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   margin-bottom: 20px;
+  max-height: calc(100% - 140px);
+  overflow-y: auto;
+  padding-right: 10px;
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -162,7 +164,7 @@ const StudentList = styled.div`
   }
 
   &::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: #666;
   }
 `;
 
@@ -218,30 +220,44 @@ const StudentItem = styled.div`
   }
 `;
 
-const GroupsWrapper = styled.div<{ isExpanded?: boolean }>`
+const GroupsWrapper = styled.div`
   display: grid;
-  grid-template-columns: ${props => props.isExpanded 
-    ? 'repeat(auto-fit, minmax(300px, 1fr))' 
-    : 'repeat(auto-fit, minmax(250px, 1fr))'};
-  gap: ${props => props.isExpanded ? '20px' : '15px'};
-  padding: ${props => props.isExpanded ? '40px 20px' : '10px'};
-  width: 100%;
-  height: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  max-height: calc(100% - 60px);
   overflow-y: auto;
-  margin-top: ${props => props.isExpanded ? '40px' : '0'};
+  padding-right: 10px;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #666;
+  }
 `;
 
-const GroupCard = styled.div<{ isExpanded?: boolean }>`
+const GroupCard = styled.div`
   background: #f5f5f5;
   padding: 15px;
   border-radius: 10px;
   margin-bottom: 10px;
-  font-size: ${props => props.isExpanded ? '1.2em' : '1em'};
+  font-size: 1em;
   height: fit-content;
 
   h3 {
     margin: 0 0 10px 0;
-    font-size: ${props => props.isExpanded ? '1.5em' : '1.2em'};
+    font-size: 1.2em;
   }
 `;
 
@@ -300,9 +316,13 @@ interface Class {
   students: string[];
 }
 
-const SearchList: React.FC = () => {
+interface SearchListProps {
+  students: Student[];
+  setStudents: React.Dispatch<React.SetStateAction<Student[]>>;
+}
+
+const SearchList: React.FC<SearchListProps> = ({ students, setStudents }) => {
   const [searchText, setSearchText] = useState('');
-  const [students, setStudents] = useState<Student[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [className, setClassName] = useState('');
   const [studentList, setStudentList] = useState('');
@@ -315,7 +335,6 @@ const SearchList: React.FC = () => {
     const saved = localStorage.getItem('classes');
     return saved ? JSON.parse(saved) : [];
   });
-  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleAddStudent = () => {
     if (!searchText.trim()) return;
