@@ -15,17 +15,37 @@ const Container = styled.div`
 
 const TopBar = styled.div`
   position: fixed;
-  top: 20px;
+  top: 0;
   left: 0;
   right: 0;
-  padding: 0 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  z-index: 100;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 20px;
+  z-index: 1000;
+`;
+
+const SearchBarContainer = styled.div`
+  position: absolute;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const AddClassButton = styled.button`
+  position: absolute;
+  right: 20px;
+  padding: 8px 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  
+  &:hover {
+    background-color: #45a049;
+  }
 `;
 
 const SearchGroup = styled.div`
@@ -41,12 +61,13 @@ const MainContainer = styled.div<{ isGroupsOpen: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 60px;
+  gap: 10px;
   padding: 20px;
   position: relative;
-  width: 100%;
+  width: 80%;
+  margin: 0 auto;
   min-height: 100vh;
-  transform: ${props => props.isGroupsOpen ? 'translateX(-20%)' : 'translateX(0)'};
+  transform: ${props => props.isGroupsOpen ? 'translateX(-5%)' : 'translateX(0)'};
   transition: transform 0.3s ease-in-out;
 `;
 
@@ -158,7 +179,7 @@ const StudentItem = styled.div`
 `;
 
 const GroupsContainer = styled.div<{ isOpen: boolean; isExpanded?: boolean }>`
-  width: ${props => props.isExpanded ? '100vw' : 'min(450px, 90vw)'};
+  width: ${props => props.isExpanded ? '100vw' : '40%'};
   height: ${props => props.isExpanded ? '100vh' : 'min(80vh, 600px)'};
   background: white;
   padding: 20px;
@@ -167,7 +188,7 @@ const GroupsContainer = styled.div<{ isOpen: boolean; isExpanded?: boolean }>`
   overflow-y: auto;
   position: ${props => props.isExpanded ? 'fixed' : 'absolute'};
   top: 50%;
-  left: ${props => props.isExpanded ? '0' : '70%'};
+  left: ${props => props.isExpanded ? '0' : '55%'};
   transform: ${props => props.isExpanded 
     ? 'translate(0, 0)' 
     : props.isOpen 
@@ -181,9 +202,9 @@ const GroupsContainer = styled.div<{ isOpen: boolean; isExpanded?: boolean }>`
 `;
 
 const ExpandButton = styled.button`
-  position: absolute;
-  top: 10px;
-  right: 50px;
+  position: fixed;
+  top: 20px;
+  right: 20px;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -194,6 +215,22 @@ const ExpandButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+  
+  &:hover {
+    color: #666;
+  }
+`;
+
+const CloseButton = styled.button`
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: #333;
+  z-index: 1001;
   
   &:hover {
     color: #666;
@@ -224,22 +261,6 @@ const GroupCard = styled.div<{ isExpanded?: boolean }>`
   h3 {
     margin: 0 0 10px 0;
     font-size: ${props => props.isExpanded ? '1.5em' : '1.2em'};
-  }
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #666;
-  transition: color 0.3s;
-  
-  &:hover {
-    color: #333;
   }
 `;
 
@@ -385,16 +406,18 @@ const SearchList: React.FC = () => {
   return (
     <Container>
       <TopBar>
-        <SearchGroup>
-          <SearchInput
-            type="text"
-            placeholder="მოსწავლის სახელი..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-          <Button onClick={handleAddStudent}>დამატება</Button>
-        </SearchGroup>
-        <Button onClick={() => setIsModalOpen(true)}>კლასის დამატება</Button>
+        <SearchBarContainer>
+          <SearchGroup>
+            <SearchInput
+              type="text"
+              placeholder="მოსწავლის სახელი..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+            />
+            <Button onClick={handleAddStudent}>დამატება</Button>
+          </SearchGroup>
+        </SearchBarContainer>
+        <AddClassButton onClick={() => setIsModalOpen(true)}>კლასის დამატება</AddClassButton>
       </TopBar>
 
       <MainContainer isGroupsOpen={showGroups}>
