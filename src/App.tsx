@@ -39,11 +39,10 @@ const AppContainer = styled.div`
 const NavigationBar = styled.nav`
   position: fixed;
   top: 0;
-  left: 0;
   right: 0;
   padding: 15px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   z-index: 10;
 `;
 
@@ -73,9 +72,55 @@ const MainContent = styled.main`
   max-width: 1200px;
 `;
 
+const ClassForm = styled.div<{ isVisible: boolean }>`
+  position: fixed;
+  top: 0;
+  right: ${props => props.isVisible ? '0' : '-400px'};
+  width: 400px;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  transition: right 0.3s ease-in-out;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+`;
+
+const Input = styled.input`
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  width: 100%;
+`;
+
+const TextArea = styled.textarea`
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  width: 100%;
+  min-height: 150px;
+  resize: vertical;
+`;
+
+const SaveButton = styled(NavButton)`
+  width: 100%;
+  background: #4CAF50;
+  
+  &:hover {
+    background: #45a049;
+  }
+`;
+
 function App() {
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
+  const [isClassFormVisible, setIsClassFormVisible] = useState(false);
+  const [className, setClassName] = useState('');
+  const [classList, setClassList] = useState('');
   const location = useLocation();
 
   useEffect(() => {
@@ -94,6 +139,30 @@ function App() {
     }
   }, []);
 
+  const handleSaveClass = () => {
+    if (!className.trim() || !classList.trim()) return;
+
+    const students = classList.split('\n')
+      .map(name => name.trim())
+      .filter(name => name.length > 0)
+      .map(name => ({
+        name,
+        timestamp: Date.now()
+      }));
+
+    const classData = {
+      name: className.trim(),
+      students
+    };
+
+    const savedClasses = JSON.parse(localStorage.getItem('classes') || '[]');
+    localStorage.setItem('classes', JSON.stringify([...savedClasses, classData]));
+
+    setClassName('');
+    setClassList('');
+    setIsClassFormVisible(false);
+  };
+
   if (hasAccess === null) {
     return (
       <AppContainer>
@@ -109,11 +178,7 @@ function App() {
       <GlobalStyle />
       <AppContainer>
         <NavigationBar>
-          <div>
-            <NavButton onClick={() => window.location.href = '/'}>მთავარი მენიუ</NavButton>
-            <NavButton onClick={() => window.location.href = '/add'}>დამატება</NavButton>
-          </div>
-          <NavButton onClick={() => window.location.href = '/access'}>კლასის დამატება</NavButton>
+          <NavButton onClick={() => setIsClassFormVisible(true)}>კლასის დამატება</NavButton>
         </NavigationBar>
         <MainContent>
           <Routes>
@@ -145,6 +210,23 @@ function App() {
           </Routes>
         </MainContent>
         <InstallPWA />
+        
+        <ClassForm isVisible={isClassFormVisible}>
+          <h2>კლასის დამატება</h2>
+          <Input
+            type="text"
+            placeholder="კლასის სახელი"
+            value={className}
+            onChange={(e) => setClassName(e.target.value)}
+          />
+          <TextArea
+            placeholder="მოსწავლეების სია (თითო მოსწავლე ახალ ხაზზე)"
+            value={classList}
+            onChange={(e) => setClassList(e.target.value)}
+          />
+          <SaveButton onClick={handleSaveClass}>შენახვა</SaveButton>
+          <NavButton onClick={() => setIsClassFormVisible(false)}>დახურვა</NavButton>
+        </ClassForm>
       </AppContainer>
     </>
   );
