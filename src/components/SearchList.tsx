@@ -19,17 +19,20 @@ interface Props {
 const SearchContainer = styled.div`
   width: 100%;
   max-width: 800px;
-  margin: 0 auto;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  position: relative;
 `;
 
 const SearchBar = styled.div`
   display: flex;
   gap: 10px;
-  width: 100%;
+  width: 300px;
+  position: absolute;
+  top: 20px;
+  left: 20px;
 `;
 
 const SearchInput = styled.input`
@@ -110,11 +113,26 @@ const GroupButton = styled.button`
   }
 `;
 
-const GroupsContainer = styled.div<{ show: boolean }>`
-  margin-top: 20px;
-  opacity: ${props => props.show ? 1 : 0};
-  transform: translateY(${props => props.show ? '0' : '-20px'});
-  transition: all 0.3s ease-in-out;
+const GroupsContainer = styled.div`
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+  animation: slideIn 0.3s ease-out;
+  margin-top: 80px;
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
 `;
 
 const GroupGrid = styled.div`
@@ -225,7 +243,7 @@ function SearchList({ students, setStudents }: Props) {
         ))}
       </GroupButtons>
 
-      <GroupsContainer show={showGroups}>
+      <GroupsContainer>
         <GroupGrid>
           {groups.map((group, index) => (
             <GroupCard key={group.id}>
