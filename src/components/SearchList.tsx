@@ -11,18 +11,22 @@ const Container = styled.div`
   justify-content: center;
   align-items: center;
   margin: 0 auto;
+  overflow: hidden;
 `;
 
 const TopBar = styled.div`
   position: fixed;
   top: 20px;
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
   padding: 0 20px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  gap: 20px;
   z-index: 100;
+  width: 100%;
+  max-width: 800px;
 `;
 
 const SearchGroup = styled.div`
@@ -50,13 +54,14 @@ const SearchContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 450px;
-  max-height: 80vh;
-  margin-top: -10vh;
+  width: min(450px, 90vw);
+  height: min(80vh, 600px);
+  margin: 0 auto;
   background: white;
   padding: 20px;
   border-radius: 15px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  position: relative;
 `;
 
 const StudentList = styled.div`
@@ -90,6 +95,14 @@ const ButtonContainer = styled.div`
   padding: 20px 0;
   border-top: 1px solid #eee;
   margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  width: 100%;
 `;
 
 const NumberButtons = styled.div`
@@ -98,6 +111,7 @@ const NumberButtons = styled.div`
   justify-content: center;
   flex-wrap: wrap;
   margin-bottom: 10px;
+  padding: 0 20px;
 `;
 
 const SearchInput = styled.input`
@@ -144,49 +158,38 @@ const StudentItem = styled.div`
 `;
 
 const GroupsContainer = styled.div<{ isOpen: boolean; isExpanded?: boolean }>`
-  width: ${props => props.isExpanded ? '100vw' : '450px'};
-  height: ${props => props.isExpanded ? '100vh' : '80vh'};
+  width: ${props => props.isExpanded ? '100vw' : 'min(450px, 90vw)'};
+  height: ${props => props.isExpanded ? '100vh' : 'min(80vh, 600px)'};
   background: white;
   padding: 20px;
   border-radius: ${props => props.isExpanded ? '0' : '15px'};
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
-  position: ${props => props.isExpanded ? 'fixed' : 'relative'};
-  top: ${props => props.isExpanded ? '0' : 'auto'};
-  left: ${props => props.isExpanded ? '0' : 'auto'};
+  position: ${props => props.isExpanded ? 'fixed' : 'absolute'};
+  top: ${props => props.isExpanded ? '0' : '50%'};
+  left: ${props => props.isExpanded ? '0' : '50%'};
+  transform: ${props => props.isExpanded 
+    ? 'none' 
+    : props.isOpen 
+      ? 'translate(-50%, -50%)' 
+      : 'translate(-50%, -50%) translateX(100%)'
+  };
   z-index: ${props => props.isExpanded ? '1000' : '1'};
   transition: all 0.3s ease-in-out;
   opacity: ${props => props.isOpen ? '1' : '0'};
-  transform: ${props => props.isOpen 
-    ? 'translateX(0) translateY(-10vh)' 
-    : 'translateX(100%)'
-  };
   visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
-
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: #555;
-  }
 `;
 
 const GroupsWrapper = styled.div<{ isExpanded?: boolean }>`
   display: grid;
-  grid-template-columns: ${props => props.isExpanded ? 'repeat(auto-fill, minmax(300px, 1fr))' : '1fr'};
+  grid-template-columns: ${props => props.isExpanded 
+    ? 'repeat(auto-fit, minmax(300px, 1fr))' 
+    : 'repeat(auto-fit, minmax(250px, 1fr))'};
   gap: ${props => props.isExpanded ? '20px' : '10px'};
-  padding: ${props => props.isExpanded ? '20px' : '0'};
+  padding: ${props => props.isExpanded ? '20px' : '10px'};
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
 `;
 
 const GroupCard = styled.div<{ isExpanded?: boolean }>`
@@ -195,6 +198,7 @@ const GroupCard = styled.div<{ isExpanded?: boolean }>`
   border-radius: 10px;
   margin-bottom: 10px;
   font-size: ${props => props.isExpanded ? '1.2em' : '1em'};
+  height: fit-content;
 
   h3 {
     margin: 0 0 10px 0;
