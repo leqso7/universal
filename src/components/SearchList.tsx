@@ -41,12 +41,12 @@ const MainContainer = styled.div<{ isGroupsOpen: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 40px;
+  gap: 60px;
   padding: 20px;
   position: relative;
   width: 100%;
   min-height: 100vh;
-  transform: ${props => props.isGroupsOpen ? 'translateX(-25%)' : 'translateX(0)'};
+  transform: ${props => props.isGroupsOpen ? 'translateX(-20%)' : 'translateX(0)'};
   transition: transform 0.3s ease-in-out;
 `;
 
@@ -167,9 +167,9 @@ const GroupsContainer = styled.div<{ isOpen: boolean; isExpanded?: boolean }>`
   overflow-y: auto;
   position: ${props => props.isExpanded ? 'fixed' : 'absolute'};
   top: 50%;
-  left: ${props => props.isExpanded ? '0' : '75%'};
+  left: ${props => props.isExpanded ? '0' : '70%'};
   transform: ${props => props.isExpanded 
-    ? 'none' 
+    ? 'translate(0, 0)' 
     : props.isOpen 
       ? 'translate(-50%, -50%)' 
       : 'translate(-50%, -50%) translateX(100%)'
@@ -180,16 +180,37 @@ const GroupsContainer = styled.div<{ isOpen: boolean; isExpanded?: boolean }>`
   visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
 `;
 
+const ExpandButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 50px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: #333;
+  z-index: 1001;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:hover {
+    color: #666;
+  }
+`;
+
 const GroupsWrapper = styled.div<{ isExpanded?: boolean }>`
   display: grid;
   grid-template-columns: ${props => props.isExpanded 
     ? 'repeat(auto-fit, minmax(300px, 1fr))' 
     : 'repeat(auto-fit, minmax(250px, 1fr))'};
-  gap: ${props => props.isExpanded ? '20px' : '10px'};
-  padding: ${props => props.isExpanded ? '20px' : '10px'};
+  gap: ${props => props.isExpanded ? '20px' : '15px'};
+  padding: ${props => props.isExpanded ? '40px 20px' : '10px'};
   width: 100%;
   height: 100%;
   overflow-y: auto;
+  margin-top: ${props => props.isExpanded ? '40px' : '0'};
 `;
 
 const GroupCard = styled.div<{ isExpanded?: boolean }>`
@@ -203,22 +224,6 @@ const GroupCard = styled.div<{ isExpanded?: boolean }>`
   h3 {
     margin: 0 0 10px 0;
     font-size: ${props => props.isExpanded ? '1.5em' : '1.2em'};
-  }
-`;
-
-const ExpandButton = styled.button`
-  position: absolute;
-  top: 10px;
-  right: 50px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 24px;
-  color: #333;
-  z-index: 1001;
-  
-  &:hover {
-    color: #666;
   }
 `;
 
