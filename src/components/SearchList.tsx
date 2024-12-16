@@ -17,16 +17,16 @@ const Container = styled.div`
 const TopBar = styled.div`
   position: fixed;
   top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
   padding: 0 20px;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  gap: 20px;
   z-index: 100;
   width: 100%;
-  max-width: 800px;
+  max-width: 1200px;
+  margin: 0 auto;
 `;
 
 const SearchGroup = styled.div`
@@ -40,10 +40,9 @@ const SearchGroup = styled.div`
 
 const MainContainer = styled.div`
   display: flex;
-  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 40px;
   padding: 20px;
   position: relative;
   width: 100%;
@@ -165,14 +164,14 @@ const GroupsContainer = styled.div<{ isOpen: boolean; isExpanded?: boolean }>`
   border-radius: ${props => props.isExpanded ? '0' : '15px'};
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
-  position: ${props => props.isExpanded ? 'fixed' : 'absolute'};
+  position: ${props => props.isExpanded ? 'fixed' : 'relative'};
   top: ${props => props.isExpanded ? '0' : '50%'};
-  left: ${props => props.isExpanded ? '0' : '50%'};
+  left: ${props => props.isExpanded ? '0' : '0'};
   transform: ${props => props.isExpanded 
     ? 'none' 
     : props.isOpen 
-      ? 'translate(-50%, -50%)' 
-      : 'translate(-50%, -50%) translateX(100%)'
+      ? 'translateY(-50%)' 
+      : 'translateY(-50%) translateX(100%)'
   };
   z-index: ${props => props.isExpanded ? '1000' : '1'};
   transition: all 0.3s ease-in-out;
