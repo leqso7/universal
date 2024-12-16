@@ -326,11 +326,7 @@ const SearchList: React.FC<SearchListProps> = ({ students, setStudents }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [className, setClassName] = useState('');
   const [studentList, setStudentList] = useState('');
-  const [message, setMessage] = useState('');
-  const [showMessage, setShowMessage] = useState(false);
-  const [selectedGroupCount, setSelectedGroupCount] = useState<number | null>(null);
-  const [showGroups, setShowGroups] = useState(false);
-  const [groups, setGroups] = useState<Student[][]>([]);
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [classes, setClasses] = useState<Class[]>(() => {
     const saved = localStorage.getItem('classes');
     return saved ? JSON.parse(saved) : [];
@@ -338,20 +334,18 @@ const SearchList: React.FC<SearchListProps> = ({ students, setStudents }) => {
 
   const handleAddStudent = () => {
     if (!searchText.trim()) return;
-    
-    const matchingClass = classes.find(c => c.name === searchText);
-    if (matchingClass) {
-      const newStudents = matchingClass.students.map(name => ({
-        name,
-        timestamp: Date.now()
-      }));
-      setStudents(prev => [...newStudents, ...prev]);
-    } else {
-      setStudents(prev => [
-        { name: searchText.trim(), timestamp: Date.now() },
-        ...prev
-      ]);
-    }
+
+    const newStudent = {
+      name: searchText.trim(),
+      timestamp: Date.now(),
+    };
+
+    setStudents(prev => {
+      const updated = [...prev, newStudent];
+      localStorage.setItem('students', JSON.stringify(updated));
+      return updated;
+    });
+
     setSearchText('');
   };
 

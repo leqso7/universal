@@ -64,14 +64,25 @@ const NavButton = styled.button`
   }
 `;
 
+interface Student {
+  // Add student properties here
+}
+
 function App() {
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
   const location = useLocation();
 
   useEffect(() => {
     const savedStatus = localStorage.getItem('approvalStatus');
     const isApproved = savedStatus === 'approved';
     setHasAccess(isApproved);
+
+    // Load saved students
+    const savedStudents = localStorage.getItem('students');
+    if (savedStudents) {
+      setStudents(JSON.parse(savedStudents));
+    }
 
     // Handle direct access to /app
     if (location.pathname.includes('app') && !isApproved) {
@@ -122,7 +133,7 @@ function App() {
           element={
             hasAccess ? (
               <AppContainer>
-                <SearchList />
+                <SearchList students={students} setStudents={setStudents} />
                 <InstallPWA />
               </AppContainer>
             ) : (
