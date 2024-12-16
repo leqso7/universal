@@ -7,7 +7,6 @@ const Container = styled.div`
   width: 100%;
   height: 100vh;
   position: relative;
-  gap: 20px;
   justify-content: center;
   align-items: center;
   margin: 0 auto;
@@ -38,7 +37,7 @@ const SearchGroup = styled.div`
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
 `;
 
-const MainContainer = styled.div`
+const MainContainer = styled.div<{ isGroupsOpen: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -47,6 +46,8 @@ const MainContainer = styled.div`
   position: relative;
   width: 100%;
   min-height: 100vh;
+  transform: ${props => props.isGroupsOpen ? 'translateX(-25%)' : 'translateX(0)'};
+  transition: transform 0.3s ease-in-out;
 `;
 
 const SearchContainer = styled.div`
@@ -164,14 +165,14 @@ const GroupsContainer = styled.div<{ isOpen: boolean; isExpanded?: boolean }>`
   border-radius: ${props => props.isExpanded ? '0' : '15px'};
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
-  position: ${props => props.isExpanded ? 'fixed' : 'relative'};
-  top: ${props => props.isExpanded ? '0' : '50%'};
-  left: ${props => props.isExpanded ? '0' : '0'};
+  position: ${props => props.isExpanded ? 'fixed' : 'absolute'};
+  top: 50%;
+  left: ${props => props.isExpanded ? '0' : '75%'};
   transform: ${props => props.isExpanded 
     ? 'none' 
     : props.isOpen 
-      ? 'translateY(-50%)' 
-      : 'translateY(-50%) translateX(100%)'
+      ? 'translate(-50%, -50%)' 
+      : 'translate(-50%, -50%) translateX(100%)'
   };
   z-index: ${props => props.isExpanded ? '1000' : '1'};
   transition: all 0.3s ease-in-out;
@@ -391,7 +392,7 @@ const SearchList: React.FC = () => {
         <Button onClick={() => setIsModalOpen(true)}>კლასის დამატება</Button>
       </TopBar>
 
-      <MainContainer>
+      <MainContainer isGroupsOpen={showGroups}>
         <SearchContainer>
           <StudentList>
             {students.map((student) => (
@@ -418,7 +419,6 @@ const SearchList: React.FC = () => {
             </RandomButton>
           </ButtonContainer>
         </SearchContainer>
-
         <GroupsContainer isOpen={showGroups} isExpanded={isExpanded}>
           <CloseButton onClick={() => setShowGroups(false)}>✕</CloseButton>
           <ExpandButton onClick={() => setIsExpanded(!isExpanded)}>
