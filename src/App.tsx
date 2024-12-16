@@ -1,7 +1,7 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { createGlobalStyle } from 'styled-components'
 import RequestAccess from './pages/RequestAccess'
-import SearchList from './components/SearchList'
+import SearchList, { Student } from './components/SearchList'
 import InstallPWA from './components/InstallPWA'
 import styled from 'styled-components'
 import { useState, useEffect } from 'react'
@@ -64,52 +64,28 @@ const NavButton = styled.button`
   }
 `;
 
-interface Student {
-  // Add student properties here
-}
-
 function App() {
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  const [hasAccess, setHasAccess] = useState<boolean>(false);
   const [students, setStudents] = useState<Student[]>([]);
   const location = useLocation();
 
   useEffect(() => {
     const savedStatus = localStorage.getItem('approvalStatus');
-    const isApproved = savedStatus === 'approved';
-    setHasAccess(isApproved);
+    if (savedStatus === 'approved') {
+      setHasAccess(true);
+    }
 
-    // Load saved students
     const savedStudents = localStorage.getItem('students');
     if (savedStudents) {
       setStudents(JSON.parse(savedStudents));
     }
-
-    // Handle direct access to /app
-    if (location.pathname.includes('app') && !isApproved) {
-      window.location.replace('#/request');
-      return;
-    }
-
-    // Handle root access
-    if (location.pathname === '/' && isApproved) {
-      window.location.replace('#/app');
-      return;
-    }
-
-    // Handle root access without approval
-    if (location.pathname === '/' && !isApproved) {
-      window.location.replace('#/request');
-      return;
-    }
-  }, [location]);
+  }, []);
 
   const handleAccessGranted = () => {
     setHasAccess(true);
     localStorage.setItem('approvalStatus', 'approved');
-    window.location.replace('#/app');
   };
 
-  // Wait for access check
   if (hasAccess === null) {
     return null;
   }
@@ -117,42 +93,14 @@ function App() {
   return (
     <>
       <GlobalStyle />
-      <Routes>
-        <Route
-          path="/"
-          element={
-            hasAccess ? (
-              <Navigate to="/app" replace />
-            ) : (
-              <Navigate to="/request" replace />
-            )
-          }
-        />
-        <Route
-          path="/app"
-          element={
-            hasAccess ? (
-              <AppContainer>
-                <SearchList students={students} setStudents={setStudents} />
-                <InstallPWA />
-              </AppContainer>
-            ) : (
-              <Navigate to="/request" replace />
-            )
-          }
-        />
-        <Route
-          path="/request"
-          element={
-            hasAccess ? (
-              <Navigate to="/app" replace />
-            ) : (
-              <RequestAccess onAccessGranted={handleAccessGranted} />
-            )
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AppContainer>
+        <Routes>
+          <Route path="/" element={hasAccess ? <Navigate to="/app" replace /> : <Navigate to="/request" replace />} />
+          <Route path="/app" element={hasAccess ? <SearchList students={students} setStudents={setStudents} /> : <Navigate to="/request" replace />} />
+          <Route path="/request" element={hasAccess ? <Navigate to="/app" replace /> : <RequestAccess onAccessGranted={handleAccessGranted} />} />
+        </Routes>
+        <InstallPWA />
+      </AppContainer>
     </>
   );
 }
