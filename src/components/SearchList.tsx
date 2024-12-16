@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Button } from '../styles';
 
 const Container = styled.div`
   display: flex;
@@ -18,71 +17,101 @@ const TopBar = styled.div`
   top: 0;
   left: 0;
   right: 0;
+  padding: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  z-index: 1000;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 100;
 `;
 
-const SearchBarContainer = styled.div`
-  position: absolute;
-  left: 20px;
+const SearchGroup = styled.div`
   display: flex;
-  align-items: center;
   gap: 10px;
+  align-items: center;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  justify-content: space-between;
 `;
 
-const AddClassButton = styled.button`
-  position: absolute;
-  right: 20px;
+const SearchInput = styled.input`
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 300px;
+  font-size: 16px;
+  
+  &:focus {
+    outline: none;
+    border-color: #4CAF50;
+  }
+`;
+
+const Button = styled.button`
   padding: 8px 16px;
   background-color: #4CAF50;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 16px;
   
   &:hover {
     background-color: #45a049;
   }
 `;
 
-const SearchGroup = styled.div`
-  display: flex;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-`;
-
 const MainContainer = styled.div<{ isGroupsOpen: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 20px;
   padding: 20px;
   position: relative;
-  width: 80%;
+  width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
-  min-height: 100vh;
-  transform: ${props => props.isGroupsOpen ? 'translateX(-5%)' : 'translateX(0)'};
-  transition: transform 0.3s ease-in-out;
+  min-height: calc(100vh - 100px);
+  margin-top: 80px;
 `;
 
-const SearchContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: min(450px, 90vw);
-  height: min(80vh, 600px);
-  margin: 0 auto;
-  background: white;
-  padding: 20px;
+const ListContainer = styled.div`
+  width: 45%;
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 15px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-height: 500px;
   position: relative;
+
+  h2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+`;
+
+const GroupsContainer = styled.div<{ isOpen: boolean }>`
+  width: 45%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-height: 500px;
+  opacity: ${props => props.isOpen ? 1 : 0};
+  transform: ${props => props.isOpen ? 'translateX(0)' : 'translateX(50px)'};
+  transition: all 0.3s ease-in-out;
+  position: relative;
+
+  h2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
 `;
 
 const StudentList = styled.div`
@@ -135,20 +164,6 @@ const NumberButtons = styled.div`
   padding: 0 20px;
 `;
 
-const SearchInput = styled.input`
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 16px;
-  width: 250px;
-  background: white;
-  
-  &:focus {
-    outline: none;
-    border-color: #4285f4;
-  }
-`;
-
 const NumberButton = styled(Button)<{ active?: boolean }>`
   background: ${props => props.active ? '#4285f4' : '#e0e0e0'};
   color: ${props => props.active ? 'white' : '#333'};
@@ -178,62 +193,18 @@ const StudentItem = styled.div`
   }
 `;
 
-const GroupsContainer = styled.div<{ isOpen: boolean; isExpanded?: boolean }>`
-  width: ${props => props.isExpanded ? '100vw' : '40%'};
-  height: ${props => props.isExpanded ? '100vh' : 'min(80vh, 600px)'};
-  background: white;
-  padding: 20px;
-  border-radius: ${props => props.isExpanded ? '0' : '15px'};
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  overflow-y: auto;
-  position: ${props => props.isExpanded ? 'fixed' : 'absolute'};
-  top: 50%;
-  left: ${props => props.isExpanded ? '0' : '55%'};
-  transform: ${props => props.isExpanded 
-    ? 'translate(0, 0)' 
-    : props.isOpen 
-      ? 'translate(-50%, -50%)' 
-      : 'translate(-50%, -50%) translateX(100%)'
-  };
-  z-index: ${props => props.isExpanded ? '1000' : '1'};
-  transition: all 0.3s ease-in-out;
-  opacity: ${props => props.isOpen ? '1' : '0'};
-  visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
-`;
-
 const ExpandButton = styled.button`
-  position: fixed;
+  position: absolute;
   top: 20px;
   right: 20px;
   background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 24px;
-  color: #333;
-  z-index: 1001;
-  padding: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 20px;
+  color: #666;
   
   &:hover {
-    color: #666;
-  }
-`;
-
-const CloseButton = styled.button`
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 24px;
-  color: #333;
-  z-index: 1001;
-  
-  &:hover {
-    color: #666;
+    color: #333;
   }
 `;
 
@@ -406,22 +377,21 @@ const SearchList: React.FC = () => {
   return (
     <Container>
       <TopBar>
-        <SearchBarContainer>
-          <SearchGroup>
-            <SearchInput
-              type="text"
-              placeholder="მოსწავლის სახელი..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-            />
-            <Button onClick={handleAddStudent}>დამატება</Button>
-          </SearchGroup>
-        </SearchBarContainer>
-        <AddClassButton onClick={() => setIsModalOpen(true)}>კლასის დამატება</AddClassButton>
+        <SearchGroup>
+          <SearchInput
+            type="text"
+            placeholder="მოსწავლის სახელი..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+          <Button onClick={handleAddStudent}>დამატება</Button>
+        </SearchGroup>
+        <Button onClick={() => setIsModalOpen(true)}>კლასის დამატება</Button>
       </TopBar>
 
       <MainContainer isGroupsOpen={showGroups}>
-        <SearchContainer>
+        <ListContainer>
+          <h2>მოსწავლეები</h2>
           <StudentList>
             {students.map((student) => (
               <StudentItem key={student.timestamp}>
@@ -429,7 +399,6 @@ const SearchList: React.FC = () => {
               </StudentItem>
             ))}
           </StudentList>
-          
           <ButtonContainer>
             <NumberButtons>
               {[2, 3, 4, 5, 6, 7].map((num) => (
@@ -446,9 +415,9 @@ const SearchList: React.FC = () => {
               შემთხვევითი მოსწავლე
             </RandomButton>
           </ButtonContainer>
-        </SearchContainer>
-        <GroupsContainer isOpen={showGroups} isExpanded={isExpanded}>
-          <CloseButton onClick={() => setShowGroups(false)}>✕</CloseButton>
+        </ListContainer>
+        <GroupsContainer isOpen={showGroups}>
+          <h2>ჯგუფები</h2>
           <ExpandButton onClick={() => setIsExpanded(!isExpanded)}>
             {isExpanded ? '✖' : '⛶'}
           </ExpandButton>
