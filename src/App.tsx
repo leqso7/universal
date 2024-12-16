@@ -67,7 +67,6 @@ const NavButton = styled.button`
 function App() {
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const location = useLocation();
-  const baseUrl = '/class-manager-./';
 
   useEffect(() => {
     const savedStatus = localStorage.getItem('approvalStatus');
@@ -75,28 +74,28 @@ function App() {
     setHasAccess(isApproved);
 
     // Handle direct access to /app
-    if (location.pathname.includes('/app') && !isApproved) {
-      window.location.href = baseUrl + 'request';
+    if (location.pathname.includes('app') && !isApproved) {
+      window.location.replace('#/request');
       return;
     }
 
     // Handle root access
-    if (location.pathname === baseUrl && isApproved) {
-      window.location.href = baseUrl + 'app';
+    if (location.pathname === '/' && isApproved) {
+      window.location.replace('#/app');
       return;
     }
 
     // Handle root access without approval
-    if (location.pathname === baseUrl && !isApproved) {
-      window.location.href = baseUrl + 'request';
+    if (location.pathname === '/' && !isApproved) {
+      window.location.replace('#/request');
       return;
     }
-  }, [location, baseUrl]);
+  }, [location]);
 
   const handleAccessGranted = () => {
     setHasAccess(true);
     localStorage.setItem('approvalStatus', 'approved');
-    window.location.href = baseUrl + 'app';
+    window.location.replace('#/app');
   };
 
   // Wait for access check
@@ -109,17 +108,17 @@ function App() {
       <GlobalStyle />
       <Routes>
         <Route
-          path={baseUrl}
+          path="/"
           element={
             hasAccess ? (
-              <Navigate to={baseUrl + 'app'} replace />
+              <Navigate to="/app" replace />
             ) : (
-              <Navigate to={baseUrl + 'request'} replace />
+              <Navigate to="/request" replace />
             )
           }
         />
         <Route
-          path={baseUrl + 'app'}
+          path="/app"
           element={
             hasAccess ? (
               <AppContainer>
@@ -127,21 +126,21 @@ function App() {
                 <InstallPWA />
               </AppContainer>
             ) : (
-              <Navigate to={baseUrl + 'request'} replace />
+              <Navigate to="/request" replace />
             )
           }
         />
         <Route
-          path={baseUrl + 'request'}
+          path="/request"
           element={
             hasAccess ? (
-              <Navigate to={baseUrl + 'app'} replace />
+              <Navigate to="/app" replace />
             ) : (
               <RequestAccess onAccessGranted={handleAccessGranted} />
             )
           }
         />
-        <Route path="*" element={<Navigate to={baseUrl} replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );
