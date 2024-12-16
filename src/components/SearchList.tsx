@@ -123,47 +123,45 @@ const SearchList: React.FC<SearchListProps> = ({ students, setStudents }) => {
 
   return (
     <Container>
-      <TopBar>
-        <SearchInput
-          type="text"
-          placeholder="მოსწავლის სახელი..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-        />
-        <Button onClick={handleAddStudent}>დამატება</Button>
-      </TopBar>
-      <StudentList>
-        {filteredStudents.map((student, index) => (
-          <StudentItem key={student.timestamp}>
-            {student.name}
-            <DeleteButton
-              onClick={() => {
-                const updatedStudents = students.filter(s => s.timestamp !== student.timestamp);
-                setStudents(updatedStudents);
-                localStorage.setItem('students', JSON.stringify(updatedStudents));
-              }}
-            >
-              ✕
-            </DeleteButton>
-          </StudentItem>
-        ))}
-      </StudentList>
-      <ButtonContainer>
-        <Button onClick={selectRandomStudent}>შემთხვევითი მოსწავლე</Button>
-        <Button onClick={() => handleGroupButtonClick(2)}>2 კაციანი ჯგუფები</Button>
-        <Button onClick={() => handleGroupButtonClick(3)}>3 კაციანი ჯგუფები</Button>
-        <Button onClick={() => handleGroupButtonClick(4)}>4 კაციანი ჯგუფები</Button>
-        <Button onClick={() => handleGroupButtonClick(5)}>5 კაციანი ჯგუფები</Button>
-      </ButtonContainer>
-      {showMessage && (
-        <MessageOverlay>
-          <Message>{message}</Message>
-        </MessageOverlay>
-      )}
+      <StudentListContainer>
+        <TopBar>
+          <SearchInput
+            type="text"
+            placeholder="მოსწავლის სახელი..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+          <Button onClick={handleAddStudent}>დამატება</Button>
+        </TopBar>
+        <StudentList>
+          {filteredStudents.map((student, index) => (
+            <StudentItem key={student.timestamp}>
+              {student.name}
+              <DeleteButton
+                onClick={() => {
+                  const updatedStudents = students.filter(s => s.timestamp !== student.timestamp);
+                  setStudents(updatedStudents);
+                  localStorage.setItem('students', JSON.stringify(updatedStudents));
+                }}
+              >
+                ✕
+              </DeleteButton>
+            </StudentItem>
+          ))}
+        </StudentList>
+        <ButtonContainer>
+          <Button onClick={selectRandomStudent}>შემთხვევითი მოსწავლე</Button>
+          <Button onClick={() => handleGroupButtonClick(2)}>2 კაციანი ჯგუფები</Button>
+          <Button onClick={() => handleGroupButtonClick(3)}>3 კაციანი ჯგუფები</Button>
+          <Button onClick={() => handleGroupButtonClick(4)}>4 კაციანი ჯგუფები</Button>
+          <Button onClick={() => handleGroupButtonClick(5)}>5 კაციანი ჯგუფები</Button>
+        </ButtonContainer>
+      </StudentListContainer>
+
       {showGroups && (
         <GroupsContainer>
           <GroupsHeader>
-            <h2>ჯგუფები</h2>
+            <h2>შექმნილი ჯგუფები</h2>
             <CloseButton onClick={() => setShowGroups(false)}>✕</CloseButton>
           </GroupsHeader>
           <GroupsGrid>
@@ -178,15 +176,87 @@ const SearchList: React.FC<SearchListProps> = ({ students, setStudents }) => {
           </GroupsGrid>
         </GroupsContainer>
       )}
+
+      {showMessage && (
+        <MessageOverlay>
+          <Message>{message}</Message>
+        </MessageOverlay>
+      )}
     </Container>
   );
 };
 
 const Container = styled.div`
+  display: flex;
+  gap: 20px;
   width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
+  max-width: 1200px;
+  justify-content: center;
+`;
+
+const StudentListContainer = styled.div`
+  background: rgba(255, 255, 255, 0.9);
   padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+`;
+
+const GroupsContainer = styled.div`
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+  animation: slideIn 0.3s ease-out;
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+`;
+
+const GroupsHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  h2 {
+    margin: 0;
+    color: #333;
+  }
+`;
+
+const GroupsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+`;
+
+const GroupCard = styled.div`
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+
+  h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+  }
+
+  div {
+    margin: 5px 0;
+    color: #666;
+  }
 `;
 
 const TopBar = styled.div`
@@ -271,28 +341,6 @@ const Message = styled.div`
   font-size: 16px;
 `;
 
-const GroupsContainer = styled.div`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-  max-width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  z-index: 1000;
-`;
-
-const GroupsHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-`;
-
 const CloseButton = styled.button`
   background: none;
   border: none;
@@ -302,27 +350,6 @@ const CloseButton = styled.button`
 
   &:hover {
     color: #000;
-  }
-`;
-
-const GroupsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-`;
-
-const GroupCard = styled.div`
-  background-color: #f5f5f5;
-  padding: 15px;
-  border-radius: 10px;
-
-  h3 {
-    margin: 0 0 10px 0;
-    color: #333;
-  }
-
-  div {
-    margin: 5px 0;
   }
 `;
 
