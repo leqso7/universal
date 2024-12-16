@@ -18,12 +18,18 @@ interface Props {
 
 const SearchContainer = styled.div`
   width: 100%;
-  max-width: 800px;
   padding: 20px;
+  display: flex;
+  gap: 20px;
+  position: relative;
+`;
+
+const MainContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
-  position: relative;
+  width: 100%;
+  max-width: 500px;
 `;
 
 const SearchBar = styled.div`
@@ -122,6 +128,7 @@ const GroupsContainer = styled.div`
   max-width: 500px;
   animation: slideIn 0.3s ease-out;
   margin-top: 80px;
+  height: fit-content;
 
   @keyframes slideIn {
     from {
@@ -226,37 +233,41 @@ function SearchList({ students, setStudents }: Props) {
         <button onClick={handleAddStudent}>დამატება</button>
       </SearchBar>
 
-      <StudentList>
-        {filteredStudents.map((student) => (
-          <StudentItem key={student.timestamp}>
-            <span>{student.name}</span>
-            <DeleteButton onClick={() => handleDeleteStudent(student.timestamp)}>×</DeleteButton>
-          </StudentItem>
-        ))}
-      </StudentList>
-
-      <GroupButtons>
-        {[2, 3, 4, 5].map(size => (
-          <GroupButton key={size} onClick={() => createGroups(size)}>
-            {size}
-          </GroupButton>
-        ))}
-      </GroupButtons>
-
-      <GroupsContainer>
-        <GroupGrid>
-          {groups.map((group, index) => (
-            <GroupCard key={group.id}>
-              <GroupTitle>ჯგუფი {index + 1}</GroupTitle>
-              <GroupMemberList>
-                {group.members.map(member => (
-                  <GroupMember key={member.timestamp}>{member.name}</GroupMember>
-                ))}
-              </GroupMemberList>
-            </GroupCard>
+      <MainContent>
+        <StudentList>
+          {filteredStudents.map((student) => (
+            <StudentItem key={student.timestamp}>
+              <span>{student.name}</span>
+              <DeleteButton onClick={() => handleDeleteStudent(student.timestamp)}>×</DeleteButton>
+            </StudentItem>
           ))}
-        </GroupGrid>
-      </GroupsContainer>
+        </StudentList>
+
+        <GroupButtons>
+          {[2, 3, 4, 5].map(size => (
+            <GroupButton key={size} onClick={() => createGroups(size)}>
+              {size}
+            </GroupButton>
+          ))}
+        </GroupButtons>
+      </MainContent>
+
+      {showGroups && (
+        <GroupsContainer>
+          <GroupGrid>
+            {groups.map((group, index) => (
+              <GroupCard key={group.id}>
+                <GroupTitle>ჯგუფი {index + 1}</GroupTitle>
+                <GroupMemberList>
+                  {group.members.map(member => (
+                    <GroupMember key={member.timestamp}>{member.name}</GroupMember>
+                  ))}
+                </GroupMemberList>
+              </GroupCard>
+            ))}
+          </GroupGrid>
+        </GroupsContainer>
+      )}
     </SearchContainer>
   );
 }
