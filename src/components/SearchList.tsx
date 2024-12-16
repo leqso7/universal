@@ -14,15 +14,13 @@ const Container = styled.div`
 
 const TopBar = styled.div`
   position: fixed;
-  top: 0;
+  top: 20px;
   left: 0;
   right: 0;
-  padding: 20px;
+  padding: 0 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 100;
 `;
 
@@ -30,10 +28,6 @@ const SearchGroup = styled.div`
   display: flex;
   gap: 10px;
   align-items: center;
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  justify-content: space-between;
 `;
 
 const SearchInput = styled.input`
@@ -63,22 +57,36 @@ const Button = styled.button`
   }
 `;
 
+const AddClassButton = styled.button`
+  padding: 8px 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  
+  &:hover {
+    background-color: #45a049;
+  }
+`;
+
 const MainContainer = styled.div<{ isGroupsOpen: boolean }>`
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: ${props => props.isGroupsOpen ? 'space-between' : 'center'};
   gap: 20px;
   padding: 20px;
   position: relative;
   width: 100%;
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   min-height: calc(100vh - 100px);
   margin-top: 80px;
 `;
 
 const ListContainer = styled.div`
-  width: 45%;
+  width: ${props => props.isGroupsOpen ? '45%' : '500px'};
   background: rgba(255, 255, 255, 0.9);
   border-radius: 15px;
   padding: 20px;
@@ -104,6 +112,7 @@ const GroupsContainer = styled.div<{ isOpen: boolean }>`
   opacity: ${props => props.isOpen ? 1 : 0};
   transform: ${props => props.isOpen ? 'translateX(0)' : 'translateX(50px)'};
   transition: all 0.3s ease-in-out;
+  visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
   position: relative;
 
   h2 {
@@ -111,6 +120,22 @@ const GroupsContainer = styled.div<{ isOpen: boolean }>`
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+  }
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: #666;
+  z-index: 2;
+  
+  &:hover {
+    color: #333;
   }
 `;
 
@@ -190,21 +215,6 @@ const StudentItem = styled.div`
   
   &:last-child {
     border-bottom: none;
-  }
-`;
-
-const ExpandButton = styled.button`
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 20px;
-  color: #666;
-  
-  &:hover {
-    color: #333;
   }
 `;
 
@@ -386,11 +396,11 @@ const SearchList: React.FC = () => {
           />
           <Button onClick={handleAddStudent}>დამატება</Button>
         </SearchGroup>
-        <Button onClick={() => setIsModalOpen(true)}>კლასის დამატება</Button>
+        <AddClassButton onClick={() => setIsModalOpen(true)}>კლასის დამატება</AddClassButton>
       </TopBar>
 
       <MainContainer isGroupsOpen={showGroups}>
-        <ListContainer>
+        <ListContainer isGroupsOpen={showGroups}>
           <h2>მოსწავლეები</h2>
           <StudentList>
             {students.map((student) => (
@@ -416,22 +426,22 @@ const SearchList: React.FC = () => {
             </RandomButton>
           </ButtonContainer>
         </ListContainer>
-        <GroupsContainer isOpen={showGroups}>
-          <h2>ჯგუფები</h2>
-          <ExpandButton onClick={() => setIsExpanded(!isExpanded)}>
-            {isExpanded ? '✖' : '⛶'}
-          </ExpandButton>
-          <GroupsWrapper isExpanded={isExpanded}>
-            {groups.map((group, index) => (
-              <GroupCard key={index} isExpanded={isExpanded}>
-                <h3>ჯგუფი {index + 1}</h3>
-                {group.map((student, studentIndex) => (
-                  <p key={studentIndex}>{student.name}</p>
-                ))}
-              </GroupCard>
-            ))}
-          </GroupsWrapper>
-        </GroupsContainer>
+        {showGroups && (
+          <GroupsContainer isOpen={showGroups}>
+            <h2>შექმნილი ჯგუფები</h2>
+            <CloseButton onClick={() => setShowGroups(false)}>✕</CloseButton>
+            <GroupsWrapper>
+              {groups.map((group, index) => (
+                <GroupCard key={index}>
+                  <h3>ჯგუფი {index + 1}</h3>
+                  {group.map((student, studentIndex) => (
+                    <div key={studentIndex}>{student.name}</div>
+                  ))}
+                </GroupCard>
+              ))}
+            </GroupsWrapper>
+          </GroupsContainer>
+        )}
       </MainContainer>
 
       <AddClassModal isOpen={isModalOpen}>
