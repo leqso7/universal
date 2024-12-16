@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { createGlobalStyle } from 'styled-components'
 import RequestAccess from './pages/RequestAccess'
 import SearchList, { Student } from './components/SearchList'
@@ -16,13 +16,11 @@ const GlobalStyle = createGlobalStyle`
   html, body, #root {
     height: 100vh;
     width: 100vw;
-    overflow: hidden;
   }
 
   body {
     margin: 0;
     padding: 0;
-    overflow: hidden;
   }
 `;
 
@@ -34,7 +32,7 @@ const AppContainer = styled.div`
   justify-content: center;
   padding: 20px;
   margin: 0;
-  width: 100vw;
+  width: 100%;
   position: relative;
 `;
 
@@ -65,39 +63,69 @@ const NavButton = styled.button`
 `;
 
 function App() {
-  const [hasAccess, setHasAccess] = useState<boolean>(false);
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const location = useLocation();
 
   useEffect(() => {
     const savedStatus = localStorage.getItem('approvalStatus');
-    if (savedStatus === 'approved') {
-      setHasAccess(true);
-    }
+    const isApproved = savedStatus === 'approved';
+    setHasAccess(isApproved);
 
-    const savedStudents = localStorage.getItem('students');
-    if (savedStudents) {
-      setStudents(JSON.parse(savedStudents));
+    try {
+      const savedStudents = localStorage.getItem('students');
+      if (savedStudents) {
+        setStudents(JSON.parse(savedStudents));
+      }
+    } catch (error) {
+      console.error('Error loading students:', error);
+      setStudents([]);
     }
   }, []);
 
-  const handleAccessGranted = () => {
-    setHasAccess(true);
-    localStorage.setItem('approvalStatus', 'approved');
-  };
-
   if (hasAccess === null) {
-    return null;
+    return (
+      <AppContainer>
+        <div style={{ textAlign: 'center', color: 'white' }}>
+          <h2>Loading...</h2>
+        </div>
+      </AppContainer>
+    );
   }
 
   return (
     <>
       <GlobalStyle />
       <AppContainer>
+        <NavigationBar>
+          {hasAccess && <NavButton onClick={() => localStorage.clear()}>Reset Access</NavButton>}
+        </NavigationBar>
         <Routes>
-          <Route path="/" element={hasAccess ? <Navigate to="/app" replace /> : <Navigate to="/request" replace />} />
-          <Route path="/app" element={hasAccess ? <SearchList students={students} setStudents={setStudents} /> : <Navigate to="/request" replace />} />
-          <Route path="/request" element={hasAccess ? <Navigate to="/app" replace /> : <RequestAccess onAccessGranted={handleAccessGranted} />} />
+          <Route path="/" element={
+            hasAccess ? (
+              <Navigate to="/app" replace={true} />
+            ) : (
+              <Navigate to="/request" replace={true} />
+            )
+          } />
+          <Route path="/app" element={
+            hasAccess ? (
+              <SearchList students={students} setStudents={setStudents} />
+            ) : (
+              <Navigate to="/request" replace={true} />
+            )
+          } />
+          <Route path="/request" element={
+            hasAccess ? (
+              <Navigate to="/app" replace={true} />
+            ) : (
+              <RequestAccess onAccessGranted={() => {
+                setHasAccess(true);
+                localStorage.setItem('approvalStatus', 'approved');
+              }} />
+            )
+          } />
+          <Route path="*" element={<Navigate to="/" replace={true} />} />
         </Routes>
         <InstallPWA />
       </AppContainer>

@@ -18,9 +18,10 @@ interface SearchListProps {
 
 const SearchList: React.FC<SearchListProps> = ({ students, setStudents }) => {
   const [searchText, setSearchText] = useState('');
+  const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [className, setClassName] = useState('');
-  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
   const [showMessage, setShowMessage] = useState(false);
   const [message, setMessage] = useState('');
   const [showGroups, setShowGroups] = useState(false);
@@ -30,12 +31,36 @@ const SearchList: React.FC<SearchListProps> = ({ students, setStudents }) => {
     return saved ? JSON.parse(saved) : [];
   });
 
+  useEffect(() => {
+    if (searchText.trim() === '') {
+      setFilteredStudents(students);
+    } else {
+      const filtered = students.filter(student => 
+        student.name.toLowerCase().includes(searchText.toLowerCase().trim())
+      );
+      setFilteredStudents(filtered);
+    }
+  }, [searchText, students]);
+
+  useEffect(() => {
+    localStorage.setItem('classes', JSON.stringify(classes));
+  }, [classes]);
+
   const handleSaveClass = () => {
+    if (!className.trim() || selectedStudents.length === 0) return;
+
+    const newClass: Class = {
+      name: className.trim(),
+      students: selectedStudents
+    };
+
+    setClasses(prev => [...prev, newClass]);
     setClassName('');
+    setSelectedStudents([]);
     setIsModalOpen(false);
     setMessage('კლასი წარმატებით შეინახა!');
     setShowMessage(true);
-    setTimeout(() => setShowMessage(false), 6000);
+    setTimeout(() => setShowMessage(false), 3000);
   };
 
   const selectRandomStudent = () => {
@@ -70,8 +95,20 @@ const SearchList: React.FC<SearchListProps> = ({ students, setStudents }) => {
   const handleAddStudent = () => {
     if (!searchText.trim()) return;
 
+    const studentName = searchText.trim();
+    const isDuplicate = students.some(
+      student => student.name.toLowerCase() === studentName.toLowerCase()
+    );
+
+    if (isDuplicate) {
+      setMessage('მოსწავლე უკვე არსებობს!');
+      setShowMessage(true);
+      setTimeout(() => setShowMessage(false), 3000);
+      return;
+    }
+
     const newStudent = {
-      name: searchText.trim(),
+      name: studentName,
       timestamp: Date.now(),
     };
 
@@ -96,12 +133,12 @@ const SearchList: React.FC<SearchListProps> = ({ students, setStudents }) => {
         <Button onClick={handleAddStudent}>დამატება</Button>
       </TopBar>
       <StudentList>
-        {students.map((student, index) => (
+        {filteredStudents.map((student, index) => (
           <StudentItem key={student.timestamp}>
             {student.name}
             <DeleteButton
               onClick={() => {
-                const updatedStudents = students.filter((_, i) => i !== index);
+                const updatedStudents = students.filter(s => s.timestamp !== student.timestamp);
                 setStudents(updatedStudents);
                 localStorage.setItem('students', JSON.stringify(updatedStudents));
               }}
