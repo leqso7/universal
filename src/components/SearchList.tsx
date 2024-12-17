@@ -74,7 +74,7 @@ const MainContent = styled.div`
 const ContentWrapper = styled.div`
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 0px;
   width: 100%;
   max-width: 1200px;
   transition: all 0.3s ease-in-out;
@@ -88,6 +88,7 @@ const GroupsContainer = styled.div`
   width: 100%;
   max-width: 500px;
   margin-top: 80px;
+    margin-left: 5px;
   animation: slideIn 0.3s ease-out;
 
   @keyframes slideIn {
