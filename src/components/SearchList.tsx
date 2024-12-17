@@ -16,37 +16,110 @@ interface Props {
   setStudents: React.Dispatch<React.SetStateAction<Student[]>>;
 }
 
-const SearchContainer = styled.div`
+const Container = styled.div`
   width: 100%;
-  padding: 20px;
+  height: 100%;
   display: flex;
-  gap: 20px;
+  justify-content: center;
+  align-items: center;
   position: relative;
-`;
-
-const MainContent = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 100%;
-  max-width: 500px;
 `;
 
 const SearchBar = styled.div`
   display: flex;
   gap: 10px;
-  width: 300px;
-  position: absolute;
+  position: fixed;
   top: 20px;
   left: 20px;
+  z-index: 10;
 `;
 
 const SearchInput = styled.input`
-  flex: 1;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 16px;
+  width: 300px;
+`;
+
+const AddButton = styled.button`
+  padding: 10px 20px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  
+  &:hover {
+    background: #45a049;
+  }
+`;
+
+const MainContent = styled.div`
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+  margin-top: 80px;
+  transition: all 0.3s ease-in-out;
+  
+  ${props => props.showGroups && `
+    transform: translateX(-50%);
+  `}
+`;
+
+const ContentWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+  transition: all 0.3s ease-in-out;
+`;
+
+const GroupsContainer = styled.div`
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+  margin-top: 80px;
+  animation: slideIn 0.3s ease-out;
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+`;
+
+const GroupsHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+`;
+
+const CloseButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+  padding: 5px;
+  
+  &:hover {
+    color: #000;
+  }
 `;
 
 const StudentList = styled.div`
@@ -119,29 +192,6 @@ const GroupButton = styled.button`
   }
 `;
 
-const GroupsContainer = styled.div`
-  background: rgba(255, 255, 255, 0.9);
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 500px;
-  animation: slideIn 0.3s ease-out;
-  margin-top: 80px;
-  height: fit-content;
-
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateX(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-`;
-
 const GroupGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -176,9 +226,8 @@ const GroupMember = styled.li`
 
 function SearchList({ students, setStudents }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
   const [showGroups, setShowGroups] = useState(false);
+  const [groups, setGroups] = useState<Group[]>([]);
 
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -222,7 +271,7 @@ function SearchList({ students, setStudents }: Props) {
   };
 
   return (
-    <SearchContainer>
+    <Container>
       <SearchBar>
         <SearchInput
           type="text"
@@ -230,45 +279,52 @@ function SearchList({ students, setStudents }: Props) {
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="მოსწავლის სახელი..."
         />
-        <button onClick={handleAddStudent}>დამატება</button>
+        <AddButton onClick={handleAddStudent}>დამატება</AddButton>
       </SearchBar>
 
-      <MainContent>
-        <StudentList>
-          {filteredStudents.map((student) => (
-            <StudentItem key={student.timestamp}>
-              <span>{student.name}</span>
-              <DeleteButton onClick={() => handleDeleteStudent(student.timestamp)}>×</DeleteButton>
-            </StudentItem>
-          ))}
-        </StudentList>
-
-        <GroupButtons>
-          {[2, 3, 4, 5].map(size => (
-            <GroupButton key={size} onClick={() => createGroups(size)}>
-              {size}
-            </GroupButton>
-          ))}
-        </GroupButtons>
-      </MainContent>
-
-      {showGroups && (
-        <GroupsContainer>
-          <GroupGrid>
-            {groups.map((group, index) => (
-              <GroupCard key={group.id}>
-                <GroupTitle>ჯგუფი {index + 1}</GroupTitle>
-                <GroupMemberList>
-                  {group.members.map(member => (
-                    <GroupMember key={member.timestamp}>{member.name}</GroupMember>
-                  ))}
-                </GroupMemberList>
-              </GroupCard>
+      <ContentWrapper>
+        <MainContent showGroups={showGroups}>
+          <h2>მოსწავლეების რაოდენობა: {filteredStudents.length}</h2>
+          <StudentList>
+            {filteredStudents.map((student) => (
+              <StudentItem key={student.timestamp}>
+                <span>{student.name}</span>
+                <DeleteButton onClick={() => handleDeleteStudent(student.timestamp)}>×</DeleteButton>
+              </StudentItem>
             ))}
-          </GroupGrid>
-        </GroupsContainer>
-      )}
-    </SearchContainer>
+          </StudentList>
+
+          <GroupButtons>
+            {[2, 3, 4, 5, 6, 7].map(size => (
+              <GroupButton key={size} onClick={() => createGroups(size)}>
+                {size}
+              </GroupButton>
+            ))}
+          </GroupButtons>
+        </MainContent>
+
+        {showGroups && (
+          <GroupsContainer>
+            <GroupsHeader>
+              <h2>შექმნილი ჯგუფები</h2>
+              <CloseButton onClick={() => setShowGroups(false)}>×</CloseButton>
+            </GroupsHeader>
+            <GroupGrid>
+              {groups.map((group, index) => (
+                <GroupCard key={group.id}>
+                  <GroupTitle>ჯგუფი {index + 1}</GroupTitle>
+                  <GroupMemberList>
+                    {group.members.map(member => (
+                      <GroupMember key={member.timestamp}>{member.name}</GroupMember>
+                    ))}
+                  </GroupMemberList>
+                </GroupCard>
+              ))}
+            </GroupGrid>
+          </GroupsContainer>
+        )}
+      </ContentWrapper>
+    </Container>
   );
 }
 
