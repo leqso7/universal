@@ -37,7 +37,17 @@ interface TimerProps {
 }
 
 export const Timer: React.FC<TimerProps> = ({ onExpire }) => {
-  const [timeLeft, setTimeLeft] = useState<number>(31557600);
+  const [timeLeft, setTimeLeft] = useState<number>(() => {
+    // კომპონენტის ინიციალიზაციისას ვამოწმებთ შენახულ დროს
+    const savedTime = localStorage.getItem('expireTime');
+    if (savedTime) {
+      const expireTime = parseInt(savedTime);
+      const now = Date.now();
+      const remaining = Math.floor((expireTime - now) / 1000);
+      return remaining > 0 ? remaining : 31557600;
+    }
+    return 31557600;
+  });
   const [lastSync, setLastSync] = useState<number>(Date.now());
 
   useEffect(() => {
@@ -65,9 +75,12 @@ export const Timer: React.FC<TimerProps> = ({ onExpire }) => {
             
             setTimeLeft(remaining);
             setLastSync(now);
+            // ვინახავთ ახალ დროს
+            localStorage.setItem('expireTime', serverExpireTime.toString());
           }
         }
       } catch (err) {
+        console.error('Error syncing time:', err);
         // თუ სერვერთან კავშირი ვერ მოხერხდა, ვაგრძელებთ ლოკალური დროით
         const localExpireTime = localStorage.getItem('expireTime');
         if (localExpireTime) {
@@ -87,12 +100,16 @@ export const Timer: React.FC<TimerProps> = ({ onExpire }) => {
     // ლოკალური ტაიმერი
     const timer = setInterval(() => {
       setTimeLeft(prev => {
-        if (prev <= 1) {
+        const newTime = prev - 1;
+        if (newTime <= 0) {
           clearInterval(timer);
           onExpire();
           return 0;
         }
-        return prev - 1;
+        // ყოველ წამში ვანახლებთ ლოკალურ დროს
+        const expireTime = Date.now() + (newTime * 1000);
+        localStorage.setItem('expireTime', expireTime.toString());
+        return newTime;
       });
     }, 1000);
 
