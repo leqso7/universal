@@ -5,6 +5,8 @@ import SearchList, { Student } from './components/SearchList'
 import InstallPWA from './components/InstallPWA'
 import styled from 'styled-components'
 import { useState, useEffect } from 'react'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -36,32 +38,6 @@ const AppContainer = styled.div`
   position: relative;
 `;
 
-const NavigationBar = styled.nav`
-  position: fixed;
-  top: 0;
-  right: 0;
-  padding: 15px;
-  display: flex;
-  justify-content: flex-end;
-  z-index: 10;
-`;
-
-const NavButton = styled.button`
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  padding: 8px 16px;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  backdrop-filter: blur(5px);
-  transition: background 0.3s;
-  
-  &:hover {
-    background: rgba(255, 255, 255, 0.3);
-  }
-`;
-
 const MainContent = styled.main`
   display: flex;
   justify-content: center;
@@ -72,10 +48,10 @@ const MainContent = styled.main`
   max-width: 1200px;
 `;
 
-const ClassForm = styled.div<{ isVisible: boolean }>`
+const ClassForm = styled.div<{ $isVisible: boolean }>`
   position: fixed;
   top: 0;
-  right: ${props => props.isVisible ? '0' : '-400px'};
+  right: ${props => props.$isVisible ? '0' : '-400px'};
   width: 400px;
   height: 100vh;
   background: rgba(255, 255, 255, 0.95);
@@ -106,9 +82,16 @@ const TextArea = styled.textarea`
   resize: vertical;
 `;
 
-const SaveButton = styled(NavButton)`
-  width: 100%;
+const SaveButton = styled.button`
   background: #4CAF50;
+  border: none;
+  padding: 8px 16px;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  backdrop-filter: blur(5px);
+  transition: background 0.3s;
   
   &:hover {
     background: #45a049;
@@ -140,7 +123,10 @@ function App() {
   }, []);
 
   const handleSaveClass = () => {
-    if (!className.trim() || !classList.trim()) return;
+    if (!className.trim() || !classList.trim()) {
+      toast.error('გთხოვთ შეავსოთ ყველა ველი');
+      return;
+    }
 
     const students = classList.split('\n')
       .map(name => name.trim())
@@ -155,12 +141,32 @@ function App() {
       students
     };
 
-    const savedClasses = JSON.parse(localStorage.getItem('classes') || '[]');
-    localStorage.setItem('classes', JSON.stringify([...savedClasses, classData]));
+    try {
+      const savedClasses = JSON.parse(localStorage.getItem('classes') || '[]');
+      
+      // Check if class already exists
+      const existingClassIndex = savedClasses.findIndex(c => 
+        c.name.toLowerCase() === className.trim().toLowerCase()
+      );
 
-    setClassName('');
-    setClassList('');
-    setIsClassFormVisible(false);
+      if (existingClassIndex !== -1) {
+        // Update existing class
+        savedClasses[existingClassIndex] = classData;
+        localStorage.setItem('classes', JSON.stringify(savedClasses));
+        toast.success('კლასი განახლდა');
+      } else {
+        // Add new class
+        localStorage.setItem('classes', JSON.stringify([...savedClasses, classData]));
+        toast.success('კლასი წარმატებით შეინახა');
+      }
+      
+      setClassName('');
+      setClassList('');
+      setIsClassFormVisible(false);
+    } catch (error) {
+      console.error('Error saving class:', error);
+      toast.error('შეცდომა კლასის შენახვისას');
+    }
   };
 
   if (hasAccess === null) {
@@ -176,42 +182,51 @@ function App() {
   return (
     <>
       <GlobalStyle />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable
+        pauseOnHover={false}
+        theme="colored"
+        limit={3}
+      />
       <AppContainer>
-        <NavigationBar>
-          <NavButton onClick={() => setIsClassFormVisible(true)}>კლასის დამატება</NavButton>
-        </NavigationBar>
-        <MainContent>
-          <Routes>
-            <Route path="/" element={
-              hasAccess ? (
-                <Navigate to="/app" replace={true} />
-              ) : (
-                <Navigate to="/request" replace={true} />
-              )
-            } />
-            <Route path="/app" element={
-              hasAccess ? (
-                <SearchList students={students} setStudents={setStudents} />
-              ) : (
-                <Navigate to="/request" replace={true} />
-              )
-            } />
-            <Route path="/request" element={
-              hasAccess ? (
-                <Navigate to="/app" replace={true} />
-              ) : (
-                <RequestAccess onAccessGranted={() => {
-                  setHasAccess(true);
-                  localStorage.setItem('approvalStatus', 'approved');
-                }} />
-              )
-            } />
-            <Route path="*" element={<Navigate to="/" replace={true} />} />
-          </Routes>
-        </MainContent>
+        <Routes>
+          <Route path="/" element={
+            hasAccess ? (
+              <Navigate to="/app" replace={true} />
+            ) : (
+              <Navigate to="/request" replace={true} />
+            )
+          } />
+          <Route path="/app" element={
+            hasAccess ? (
+              <SearchList students={students} setStudents={setStudents} />
+            ) : (
+              <Navigate to="/request" replace={true} />
+            )
+          } />
+          <Route path="/request" element={
+            hasAccess ? (
+              <Navigate to="/app" replace={true} />
+            ) : (
+              <RequestAccess onAccessGranted={() => {
+                setHasAccess(true);
+                localStorage.setItem('approvalStatus', 'approved');
+              }} />
+            )
+          } />
+          <Route path="*" element={<Navigate to="/" replace={true} />} />
+        </Routes>
         <InstallPWA />
+        <ToastContainer position="bottom-right" />
         
-        <ClassForm isVisible={isClassFormVisible}>
+        <ClassForm $isVisible={isClassFormVisible}>
           <h2>კლასის დამატება</h2>
           <Input
             type="text"
@@ -225,7 +240,7 @@ function App() {
             onChange={(e) => setClassList(e.target.value)}
           />
           <SaveButton onClick={handleSaveClass}>შენახვა</SaveButton>
-          <NavButton onClick={() => setIsClassFormVisible(false)}>დახურვა</NavButton>
+          <SaveButton onClick={() => setIsClassFormVisible(false)}>დახურვა</SaveButton>
         </ClassForm>
       </AppContainer>
     </>

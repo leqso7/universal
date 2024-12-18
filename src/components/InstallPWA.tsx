@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 const InstallButton = styled.button`
   position: fixed;
   bottom: 20px;
@@ -16,6 +21,7 @@ const InstallButton = styled.button`
   gap: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 1000;
   
   &:hover {
     transform: translateY(-2px);
@@ -34,14 +40,12 @@ const InstallButton = styled.button`
 `;
 
 const InstallPWA = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showButton, setShowButton] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
-      setShowButton(true);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
@@ -54,16 +58,20 @@ const InstallPWA = () => {
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
 
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      setShowButton(false);
+    try {
+      await deferredPrompt.prompt();
+      const choiceResult = await deferredPrompt.userChoice;
+      
+      if (choiceResult.outcome === 'accepted') {
+        console.log('User accepted the install prompt');
+      }
+      setDeferredPrompt(null);
+    } catch (err) {
+      console.error('Error installing PWA:', err);
     }
-    setDeferredPrompt(null);
   };
 
-  if (!showButton) return null;
+  if (!deferredPrompt) return null;
 
   return (
     <InstallButton onClick={handleInstallClick}>
