@@ -122,6 +122,34 @@ export const Timer: React.FC<TimerProps> = ({ onExpire }) => {
     };
   }, [onExpire, lastSync]);
 
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('access_requests')
+          .select('status')
+          .eq('code', localStorage.getItem('lastRequestCode'))
+          .single();
+
+        if (error) throw error;
+
+        if (data?.status === 'blocked') {
+          localStorage.clear();
+          window.location.href = '/request';
+          return;
+        }
+      } catch (err) {
+        console.error('Error checking access:', err);
+      }
+    };
+
+    // შემოწმება ყოველ 5 წუთში
+    checkAccess();
+    const interval = setInterval(checkAccess, 300000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const formatTime = (seconds: number): string => {
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);

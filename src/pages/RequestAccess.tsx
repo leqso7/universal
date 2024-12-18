@@ -107,6 +107,7 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
   const [error, setError] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [manualCode, setManualCode] = useState('');
 
   const generateCode = () => {
     // Generate a 5-digit number between 10000 and 99999
@@ -199,17 +200,66 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
     }
   };
 
+  const handleCheckCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!manualCode.trim()) {
+      setError('გთხოვთ შეიყვანოთ კოდი');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('access_requests')
+        .select('*')
+        .eq('code', manualCode.trim())
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      if (data?.status === 'approved') {
+        localStorage.setItem('approvalStatus', 'approved');
+        const expireTime = Date.now() + (31557600 * 1000); // 1 წელი
+        localStorage.setItem('expireTime', expireTime.toString());
+        onAccessGranted();
+      } else if (data) {
+        setError('კოდი ჯერ არ არის დადასტურებული');
+      } else {
+        setError('კოდი ვერ მოიძებნა');
+      }
+    } catch (err) {
+      console.error('Error checking code:', err);
+      setError('კოდის შემოწმებისას დაფიქსირდა შეცდომა');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Container>
-      <Form onSubmit={handleSubmit}>
+      <Form onSubmit={requestCode ? handleCheckCode : handleSubmit}>
         <Title>მოთხოვნის გაგზავნა</Title>
         {requestCode ? (
-          <CodeDisplay>
-            <CodeText>თქვენი კოდი: {requestCode}</CodeText>
-            <StatusText>სტატუსი: მოლოდინში...</StatusText>
-            <StatusText>სახელი: {firstName}</StatusText>
-            <StatusText>გვარი: {lastName}</StatusText>
-          </CodeDisplay>
+          <>
+            <CodeDisplay>
+              <CodeText>თქვენი კოდი: {requestCode}</CodeText>
+              <StatusText>სტატუსი: მოლოდინში...</StatusText>
+              <StatusText>სახელი: {firstName}</StatusText>
+              <StatusText>გვარი: {lastName}</StatusText>
+            </CodeDisplay>
+            <Input
+              type="text"
+              value={manualCode}
+              onChange={(e) => setManualCode(e.target.value)}
+              placeholder="შეიყვანეთ კოდი"
+            />
+            <Button type="submit" disabled={loading}>
+              {loading ? 'მოწმდება...' : 'კოდის შემოწმება'}
+            </Button>
+          </>
         ) : (
           <>
             <Input
