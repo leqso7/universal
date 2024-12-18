@@ -575,6 +575,7 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
   const [currentSelected, setCurrentSelected] = useState<string | null>(null);
   const [showOverlay, setShowOverlay] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
     const savedClasses = localStorage.getItem('classes');
@@ -790,6 +791,19 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
     setIsFullscreen(false);
   };
 
+  const handleSubmitCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newCode = inputValue.trim();
+    if (newCode) {
+      const savedCodes = JSON.parse(localStorage.getItem('accessCodes') || '[]');
+      if (!savedCodes.includes(newCode)) {
+        savedCodes.push(newCode);
+        localStorage.setItem('accessCodes', JSON.stringify(savedCodes));
+      }
+    }
+    setInputValue('');
+  };
+
   return (
     <Container $showModal={showModal}>
       <Overlay $show={showOverlay} />
@@ -909,6 +923,14 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
             </GroupsContent>
           </GroupsContainer>
         </MainContent>
+        <form onSubmit={handleSubmitCode}>
+          <Input
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="შეიყვანეთ კოდი..."
+          />
+          <Button $primary type="submit">შენახვა</Button>
+        </form>
       </ContentWrapper>
     </Container>
   );

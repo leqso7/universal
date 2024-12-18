@@ -87,15 +87,64 @@ const ErrorText = styled.p`
   color: #721c24;
 `;
 
+const Input = styled.input`
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  
+  &:focus {
+    outline: none;
+    border-color: #4285f4;
+  }
+`;
+
+const SavedCodesList = styled.div`
+  margin-top: 20px;
+  text-align: left;
+`;
+
+const SavedCodeItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #ddd;
+  margin: 5px 0;
+  border-radius: 5px;
+  
+  &:hover {
+    background: #f5f5f5;
+  }
+`;
+
+const UseCodeButton = styled.button`
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  
+  &:hover {
+    background: #45a049;
+  }
+`;
+
 const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
   const [loading, setLoading] = useState(false);
   const [requestCode, setRequestCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [savedCodes, setSavedCodes] = useState<string[]>([]);
+  const [inputCode, setInputCode] = useState('');
 
-  const generateCode = () => {
-    // Generate a 5-digit number between 10000 and 99999
-    return Math.floor(10000 + Math.random() * 90000).toString();
-  };
+  useEffect(() => {
+    // ჩავტვირთოთ შენახული კოდები
+    const codes = JSON.parse(localStorage.getItem('accessCodes') || '[]');
+    setSavedCodes(codes);
+  }, []);
 
   useEffect(() => {
     const checkApprovalStatus = async () => {
@@ -131,8 +180,19 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
     return () => clearInterval(interval);
   }, [requestCode, onAccessGranted]);
 
+  const generateCode = () => {
+    // Generate a 5-digit number between 10000 and 99999
+    return Math.floor(10000 + Math.random() * 90000).toString();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (inputCode) {
+      setRequestCode(inputCode);
+      return;
+    }
+    
     setLoading(true);
     setError(null);
 
@@ -160,20 +220,50 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
     }
   };
 
+  const useCode = (code: string) => {
+    setRequestCode(code);
+  };
+
   return (
     <Container>
       <Form onSubmit={handleSubmit}>
         <Title>მოთხოვნის გაგზავნა</Title>
-        {requestCode ? (
+        
+        {!requestCode && (
+          <>
+            <Input
+              type="text"
+              value={inputCode}
+              onChange={(e) => setInputCode(e.target.value)}
+              placeholder="შეიყვანეთ კოდი..."
+            />
+            <Button type="submit" disabled={loading}>
+              {loading ? 'იგზავნება...' : inputCode ? 'კოდის გამოყენება' : 'მოთხოვნის გაგზავნა'}
+            </Button>
+            
+            {savedCodes.length > 0 && (
+              <SavedCodesList>
+                <h3>შენახული კოდები:</h3>
+                {savedCodes.map((code, index) => (
+                  <SavedCodeItem key={index}>
+                    <span>{code}</span>
+                    <UseCodeButton type="button" onClick={() => useCode(code)}>
+                      გამოყენება
+                    </UseCodeButton>
+                  </SavedCodeItem>
+                ))}
+              </SavedCodesList>
+            )}
+          </>
+        )}
+        
+        {requestCode && (
           <CodeDisplay>
             <CodeText>თქვენი კოდი: {requestCode}</CodeText>
             <StatusText>სტატუსი: მოლოდინში...</StatusText>
           </CodeDisplay>
-        ) : (
-          <Button type="submit" disabled={loading}>
-            {loading ? 'იგზავნება...' : 'მოთხოვნის გაგზავნა'}
-          </Button>
         )}
+        
         {error && <ErrorText>{error}</ErrorText>}
       </Form>
     </Container>
