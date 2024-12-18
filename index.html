@@ -2,21 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <base href="/class-manager-./" />
     <link rel="icon" type="image/svg+xml" href="vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#ffffff" />
     <title>Class Manager</title>
-    <script type="text/javascript">
-      (function() {
-        const savedStatus = localStorage.getItem('approvalStatus');
-        const isApproved = savedStatus === 'approved';
-        const targetRoute = isApproved ? '#/app' : '#/request';
-        
-        if (window.location.hash === '' || window.location.hash === '#/') {
-          window.location.replace(window.location.pathname + targetRoute);
-        }
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>
