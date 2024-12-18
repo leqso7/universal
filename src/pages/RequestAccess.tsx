@@ -87,10 +87,26 @@ const ErrorText = styled.p`
   color: #721c24;
 `;
 
+const Input = styled.input`
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  
+  &:focus {
+    outline: none;
+    border-color: #4285f4;
+  }
+`;
+
 const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
   const [loading, setLoading] = useState(false);
   const [requestCode, setRequestCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
 
   const generateCode = () => {
     // Generate a 5-digit number between 10000 and 99999
@@ -106,10 +122,14 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
       }
 
       if (!requestCode) {
-        // შევამოწმოთ არის თუ არა შენახული კოდი
+        // შევამოწმოთ არის თუ არა შენახული კოდი და სახელები
         const savedCode = localStorage.getItem('lastRequestCode');
+        const savedFirstName = localStorage.getItem('firstName');
+        const savedLastName = localStorage.getItem('lastName');
         if (savedCode) {
           setRequestCode(savedCode);
+          setFirstName(savedFirstName || '');
+          setLastName(savedLastName || '');
         }
         return;
       }
@@ -140,6 +160,12 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!firstName.trim() || !lastName.trim()) {
+      setError('გთხოვთ შეავსოთ სახელი და გვარი');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -149,7 +175,9 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
       const { error: insertError } = await supabase
         .from('access_requests')
         .insert([{ 
-          code, 
+          code,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
           status: 'pending',
           created_at: new Date().toISOString()
         }]);
@@ -158,8 +186,10 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
         throw insertError;
       }
 
-      // შევინახოთ კოდი ლოკალურად
+      // შევინახოთ ყველა მონაცემი ლოკალურად
       localStorage.setItem('lastRequestCode', code);
+      localStorage.setItem('firstName', firstName);
+      localStorage.setItem('lastName', lastName);
       setRequestCode(code);
     } catch (err: any) {
       console.error('Error submitting request:', err);
@@ -177,11 +207,29 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
           <CodeDisplay>
             <CodeText>თქვენი კოდი: {requestCode}</CodeText>
             <StatusText>სტატუსი: მოლოდინში...</StatusText>
+            <StatusText>სახელი: {firstName}</StatusText>
+            <StatusText>გვარი: {lastName}</StatusText>
           </CodeDisplay>
         ) : (
-          <Button type="submit" disabled={loading}>
-            {loading ? 'იგზავნება...' : 'მოთხოვნის გაგზავნა'}
-          </Button>
+          <>
+            <Input
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="სახელი"
+              required
+            />
+            <Input
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="გვარი"
+              required
+            />
+            <Button type="submit" disabled={loading}>
+              {loading ? 'იგზავნება...' : 'მოთხოვნის გაგზავნა'}
+            </Button>
+          </>
         )}
         {error && <ErrorText>{error}</ErrorText>}
       </Form>
