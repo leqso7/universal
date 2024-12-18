@@ -4,14 +4,12 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/',
+  base: '/class-manager-/',
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      devOptions: {
-        enabled: true
-      },
+      registerType: 'prompt',
+      includeAssets: ['vite.svg'],
       manifest: {
         name: 'Class Manager',
         short_name: 'Class Manager',
@@ -19,21 +17,24 @@ export default defineConfig({
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/',
-        scope: '/',
+        start_url: '/class-manager-/',
+        scope: '/class-manager-/',
         icons: [
           {
-            src: '/vite.svg',
+            src: 'vite.svg',
             sizes: '192x192',
             type: 'image/svg+xml'
           },
           {
-            src: '/vite.svg',
+            src: 'vite.svg',
             sizes: '512x512',
             type: 'image/svg+xml',
             purpose: 'any maskable'
           }
         ]
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}']
       }
     })
   ]

@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { createGlobalStyle } from 'styled-components'
 import RequestAccess from './pages/RequestAccess'
 import SearchList, { Student } from './components/SearchList'
@@ -102,22 +102,33 @@ function App() {
   const [isClassFormVisible, setIsClassFormVisible] = useState(false);
   const [className, setClassName] = useState('');
   const [classList, setClassList] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const savedStatus = localStorage.getItem('approvalStatus');
-    const isApproved = savedStatus === 'approved';
-    setHasAccess(isApproved);
+    const checkAccess = () => {
+      const savedStatus = localStorage.getItem('approvalStatus');
+      const isApproved = savedStatus === 'approved';
+      setHasAccess(isApproved);
 
-    try {
-      const savedStudents = localStorage.getItem('students');
-      if (savedStudents) {
-        setStudents(JSON.parse(savedStudents));
+      // თუ მთავარ გვერდზე ვართ, გადავამისამართოთ
+      if (window.location.pathname === '/class-manager-/' || 
+          window.location.pathname === '/class-manager-') {
+        navigate(isApproved ? '/app' : '/request', { replace: true });
       }
-    } catch (error) {
-      console.error('Error loading students:', error);
-      setStudents([]);
-    }
-  }, []);
+    };
+
+    checkAccess();
+  }, [navigate]);
+
+  if (hasAccess === null) {
+    return (
+      <AppContainer>
+        <div style={{ textAlign: 'center', padding: '20px', color: '#333' }}>
+          იტვირთება...
+        </div>
+      </AppContainer>
+    );
+  }
 
   const handleSaveClass = () => {
     if (!className.trim() || !classList.trim()) {
@@ -182,16 +193,6 @@ function App() {
     }
   };
 
-  if (hasAccess === null) {
-    return (
-      <AppContainer>
-        <div style={{ textAlign: 'center', color: 'white' }}>
-          <h2>Loading...</h2>
-        </div>
-      </AppContainer>
-    );
-  }
-
   return (
     <>
       <GlobalStyle />
@@ -209,35 +210,31 @@ function App() {
         limit={1}
       />
       <AppContainer>
+        <InstallPWA />
         <Routes>
           <Route path="/" element={
+            <Navigate to={hasAccess ? "/app" : "/request"} replace />
+          } />
+          <Route path="/request" element={
             hasAccess ? (
-              <Navigate to="/app" replace={true} />
+              <Navigate to="/app" replace />
             ) : (
-              <Navigate to="/request" replace={true} />
+              <RequestAccess onAccessGranted={() => {
+                setHasAccess(true);
+                localStorage.setItem('approvalStatus', 'approved');
+                navigate('/app', { replace: true });
+              }} />
             )
           } />
           <Route path="/app" element={
             hasAccess ? (
               <SearchList students={students} setStudents={setStudents} />
             ) : (
-              <Navigate to="/request" replace={true} />
+              <Navigate to="/request" replace />
             )
           } />
-          <Route path="/request" element={
-            hasAccess ? (
-              <Navigate to="/app" replace={true} />
-            ) : (
-              <RequestAccess onAccessGranted={() => {
-                setHasAccess(true);
-                localStorage.setItem('approvalStatus', 'approved');
-              }} />
-            )
-          } />
-          <Route path="*" element={<Navigate to="/" replace={true} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-        <InstallPWA />
-        
         <ClassForm $isVisible={isClassFormVisible}>
           <h2>კლასის დამატება</h2>
           <Input
