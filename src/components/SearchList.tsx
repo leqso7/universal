@@ -602,7 +602,10 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
   const handleRemoveStudent = (timestamp: number, classId: string) => {
     setStudents(prevStudents => {
       if (prevStudents.length === 0) {
-        toast.error('მოსწავლეების სია ცარიელია');
+        toast.error('მოსწავლეების სია ცარიელია', {
+          autoClose: 2000,
+          hideProgressBar: false,
+        });
         return prevStudents;
       }
 
@@ -616,7 +619,10 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
       newStudents.splice(studentIndex, 1);
       return newStudents;
     });
-    toast.success('მოსწავლე წაიშალა');
+    toast.success('მოსწავლე წაიშალა', {
+      autoClose: 2000,
+      hideProgressBar: false,
+    });
   };
 
   const handleGroupSize = (size: number) => {
@@ -642,7 +648,10 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
 
   const handleAddClass = () => {
     if (!className.trim()) {
-      toast.error('გთხოვთ შეიყვანოთ კლასის სახელი');
+      toast.error('გთხოვთ შეიყვანოთ კლასის სახელი', {
+        autoClose: 2000,
+        hideProgressBar: false,
+      });
       return;
     }
 
@@ -659,7 +668,10 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
       }));
 
     if (newStudents.length === 0) {
-      toast.error('გთხოვთ შეიყვანოთ მინიმუმ ერთი მოსწავლე');
+      toast.error('გთხოვთ შეიყვანოთ მინიმუმ ერთი მოსწავლე', {
+        autoClose: 2000,
+        hideProgressBar: false,
+      });
       return;
     }
 
@@ -759,11 +771,13 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
     );
 
     if (availableStudents.length === 0) {
-      // If all students have been selected, reset the selection
       setSelectedStudents([]);
       setCurrentSelected(null);
       setShowOverlay(false);
-      toast.info('ყველა მოსწავლე შერჩეულია! ვიწყებთ თავიდან.');
+      toast.info('ყველა მოსწავლე შერჩეულია! ვიწყებთ თავიდან.', {
+        autoClose: 2000,
+        hideProgressBar: false,
+      });
       return;
     }
 
@@ -773,7 +787,6 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
     setSelectedStudents([...selectedStudents, selectedStudent.name]);
     setShowOverlay(true);
 
-    // Hide the overlay after 7 seconds
     setTimeout(() => {
       setShowOverlay(false);
     }, 7000);

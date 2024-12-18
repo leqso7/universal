@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { createGlobalStyle } from 'styled-components'
 import RequestAccess from './pages/RequestAccess'
 import SearchList, { Student } from './components/SearchList'
@@ -7,6 +7,14 @@ import styled from 'styled-components'
 import { useState, useEffect } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+interface ClassData {
+  name: string;
+  students: {
+    name: string;
+    timestamp: number;
+  }[];
+}
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -36,16 +44,6 @@ const AppContainer = styled.div`
   margin: 0;
   width: 100%;
   position: relative;
-`;
-
-const MainContent = styled.main`
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 20px;
-  margin-top: 60px;
-  width: 100%;
-  max-width: 1200px;
 `;
 
 const ClassForm = styled.div<{ $isVisible: boolean }>`
@@ -104,7 +102,6 @@ function App() {
   const [isClassFormVisible, setIsClassFormVisible] = useState(false);
   const [className, setClassName] = useState('');
   const [classList, setClassList] = useState('');
-  const location = useLocation();
 
   useEffect(() => {
     const savedStatus = localStorage.getItem('approvalStatus');
@@ -124,7 +121,11 @@ function App() {
 
   const handleSaveClass = () => {
     if (!className.trim() || !classList.trim()) {
-      toast.error('გთხოვთ შეავსოთ ყველა ველი');
+      toast.error('გთხოვთ შეავსოთ ყველა ველი', {
+        autoClose: 1500,
+        closeOnClick: true,
+        pauseOnHover: false
+      });
       return;
     }
 
@@ -136,16 +137,16 @@ function App() {
         timestamp: Date.now()
       }));
 
-    const classData = {
+    const classData: ClassData = {
       name: className.trim(),
       students
     };
 
     try {
-      const savedClasses = JSON.parse(localStorage.getItem('classes') || '[]');
+      const savedClasses: ClassData[] = JSON.parse(localStorage.getItem('classes') || '[]');
       
       // Check if class already exists
-      const existingClassIndex = savedClasses.findIndex(c => 
+      const existingClassIndex = savedClasses.findIndex((c: ClassData) => 
         c.name.toLowerCase() === className.trim().toLowerCase()
       );
 
@@ -153,11 +154,19 @@ function App() {
         // Update existing class
         savedClasses[existingClassIndex] = classData;
         localStorage.setItem('classes', JSON.stringify(savedClasses));
-        toast.success('კლასი განახლდა');
+        toast.success('კლასი განახლდა', {
+          autoClose: 1500,
+          closeOnClick: true,
+          pauseOnHover: false
+        });
       } else {
         // Add new class
         localStorage.setItem('classes', JSON.stringify([...savedClasses, classData]));
-        toast.success('კლასი წარმატებით შეინახა');
+        toast.success('კლასი წარმატებით შეინახა', {
+          autoClose: 1500,
+          closeOnClick: true,
+          pauseOnHover: false
+        });
       }
       
       setClassName('');
@@ -165,7 +174,11 @@ function App() {
       setIsClassFormVisible(false);
     } catch (error) {
       console.error('Error saving class:', error);
-      toast.error('შეცდომა კლასის შენახვისას');
+      toast.error('შეცდომა კლასის შენახვისას', {
+        autoClose: 1500,
+        closeOnClick: true,
+        pauseOnHover: false
+      });
     }
   };
 
@@ -183,17 +196,17 @@ function App() {
     <>
       <GlobalStyle />
       <ToastContainer
-        position="top-right"
-        autoClose={3000}
+        position="bottom-right"
+        autoClose={1500}
         hideProgressBar={false}
-        newestOnTop
+        newestOnTop={false}
         closeOnClick
         rtl={false}
         pauseOnFocusLoss={false}
         draggable
         pauseOnHover={false}
-        theme="colored"
-        limit={3}
+        theme="light"
+        limit={1}
       />
       <AppContainer>
         <Routes>
@@ -224,7 +237,6 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace={true} />} />
         </Routes>
         <InstallPWA />
-        <ToastContainer position="bottom-right" />
         
         <ClassForm $isVisible={isClassFormVisible}>
           <h2>კლასის დამატება</h2>
