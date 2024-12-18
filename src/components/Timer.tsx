@@ -3,18 +3,27 @@ import styled from 'styled-components';
 import { supabase } from '../supabaseClient';
 
 const TimerContainer = styled.div`
-  background: rgba(255, 255, 255, 0.9);
-  padding: 15px 25px;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 12px 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin: 20px 0;
-  text-align: center;
-  font-size: 1.2rem;
-  color: #333;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  }
   
   @media (max-width: 768px) {
-    font-size: 1rem;
-    padding: 10px 15px;
+    bottom: 10px;
+    right: 10px;
+    font-size: 0.8rem;
+    padding: 8px 15px;
   }
 `;
 
@@ -29,33 +38,37 @@ interface TimerProps {
 
 export const Timer: React.FC<TimerProps> = ({ onExpire }) => {
   const [timeLeft, setTimeLeft] = useState<number>(31557600);
+  const [lastSync, setLastSync] = useState<number>(Date.now());
 
   useEffect(() => {
     const checkAndUpdateTime = async () => {
       try {
-        // სერვერის დროის შემოწმება
-        const { data, error } = await supabase
-          .from('access_time')
-          .select('expire_time')
-          .single();
-
-        if (error) throw error;
-
-        if (data) {
-          const serverExpireTime = new Date(data.expire_time).getTime();
-          const now = Date.now();
-          const remainingTime = Math.floor((serverExpireTime - now) / 1000);
-
-          if (remainingTime <= 0) {
-            onExpire();
-            return;
+        const now = Date.now();
+        // მხოლოდ მაშინ ვაგზავნით მოთხოვნას, თუ ბოლო სინქრონიზაციიდან გავიდა 5 წუთი
+        if (now - lastSync >= 300000) {
+          const { data, error } = await supabase
+            .from('access_time')
+            .select('expire_time')
+            .limit(1)
+            .single();
+          
+          if (error) throw error;
+          
+          if (data) {
+            const serverExpireTime = new Date(data.expire_time).getTime();
+            const remaining = Math.floor((serverExpireTime - now) / 1000);
+            
+            if (remaining <= 0) {
+              onExpire();
+              return;
+            }
+            
+            setTimeLeft(remaining);
+            setLastSync(now);
           }
-
-          setTimeLeft(remainingTime);
-          localStorage.setItem('expireTime', serverExpireTime.toString());
         }
       } catch (err) {
-        // თუ სერვერთან კავშირი ვერ მოხერხდა, ვიყენებთ ლოკალურ დროს
+        // თუ სერვერთან კავშირი ვერ მოხერხდა, ვაგრძელებთ ლოკალური დროით
         const localExpireTime = localStorage.getItem('expireTime');
         if (localExpireTime) {
           const remaining = Math.floor((parseInt(localExpireTime) - Date.now()) / 1000);
@@ -71,7 +84,7 @@ export const Timer: React.FC<TimerProps> = ({ onExpire }) => {
     // თავდაპირველი შემოწმება
     checkAndUpdateTime();
 
-    // ყოველ 1 წამში ვამცირებთ დროს
+    // ლოკალური ტაიმერი
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
@@ -83,14 +96,14 @@ export const Timer: React.FC<TimerProps> = ({ onExpire }) => {
       });
     }, 1000);
 
-    // ყოველ 1 წუთში ვასინქრონებთ სერვერთან
-    const syncInterval = setInterval(checkAndUpdateTime, 60000);
+    // სერვერთან სინქრონიზაცია ყოველ 5 წუთში
+    const syncInterval = setInterval(checkAndUpdateTime, 300000);
 
     return () => {
       clearInterval(timer);
       clearInterval(syncInterval);
     };
-  }, [onExpire]);
+  }, [onExpire, lastSync]);
 
   const formatTime = (seconds: number): string => {
     const days = Math.floor(seconds / 86400);
@@ -98,7 +111,7 @@ export const Timer: React.FC<TimerProps> = ({ onExpire }) => {
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
 
-    return `${days} დღე ${hours} საათი ${minutes} წუთი ${secs} წამი`;
+    return `${days}დ ${hours}სთ ${minutes}წთ ${secs}წმ`;
   };
 
   return (
