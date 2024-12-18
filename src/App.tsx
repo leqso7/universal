@@ -105,19 +105,13 @@ function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkAccess = () => {
-      const savedStatus = localStorage.getItem('approvalStatus');
-      const isApproved = savedStatus === 'approved';
-      setHasAccess(isApproved);
+    const savedStatus = localStorage.getItem('approvalStatus');
+    const isApproved = savedStatus === 'approved';
+    setHasAccess(isApproved);
 
-      // თუ მთავარ გვერდზე ვართ, გადავამისამართოთ
-      if (window.location.pathname === '/class-manager-/' || 
-          window.location.pathname === '/class-manager-') {
-        navigate(isApproved ? '/app' : '/request', { replace: true });
-      }
-    };
-
-    checkAccess();
+    if (window.location.hash === '#/' || window.location.hash === '') {
+      navigate(isApproved ? '/app' : '/request', { replace: true });
+    }
   }, [navigate]);
 
   if (hasAccess === null) {
@@ -196,19 +190,6 @@ function App() {
   return (
     <>
       <GlobalStyle />
-      <ToastContainer
-        position="bottom-right"
-        autoClose={1500}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss={false}
-        draggable
-        pauseOnHover={false}
-        theme="light"
-        limit={1}
-      />
       <AppContainer>
         <InstallPWA />
         <Routes>
@@ -235,22 +216,7 @@ function App() {
           } />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-        <ClassForm $isVisible={isClassFormVisible}>
-          <h2>კლასის დამატება</h2>
-          <Input
-            type="text"
-            placeholder="კლასის სახელი"
-            value={className}
-            onChange={(e) => setClassName(e.target.value)}
-          />
-          <TextArea
-            placeholder="მოსწავლეების სია (თითო მოსწავლე ახალ ხაზზე)"
-            value={classList}
-            onChange={(e) => setClassList(e.target.value)}
-          />
-          <SaveButton onClick={handleSaveClass}>შენახვა</SaveButton>
-          <SaveButton onClick={() => setIsClassFormVisible(false)}>დახურვა</SaveButton>
-        </ClassForm>
+        <ToastContainer />
       </AppContainer>
     </>
   );
