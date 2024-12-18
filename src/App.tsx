@@ -111,7 +111,8 @@ function App() {
       setHasAccess(isApproved);
 
       // თუ მთავარ გვერდზე ვართ, გადავამისამართოთ
-      if (window.location.hash === '#/' || window.location.hash === '') {
+      if (window.location.pathname === '/class-manager-./' || 
+          window.location.pathname === '/class-manager-.') {
         navigate(isApproved ? '/app' : '/request', { replace: true });
       }
     };
