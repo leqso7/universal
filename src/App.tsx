@@ -3,6 +3,7 @@ import { createGlobalStyle } from 'styled-components'
 import RequestAccess from './pages/RequestAccess'
 import SearchList, { Student } from './components/SearchList'
 import InstallPWA from './components/InstallPWA'
+import { Timer } from './components/Timer'
 import styled from 'styled-components'
 import { useState, useEffect } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
@@ -107,18 +108,40 @@ function App() {
   useEffect(() => {
     const checkAccess = () => {
       const savedStatus = localStorage.getItem('approvalStatus');
-      const isApproved = savedStatus === 'approved';
-      setHasAccess(isApproved);
+      const expireTime = localStorage.getItem('expireTime');
+      
+      if (savedStatus === 'approved' && expireTime) {
+        const now = Date.now();
+        const expire = parseInt(expireTime);
+        
+        if (now >= expire) {
+          setHasAccess(false);
+          localStorage.removeItem('approvalStatus');
+          localStorage.removeItem('expireTime');
+          navigate('/request', { replace: true });
+        } else {
+          setHasAccess(true);
+        }
+      } else {
+        setHasAccess(false);
+      }
 
       // თუ მთავარ გვერდზე ვართ, გადავამისამართოთ
       if (window.location.pathname === '/class-manager-./' || 
           window.location.pathname === '/class-manager-.') {
-        navigate(isApproved ? '/app' : '/request', { replace: true });
+        navigate(hasAccess ? '/app' : '/request', { replace: true });
       }
     };
 
     checkAccess();
-  }, [navigate]);
+  }, [navigate, hasAccess]);
+
+  const handleAccessExpire = () => {
+    setHasAccess(false);
+    localStorage.removeItem('approvalStatus');
+    localStorage.removeItem('expireTime');
+    navigate('/request', { replace: true });
+  };
 
   if (hasAccess === null) {
     return (
@@ -196,44 +219,33 @@ function App() {
   return (
     <>
       <GlobalStyle />
-      <ToastContainer
-        position="bottom-right"
-        autoClose={1500}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss={false}
-        draggable
-        pauseOnHover={false}
-        theme="light"
-        limit={1}
-      />
+      <ToastContainer position="top-right" />
       <AppContainer>
         <InstallPWA />
         <Routes>
-          <Route path="/" element={
-            <Navigate to={hasAccess ? "/app" : "/request"} replace />
-          } />
           <Route path="/request" element={
-            hasAccess ? (
-              <Navigate to="/app" replace />
-            ) : (
+            !hasAccess ? (
               <RequestAccess onAccessGranted={() => {
                 setHasAccess(true);
-                localStorage.setItem('approvalStatus', 'approved');
-                navigate('/app', { replace: true });
+                // წვდომის მინიჭებისას ვინახავთ დროს
+                const expireTime = Date.now() + (31557600 * 1000);
+                localStorage.setItem('expireTime', expireTime.toString());
               }} />
+            ) : (
+              <Navigate to="/app" replace />
             )
           } />
           <Route path="/app" element={
             hasAccess ? (
-              <SearchList students={students} setStudents={setStudents} />
+              <>
+                <Timer onExpire={handleAccessExpire} />
+                <SearchList students={students} setStudents={setStudents} />
+              </>
             ) : (
               <Navigate to="/request" replace />
             )
           } />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to={hasAccess ? "/app" : "/request"} replace />} />
         </Routes>
         <ClassForm $isVisible={isClassFormVisible}>
           <h2>კლასის დამატება</h2>
