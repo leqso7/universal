@@ -36,8 +36,6 @@ const Container = styled.div<{ $showModal: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
-  filter: ${props => props.$showModal ? 'blur(5px)' : 'none'};
-  transition: filter 0.3s ease;
 `;
 
 const ContentWrapper = styled.div`
@@ -58,7 +56,7 @@ const MainContent = styled.div<{ $isExpanded: boolean }>`
   height: calc(100vh - 350px);
   justify-content: center;
   align-items: center;
-  margin-right: 100px;
+  margin-right: 50px;
   margin-top: 10%;
   transition: all 0.3s ease-in-out;
 `;
@@ -602,10 +600,6 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
   const handleRemoveStudent = (timestamp: number, classId: string) => {
     setStudents(prevStudents => {
       if (prevStudents.length === 0) {
-        toast.error('მოსწავლეების სია ცარიელია', {
-          autoClose: 2000,
-          hideProgressBar: false,
-        });
         return prevStudents;
       }
 
@@ -618,10 +612,6 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
       const newStudents = [...prevStudents];
       newStudents.splice(studentIndex, 1);
       return newStudents;
-    });
-    toast.success('მოსწავლე წაიშალა', {
-      autoClose: 2000,
-      hideProgressBar: false,
     });
   };
 
