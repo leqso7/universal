@@ -5,37 +5,47 @@ export interface Group {
   members: Student[];
 }
 
-export const createGroups = (students: Student[], size: number): Group[] => {
+export const createGroups = (students: Student[], requestedSize: number): Group[] => {
   if (students.length < 4) {
     throw new Error('საჭიროა მინიმუმ 4 მოსწავლე ჯგუფების შესაქმნელად');
   }
 
-  const maxGroups = Math.floor(students.length / 2);
-  const actualGroupSize = Math.min(size, maxGroups * 2);
-  
+  // Shuffle students
   const shuffled = [...students].sort(() => Math.random() - 0.5);
-  const newGroups: Group[] = [];
-  const numGroups = Math.floor(shuffled.length / actualGroupSize);
   
-  // Create initial groups
-  for (let i = 0; i < numGroups; i++) {
-    newGroups.push({
-      id: Date.now() + i,
-      members: shuffled.slice(i * actualGroupSize, (i + 1) * actualGroupSize)
-    });
+  // Calculate optimal number of groups to minimize size difference
+  const totalStudents = shuffled.length;
+  const minGroupSize = 2;
+  const maxGroups = Math.floor(totalStudents / minGroupSize);
+  const numGroups = Math.min(
+    Math.ceil(totalStudents / requestedSize), // Requested number of groups
+    maxGroups // Maximum possible groups with min 2 students
+  );
+
+  // Initialize groups
+  const groups: Group[] = Array.from({ length: numGroups }, (_, i) => ({
+    id: Date.now() + i,
+    members: []
+  }));
+
+  // Calculate base size and remainder
+  const baseSize = Math.floor(totalStudents / numGroups);
+  const remainder = totalStudents % numGroups;
+
+  // Distribute students evenly
+  let currentIndex = 0;
+  
+  // First, distribute base size + 1 to first 'remainder' groups
+  for (let i = 0; i < remainder; i++) {
+    groups[i].members = shuffled.slice(currentIndex, currentIndex + baseSize + 1);
+    currentIndex += baseSize + 1;
+  }
+  
+  // Then distribute base size to remaining groups
+  for (let i = remainder; i < numGroups; i++) {
+    groups[i].members = shuffled.slice(currentIndex, currentIndex + baseSize);
+    currentIndex += baseSize;
   }
 
-  // Distribute remaining students fairly
-  const remaining = shuffled.slice(numGroups * actualGroupSize);
-  remaining.forEach((student, index) => {
-    newGroups[index % newGroups.length].members.push(student);
-  });
-
-  // Ensure minimum group size of 2
-  if (newGroups.length >= 2 && newGroups.some(g => g.members.length < 2)) {
-    const lastGroup = newGroups.pop()!;
-    newGroups[newGroups.length - 1].members.push(...lastGroup.members);
-  }
-
-  return newGroups;
+  return groups;
 };
