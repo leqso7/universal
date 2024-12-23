@@ -905,6 +905,19 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
                     </GroupMemberList>
                   </GroupCard>
                 ))}
+
+                {groups.length < 2 && (
+                  <GroupCard>
+                    <GroupTitle>ჯგუფი {groups.length + 1}</GroupTitle>
+                    <GroupMemberList>
+                      {students.filter(s => !groups.flatMap(g => g.members).includes(s)).slice(0, 2).map(student => (
+                        <GroupMember key={student.timestamp}>
+                          {student.name}
+                        </GroupMember>
+                      ))}
+                    </GroupMemberList>
+                  </GroupCard>
+                )}
               </GroupGrid>
             </GroupsContent>
           </GroupsContainer>
