@@ -8,7 +8,7 @@ interface BeforeInstallPromptEvent extends Event {
 
 const InstallButton = styled.button`
   position: fixed;
-  bottom: 20px;
+  bottom: 70px;
   right: 20px;
   background: #4CAF50;
   color: white;
@@ -23,12 +23,29 @@ const InstallButton = styled.button`
   &:hover {
     background: #45a049;
     transform: translateY(-2px);
+
+    &:after {
+      content: "თუ ამ ღილაკს დააჭერთ თქვენ შეძლებთ დააინსტალიროთ ვებსაიტი და დადოთ დესკტოპზე და გამოიყენოთ ინტერნეტის გარეშე";
+      position: absolute;
+      bottom: 100%;
+      right: 0;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 14px;
+      width: max-content;
+      max-width: 300px;
+      margin-bottom: 10px;
+      white-space: normal;
+      line-height: 1.4;
+    }
   }
 
   @media (max-width: 768px) {
     padding: 8px 15px;
     font-size: 14px;
-    bottom: 10px;
+    bottom: 60px;
     right: 10px;
   }
 `;
