@@ -8,7 +8,7 @@ interface BeforeInstallPromptEvent extends Event {
 
 const InstallButton = styled.button`
   position: fixed;
-  top: 20px;
+  bottom: 20px;
   right: 20px;
   background: #4CAF50;
   color: white;
@@ -28,7 +28,7 @@ const InstallButton = styled.button`
   @media (max-width: 768px) {
     padding: 8px 15px;
     font-size: 14px;
-    top: 10px;
+    bottom: 10px;
     right: 10px;
   }
 `;
