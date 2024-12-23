@@ -124,14 +124,21 @@ export const Timer: React.FC<TimerProps> = ({ onExpire }) => {
 
   useEffect(() => {
     const checkAccess = async () => {
+      const lastRequestCode = localStorage.getItem('lastRequestCode');
+      if (!lastRequestCode) return; // Skip if no request code exists
+
       try {
         const { data, error } = await supabase
           .from('access_requests')
           .select('status')
-          .eq('code', localStorage.getItem('lastRequestCode'))
+          .eq('code', lastRequestCode)
           .single();
 
-        if (error) throw error;
+        if (error) {
+          if (error.code === 'PGRST116') return; // No data found, that's okay
+          console.error('Error checking access:', error.message);
+          return;
+        }
 
         if (data?.status === 'blocked') {
           localStorage.clear();
