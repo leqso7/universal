@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { supabase } from '../supabaseClient';
+import { isUserBlocked } from '../adminControl';
 
 const TimerContainer = styled.div`
   position: fixed;
@@ -37,67 +38,84 @@ interface TimerProps {
 }
 
 export const Timer: React.FC<TimerProps> = ({ onExpire }) => {
-  const [timeLeft, setTimeLeft] = useState<number>(() => {
-    // კომპონენტის ინიციალიზაციისას ვამოწმებთ შენახულ დროს
-    const savedTime = localStorage.getItem('expireTime');
-    if (savedTime) {
-      const expireTime = parseInt(savedTime);
-      const now = Date.now();
-      const remaining = Math.floor((expireTime - now) / 1000);
-      return remaining > 0 ? remaining : 31557600;
-    }
-    return 31557600;
-  });
+  const [timeLeft, setTimeLeft] = useState<number>(31536000); // 1 year default
   const [lastSync, setLastSync] = useState<number>(Date.now());
 
   useEffect(() => {
-    const checkAndUpdateTime = async () => {
-      try {
-        const now = Date.now();
-        // მხოლოდ მაშინ ვაგზავნით მოთხოვნას, თუ ბოლო სინქრონიზაციიდან გავიდა 5 წუთი
-        if (now - lastSync >= 300000) {
-          const { data, error } = await supabase
-            .from('access_time')
-            .select('expire_time')
-            .limit(1)
-            .single();
-          
-          if (error) throw error;
-          
-          if (data) {
-            const serverExpireTime = new Date(data.expire_time).getTime();
-            const remaining = Math.floor((serverExpireTime - now) / 1000);
-            
-            if (remaining <= 0) {
-              onExpire();
-              return;
-            }
-            
-            setTimeLeft(remaining);
-            setLastSync(now);
-            // ვინახავთ ახალ დროს
-            localStorage.setItem('expireTime', serverExpireTime.toString());
-          }
-        }
-      } catch (err) {
-        console.error('Error syncing time:', err);
-        // თუ სერვერთან კავშირი ვერ მოხერხდა, ვაგრძელებთ ლოკალური დროით
-        const localExpireTime = localStorage.getItem('expireTime');
-        if (localExpireTime) {
-          const remaining = Math.floor((parseInt(localExpireTime) - Date.now()) / 1000);
-          if (remaining <= 0) {
-            onExpire();
-          } else {
-            setTimeLeft(remaining);
-          }
-        }
+    const checkBlockStatus = async () => {
+      const lastRequestCode = localStorage.getItem('lastRequestCode');
+      if (!lastRequestCode) return;
+
+      const isBlocked = await isUserBlocked(lastRequestCode);
+      if (isBlocked) {
+        localStorage.clear();
+        onExpire();
+        return;
       }
     };
 
-    // თავდაპირველი შემოწმება
+    const checkAndUpdateTime = async () => {
+      try {
+        await checkBlockStatus();
+
+        const { data, error } = await supabase
+          .from('access_time')
+          .select('expire_time')
+          .limit(1)
+          .single();
+        
+        if (error) throw error;
+        
+        if (data) {
+          const serverExpireTime = new Date(data.expire_time).getTime();
+          const remaining = Math.floor((serverExpireTime - Date.now()) / 1000);
+          
+          if (remaining <= 0) {
+            onExpire();
+            return;
+          }
+          
+          setTimeLeft(remaining);
+          setLastSync(Date.now());
+          localStorage.setItem('expireTime', serverExpireTime.toString());
+        }
+      } catch (err) {
+        console.error('Error syncing time:', err);
+      }
+    };
+
+    // Initial checks
+    checkBlockStatus();
     checkAndUpdateTime();
 
-    // ლოკალური ტაიმერი
+    // Subscribe to real-time changes
+    const subscription = supabase
+      .channel('any_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'access_requests'
+        },
+        async () => {
+          await checkBlockStatus();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'access_time'
+        },
+        () => {
+          checkAndUpdateTime();
+        }
+      )
+      .subscribe();
+
+    // Local timer
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         const newTime = prev - 1;
@@ -106,21 +124,45 @@ export const Timer: React.FC<TimerProps> = ({ onExpire }) => {
           onExpire();
           return 0;
         }
-        // ყოველ წამში ვანახლებთ ლოკალურ დროს
-        const expireTime = Date.now() + (newTime * 1000);
-        localStorage.setItem('expireTime', expireTime.toString());
         return newTime;
       });
     }, 1000);
 
-    // სერვერთან სინქრონიზაცია ყოველ 5 წუთში
-    const syncInterval = setInterval(checkAndUpdateTime, 300000);
-
+    // Cleanup
     return () => {
       clearInterval(timer);
-      clearInterval(syncInterval);
+      subscription.unsubscribe();
     };
-  }, [onExpire, lastSync]);
+  }, [onExpire]);
+
+  // Sync on visibility change (when tab becomes visible again)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const localExpireTime = localStorage.getItem('expireTime');
+        if (localExpireTime) {
+          const remaining = Math.floor((parseInt(localExpireTime) - Date.now()) / 1000);
+          if (remaining > 0) {
+            setTimeLeft(remaining);
+          }
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  const formatTime = (seconds: number): string => {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    return `${days}დ ${hours}სთ ${minutes}წთ ${secs}წმ`;
+  };
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -157,18 +199,9 @@ export const Timer: React.FC<TimerProps> = ({ onExpire }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const formatTime = (seconds: number): string => {
-    const days = Math.floor(seconds / 86400);
-    const hours = Math.floor((seconds % 86400) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    return `${days}დ ${hours}სთ ${minutes}წთ ${secs}წმ`;
-  };
-
   return (
     <TimerContainer>
-      დარჩენილი დრო: <TimeValue>{formatTime(timeLeft)}</TimeValue>
+      დარჩენილი დრო: <TimeValue>{formatTime(timeLeft)}</TimeValue> წამი
     </TimerContainer>
   );
 };

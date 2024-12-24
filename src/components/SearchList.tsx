@@ -614,27 +614,46 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
       return newStudents;
     });
   };
+const handleGroupSize = (size: number) => {
+  if (students.length < 4) {
+    toast.error('მინიმუმ 4 მოსწავლე ჯგუფების შესაქმნელად');
+    return;
+  }
 
-  const handleGroupSize = (size: number) => {
-    if (students.length === 0) {
-      toast.error('ჯერ დაამატეთ მოსწავლეები');
-      return;
-    }
+  // Shuffle students
+  const shuffled = [...students].sort(() => Math.random() - 0.5);
+  const totalStudents = shuffled.length;
+
+  // Calculate number of groups ensuring minimum 2 students per group
+  const maxGroups = Math.floor(totalStudents / 2); // მაქსიმალური ჯგუფების რაოდენობა (მინ. 2 კაცი)
+  const requestedGroups = Math.ceil(totalStudents / size); // მოთხოვნილი ჯგუფების რაოდენობა
+  const numGroups = Math.min(maxGroups, requestedGroups);
+
+  // Calculate minimum students per group and extras
+  const minStudentsPerGroup = Math.floor(totalStudents / numGroups);
+  const extraStudents = totalStudents % numGroups;
+
+  // Create groups with even distribution
+  const newGroups: Group[] = [];
+  let currentIndex = 0;
+
+  for (let i = 0; i < numGroups; i++) {
+    // Add one extra student to early groups if we have remainder
+    const groupSize = i < extraStudents ? minStudentsPerGroup + 1 : minStudentsPerGroup;
     
-    const shuffled = [...students].sort(() => Math.random() - 0.5);
-    const newGroups: Group[] = [];
+    newGroups.push({
+      id: Date.now() + i,
+      members: shuffled.slice(currentIndex, currentIndex + groupSize)
+    });
     
-    for (let i = 0; i < shuffled.length; i += size) {
-      newGroups.push({
-        id: Date.now() + i,
-        members: shuffled.slice(i, i + size)
-      });
-    }
-    
-    setGroups(newGroups);
-    setSelectedSize(size);
-    setIsExpanded(true);
-  };
+    currentIndex += groupSize;
+  }
+
+  setGroups(newGroups);
+  setSelectedSize(size);
+  setIsExpanded(true);
+};
+
 
   const handleAddClass = () => {
     if (!className.trim()) {
@@ -905,19 +924,6 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
                     </GroupMemberList>
                   </GroupCard>
                 ))}
-
-                {groups.length < 2 && (
-                  <GroupCard>
-                    <GroupTitle>ჯგუფი {groups.length + 1}</GroupTitle>
-                    <GroupMemberList>
-                      {students.filter(s => !groups.flatMap(g => g.members).includes(s)).slice(0, 2).map(student => (
-                        <GroupMember key={student.timestamp}>
-                          {student.name}
-                        </GroupMember>
-                      ))}
-                    </GroupMemberList>
-                  </GroupCard>
-                )}
               </GroupGrid>
             </GroupsContent>
           </GroupsContainer>

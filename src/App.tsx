@@ -8,6 +8,7 @@ import styled from 'styled-components'
 import { useState, useEffect } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { initializeTables } from './adminControl';
 
 interface ClassData {
   name: string;
@@ -98,60 +99,48 @@ const SaveButton = styled.button`
 `;
 
 function App() {
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  const [hasAccess, setHasAccess] = useState<boolean>(() => {
+    const status = localStorage.getItem('approvalStatus');
+    return status === 'approved';
+  });
+  const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
   const [isClassFormVisible, setIsClassFormVisible] = useState(false);
   const [className, setClassName] = useState('');
   const [classList, setClassList] = useState('');
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    const checkAccess = () => {
-      const savedStatus = localStorage.getItem('approvalStatus');
-      const expireTime = localStorage.getItem('expireTime');
-      
-      if (savedStatus === 'approved' && expireTime) {
-        const now = Date.now();
-        const expire = parseInt(expireTime);
-        
-        if (now >= expire) {
-          setHasAccess(false);
-          localStorage.removeItem('approvalStatus');
-          localStorage.removeItem('expireTime');
-          navigate('/request', { replace: true });
-        } else {
-          setHasAccess(true);
-        }
-      } else {
-        setHasAccess(false);
-      }
-
-      // თუ მთავარ გვერდზე ვართ, გადავამისამართოთ
-      if (window.location.pathname === '/class-manager-./' || 
-          window.location.pathname === '/class-manager-.') {
-        navigate(hasAccess ? '/app' : '/request', { replace: true });
-      }
-    };
-
-    checkAccess();
-  }, [navigate, hasAccess]);
+  const handleAccessGranted = () => {
+    setHasAccess(true);
+    navigate('/', { replace: true });
+  };
 
   const handleAccessExpire = () => {
     setHasAccess(false);
     localStorage.removeItem('approvalStatus');
     localStorage.removeItem('expireTime');
-    navigate('/request', { replace: true });
+    navigate('/request');
   };
 
-  if (hasAccess === null) {
-    return (
-      <AppContainer>
-        <div style={{ textAlign: 'center', padding: '20px', color: '#333' }}>
-          იტვირთება...
-        </div>
-      </AppContainer>
-    );
-  }
+  useEffect(() => {
+    // Initialize tables
+    initializeTables().catch(error => {
+      console.error('Error initializing tables:', error);
+    });
+  }, []);
+
+  useEffect(() => {
+    const checkAccess = () => {
+      const status = localStorage.getItem('approvalStatus');
+      const hasValidAccess = status === 'approved';
+      setHasAccess(hasValidAccess);
+      
+      if (!hasValidAccess && window.location.pathname !== '/request') {
+        navigate('/request');
+      }
+    };
+    
+    checkAccess();
+  }, [navigate]);
 
   const handleSaveClass = () => {
     if (!className.trim() || !classList.trim()) {
@@ -219,51 +208,49 @@ function App() {
   return (
     <>
       <GlobalStyle />
-      <ToastContainer position="top-right" />
-      <AppContainer>
-        <InstallPWA />
-        <Routes>
-          <Route path="/request" element={
-            !hasAccess ? (
-              <RequestAccess onAccessGranted={() => {
-                setHasAccess(true);
-                // წვდომის მინიჭებისას ვინახავთ დროს
-                const expireTime = Date.now() + (31557600 * 1000);
-                localStorage.setItem('expireTime', expireTime.toString());
-              }} />
-            ) : (
-              <Navigate to="/app" replace />
-            )
-          } />
-          <Route path="/app" element={
+      <ToastContainer position="bottom-right" />
+      <InstallPWA />
+      {hasAccess && <Timer onExpire={handleAccessExpire} />}
+      <Routes>
+        <Route
+          path="/"
+          element={
             hasAccess ? (
-              <>
-                <Timer onExpire={handleAccessExpire} />
+              <AppContainer>
                 <SearchList students={students} setStudents={setStudents} />
-              </>
+                <ClassForm $isVisible={isClassFormVisible}>
+                  <h2>კლასის დამატება</h2>
+                  <Input
+                    type="text"
+                    placeholder="კლასის სახელი"
+                    value={className}
+                    onChange={(e) => setClassName(e.target.value)}
+                  />
+                  <TextArea
+                    placeholder="მოსწავლეების სია (თითო მოსწავლე ახალ ხაზზე)"
+                    value={classList}
+                    onChange={(e) => setClassList(e.target.value)}
+                  />
+                  <SaveButton onClick={handleSaveClass}>შენახვა</SaveButton>
+                  <SaveButton onClick={() => setIsClassFormVisible(false)}>დახურვა</SaveButton>
+                </ClassForm>
+              </AppContainer>
             ) : (
               <Navigate to="/request" replace />
             )
-          } />
-          <Route path="*" element={<Navigate to={hasAccess ? "/app" : "/request"} replace />} />
-        </Routes>
-        <ClassForm $isVisible={isClassFormVisible}>
-          <h2>კლასის დამატება</h2>
-          <Input
-            type="text"
-            placeholder="კლასის სახელი"
-            value={className}
-            onChange={(e) => setClassName(e.target.value)}
-          />
-          <TextArea
-            placeholder="მოსწავლეების სია (თითო მოსწავლე ახალ ხაზზე)"
-            value={classList}
-            onChange={(e) => setClassList(e.target.value)}
-          />
-          <SaveButton onClick={handleSaveClass}>შენახვა</SaveButton>
-          <SaveButton onClick={() => setIsClassFormVisible(false)}>დახურვა</SaveButton>
-        </ClassForm>
-      </AppContainer>
+          }
+        />
+        <Route
+          path="/request"
+          element={
+            hasAccess ? (
+              <Navigate to="/" replace />
+            ) : (
+              <RequestAccess onAccessGranted={handleAccessGranted} />
+            )
+          }
+        />
+      </Routes>
     </>
   );
 }
