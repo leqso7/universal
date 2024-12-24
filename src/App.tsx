@@ -8,7 +8,6 @@ import styled from 'styled-components'
 import { useState, useEffect } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { initializeTables } from './adminControl';
 
 interface ClassData {
   name: string;
@@ -120,13 +119,6 @@ function App() {
     localStorage.removeItem('expireTime');
     navigate('/request');
   };
-
-  useEffect(() => {
-    // Initialize tables
-    initializeTables().catch(error => {
-      console.error('Error initializing tables:', error);
-    });
-  }, []);
 
   useEffect(() => {
     const checkAccess = () => {

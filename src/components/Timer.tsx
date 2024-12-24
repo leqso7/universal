@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { supabase } from '../supabaseClient';
-import { isUserBlocked } from '../adminControl';
 
 const TimerContainer = styled.div`
   position: fixed;
@@ -28,99 +27,80 @@ const TimerContainer = styled.div`
   }
 `;
 
-const TimeValue = styled.span`
-  font-weight: bold;
-  color: #2196f3;
-`;
-
 interface TimerProps {
   onExpire: () => void;
 }
 
 export const Timer: React.FC<TimerProps> = ({ onExpire }) => {
-  const [timeLeft, setTimeLeft] = useState<number>(31536000); // 1 year default
-  const [lastSync, setLastSync] = useState<number>(Date.now());
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkBlockStatus = async () => {
-      const lastRequestCode = localStorage.getItem('lastRequestCode');
-      if (!lastRequestCode) return;
-
-      const isBlocked = await isUserBlocked(lastRequestCode);
-      if (isBlocked) {
-        localStorage.clear();
-        onExpire();
-        return;
-      }
-    };
-
-    const checkAndUpdateTime = async () => {
       try {
-        await checkBlockStatus();
+        const userCode = localStorage.getItem('userCode');
+        if (!userCode) {
+          onExpire();
+          return;
+        }
 
-        const { data, error } = await supabase
+        const { data: accessData, error: accessError } = await supabase
+          .from('access_requests')
+          .select('status')
+          .eq('code', userCode)
+          .single();
+
+        if (accessError) throw accessError;
+        
+        if (accessData?.status === 'blocked') {
+          localStorage.clear(); // გავასუფთავოთ localStorage
+          onExpire(); // გამოვიძახოთ onExpire
+          window.location.href = '/request'; // გადავამისამართოთ request გვერდზე
+          return;
+        }
+
+        const { data: timeData, error: timeError } = await supabase
           .from('access_time')
           .select('expire_time')
-          .limit(1)
+          .eq('id', 1)
           .single();
-        
-        if (error) throw error;
-        
-        if (data) {
-          const serverExpireTime = new Date(data.expire_time).getTime();
-          const remaining = Math.floor((serverExpireTime - Date.now()) / 1000);
-          
-          if (remaining <= 0) {
+
+        if (timeError) throw timeError;
+
+        if (timeData) {
+          const expireTime = new Date(timeData.expire_time).getTime();
+          const now = new Date().getTime();
+          const difference = expireTime - now;
+
+          if (difference <= 0) {
+            localStorage.clear();
             onExpire();
-            return;
+            window.location.href = '/request';
+          } else {
+            setTimeLeft(difference);
           }
-          
-          setTimeLeft(remaining);
-          setLastSync(Date.now());
-          localStorage.setItem('expireTime', serverExpireTime.toString());
         }
-      } catch (err) {
-        console.error('Error syncing time:', err);
+      } catch (error) {
+        console.error('Error checking access:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    // Initial checks
     checkBlockStatus();
-    checkAndUpdateTime();
+    const interval = setInterval(checkBlockStatus, 30000); // Check every 30 seconds
 
-    // Subscribe to real-time changes
-    const subscription = supabase
-      .channel('any_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'access_requests'
-        },
-        async () => {
-          await checkBlockStatus();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'access_time'
-        },
-        () => {
-          checkAndUpdateTime();
-        }
-      )
-      .subscribe();
+    return () => clearInterval(interval);
+  }, [onExpire]);
 
-    // Local timer
+  useEffect(() => {
+    if (timeLeft === null || timeLeft <= 0) return;
+
     const timer = setInterval(() => {
       setTimeLeft(prev => {
-        const newTime = prev - 1;
+        if (prev === null) return null;
+        const newTime = prev - 1000;
         if (newTime <= 0) {
-          clearInterval(timer);
           onExpire();
           return 0;
         }
@@ -128,80 +108,28 @@ export const Timer: React.FC<TimerProps> = ({ onExpire }) => {
       });
     }, 1000);
 
-    // Cleanup
-    return () => {
-      clearInterval(timer);
-      subscription.unsubscribe();
-    };
-  }, [onExpire]);
+    return () => clearInterval(timer);
+  }, [timeLeft, onExpire]);
 
-  // Sync on visibility change (when tab becomes visible again)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        const localExpireTime = localStorage.getItem('expireTime');
-        if (localExpireTime) {
-          const remaining = Math.floor((parseInt(localExpireTime) - Date.now()) / 1000);
-          if (remaining > 0) {
-            setTimeLeft(remaining);
-          }
-        }
-      }
-    };
+  if (loading) {
+    return null;
+  }
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
+  if (timeLeft === null || timeLeft <= 0) {
+    return null;
+  }
 
-  const formatTime = (seconds: number): string => {
-    const days = Math.floor(seconds / 86400);
-    const hours = Math.floor((seconds % 86400) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    return `${days}დ ${hours}სთ ${minutes}წთ ${secs}წმ`;
-  };
-
-  useEffect(() => {
-    const checkAccess = async () => {
-      const lastRequestCode = localStorage.getItem('lastRequestCode');
-      if (!lastRequestCode) return; // Skip if no request code exists
-
-      try {
-        const { data, error } = await supabase
-          .from('access_requests')
-          .select('status')
-          .eq('code', lastRequestCode)
-          .single();
-
-        if (error) {
-          if (error.code === 'PGRST116') return; // No data found, that's okay
-          console.error('Error checking access:', error.message);
-          return;
-        }
-
-        if (data?.status === 'blocked') {
-          localStorage.clear();
-          window.location.href = '/request';
-          return;
-        }
-      } catch (err) {
-        console.error('Error checking access:', err);
-      }
-    };
-
-    // შემოწმება ყოველ 5 წუთში
-    checkAccess();
-    const interval = setInterval(checkAccess, 300000);
-
-    return () => clearInterval(interval);
-  }, []);
+  const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+  const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
 
   return (
     <TimerContainer>
-      დარჩენილი დრო: <TimeValue>{formatTime(timeLeft)}</TimeValue> წამი
+      <div>დარჩენილი დრო:</div>
+      <div>
+        {hours.toString().padStart(2, '0')}:{minutes.toString().padStart(2, '0')}:
+        {seconds.toString().padStart(2, '0')}
+      </div>
     </TimerContainer>
   );
 };
