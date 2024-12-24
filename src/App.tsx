@@ -3,7 +3,6 @@ import { createGlobalStyle } from 'styled-components'
 import RequestAccess from './pages/RequestAccess'
 import SearchList, { Student } from './components/SearchList'
 import InstallPWA from './components/InstallPWA'
-import { Timer } from './components/Timer'
 import styled from 'styled-components'
 import { useState, useEffect } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
@@ -113,26 +112,15 @@ function App() {
     navigate('/', { replace: true });
   };
 
-  const handleAccessExpire = () => {
-    setHasAccess(false);
-    localStorage.removeItem('approvalStatus');
-    localStorage.removeItem('expireTime');
-    navigate('/request');
-  };
-
   useEffect(() => {
-    const checkAccess = () => {
-      const status = localStorage.getItem('approvalStatus');
-      const hasValidAccess = status === 'approved';
-      setHasAccess(hasValidAccess);
-      
-      if (!hasValidAccess && window.location.pathname !== '/request') {
-        navigate('/request');
-      }
-    };
+    const status = localStorage.getItem('approvalStatus');
+    const hasValidAccess = status === 'approved';
     
-    checkAccess();
-  }, [navigate]);
+    if (hasValidAccess !== hasAccess) {
+      setHasAccess(hasValidAccess);
+      navigate(hasValidAccess ? '/' : '/request', { replace: true });
+    }
+  }, [hasAccess, navigate]);
 
   const handleSaveClass = () => {
     if (!className.trim() || !classList.trim()) {
@@ -160,13 +148,11 @@ function App() {
     try {
       const savedClasses: ClassData[] = JSON.parse(localStorage.getItem('classes') || '[]');
       
-      // Check if class already exists
       const existingClassIndex = savedClasses.findIndex((c: ClassData) => 
         c.name.toLowerCase() === className.trim().toLowerCase()
       );
 
       if (existingClassIndex !== -1) {
-        // Update existing class
         savedClasses[existingClassIndex] = classData;
         localStorage.setItem('classes', JSON.stringify(savedClasses));
         toast.success('კლასი განახლდა', {
@@ -175,7 +161,6 @@ function App() {
           pauseOnHover: false
         });
       } else {
-        // Add new class
         localStorage.setItem('classes', JSON.stringify([...savedClasses, classData]));
         toast.success('კლასი წარმატებით შეინახა', {
           autoClose: 1500,
@@ -202,7 +187,6 @@ function App() {
       <GlobalStyle />
       <ToastContainer position="bottom-right" />
       <InstallPWA />
-      {hasAccess && <Timer onExpire={handleAccessExpire} />}
       <Routes>
         <Route
           path="/"

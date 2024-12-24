@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { createClient } from '@supabase/supabase-js';
+import { toast } from 'react-toastify';
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -107,56 +108,81 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
   const [error, setError] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [manualCode, setManualCode] = useState('');
 
   const generateCode = () => {
-    // Generate a 5-digit number between 10000 and 99999
     return Math.floor(10000 + Math.random() * 90000).toString();
   };
 
   useEffect(() => {
-    const checkApprovalStatus = async () => {
-      const savedStatus = localStorage.getItem('approvalStatus');
-      if (savedStatus === 'approved') {
+    const savedCode = localStorage.getItem('lastRequestCode');
+    const savedFirstName = localStorage.getItem('firstName');
+    const savedLastName = localStorage.getItem('lastName');
+    if (savedCode) {
+      setRequestCode(savedCode);
+      setFirstName(savedFirstName || '');
+      setLastName(savedLastName || '');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!requestCode) return;
+
+    console.log('Setting up subscription for code:', requestCode);
+
+    const subscription = supabase
+      .channel('status_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'access_requests',
+          filter: `code=eq.${requestCode}`
+        },
+        async (payload) => {
+          console.log('Received payload:', payload);
+          if (payload.new && payload.new.status === 'approved') {
+            console.log('User approved, setting local storage');
+            localStorage.setItem('approvalStatus', 'approved');
+            localStorage.setItem('userCode', requestCode);
+            console.log('Calling onAccessGranted');
+            onAccessGranted();
+          }
+        }
+      )
+      .subscribe();
+
+    // Check current status on mount
+    const checkCurrentStatus = async () => {
+      console.log('Checking current status for code:', requestCode);
+      const { data, error } = await supabase
+        .from('access_requests')
+        .select('status')
+        .eq('code', requestCode)
+        .single();
+
+      console.log('Current status:', data);
+      
+      if (error) {
+        console.error('Error checking status:', error);
+        return;
+      }
+
+      if (data?.status === 'approved') {
+        console.log('User already approved, setting local storage');
+        localStorage.setItem('approvalStatus', 'approved');
+        localStorage.setItem('userCode', requestCode);
+        console.log('Calling onAccessGranted');
         onAccessGranted();
-        return;
-      }
-
-      if (!requestCode) {
-        // შევამოწმოთ არის თუ არა შენახული კოდი და სახელები
-        const savedCode = localStorage.getItem('lastRequestCode');
-        const savedFirstName = localStorage.getItem('firstName');
-        const savedLastName = localStorage.getItem('lastName');
-        if (savedCode) {
-          setRequestCode(savedCode);
-          setFirstName(savedFirstName || '');
-          setLastName(savedLastName || '');
-        }
-        return;
-      }
-
-      try {
-        const { data, error: fetchError } = await supabase
-          .from('access_requests')
-          .select('status')
-          .eq('code', requestCode)
-          .single();
-
-        if (fetchError) throw fetchError;
-
-        if (data?.status === 'approved') {
-          localStorage.setItem('approvalStatus', 'approved');
-          onAccessGranted();
-        }
-      } catch (err) {
-        console.error('Error checking status:', err);
       }
     };
 
-    checkApprovalStatus();
-    const interval = setInterval(checkApprovalStatus, 5000);
+    checkCurrentStatus();
 
-    return () => clearInterval(interval);
+    return () => {
+      console.log('Cleaning up subscription');
+      subscription.unsubscribe();
+    };
   }, [requestCode, onAccessGranted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -183,11 +209,8 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
           created_at: new Date().toISOString()
         }]);
 
-      if (insertError) {
-        throw insertError;
-      }
+      if (insertError) throw insertError;
 
-      // შევინახოთ ყველა მონაცემი ლოკალურად
       localStorage.setItem('lastRequestCode', code);
       localStorage.setItem('firstName', firstName);
       localStorage.setItem('lastName', lastName);
@@ -200,66 +223,17 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
     }
   };
 
-  const handleCheckCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!manualCode.trim()) {
-      setError('გთხოვთ შეიყვანოთ კოდი');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { data, error: fetchError } = await supabase
-        .from('access_requests')
-        .select('*')
-        .eq('code', manualCode.trim())
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      if (data?.status === 'approved') {
-        localStorage.setItem('approvalStatus', 'approved');
-        const expireTime = Date.now() + (31557600 * 1000); // 1 წელი
-        localStorage.setItem('expireTime', expireTime.toString());
-        onAccessGranted();
-      } else if (data) {
-        setError('კოდი ჯერ არ არის დადასტურებული');
-      } else {
-        setError('კოდი ვერ მოიძებნა');
-      }
-    } catch (err) {
-      console.error('Error checking code:', err);
-      setError('კოდის შემოწმებისას დაფიქსირდა შეცდომა');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <Container>
-      <Form onSubmit={requestCode ? handleCheckCode : handleSubmit}>
+      <Form onSubmit={handleSubmit}>
         <Title>მოთხოვნის გაგზავნა</Title>
         {requestCode ? (
-          <>
-            <CodeDisplay>
-              <CodeText>თქვენი კოდი: {requestCode}</CodeText>
-              <StatusText>სტატუსი: მოლოდინში...</StatusText>
-              <StatusText>სახელი: {firstName}</StatusText>
-              <StatusText>გვარი: {lastName}</StatusText>
-            </CodeDisplay>
-            <Input
-              type="text"
-              value={manualCode}
-              onChange={(e) => setManualCode(e.target.value)}
-              placeholder="შეიყვანეთ კოდი"
-            />
-            <Button type="submit" disabled={loading}>
-              {loading ? 'მოწმდება...' : 'კოდის შემოწმება'}
-            </Button>
-          </>
+          <CodeDisplay>
+            <CodeText>თქვენი კოდი: {requestCode}</CodeText>
+            <StatusText>სტატუსი: მოლოდინში...</StatusText>
+            <StatusText>სახელი: {firstName}</StatusText>
+            <StatusText>გვარი: {lastName}</StatusText>
+          </CodeDisplay>
         ) : (
           <>
             <Input
@@ -277,7 +251,7 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
               required
             />
             <Button type="submit" disabled={loading}>
-              {loading ? 'იგზავნება...' : 'მოთხოვნის გაგზავნა'}
+              {loading ? 'იგზავნება...' : 'გაგზავნა'}
             </Button>
           </>
         )}
