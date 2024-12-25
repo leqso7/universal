@@ -575,6 +575,7 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
   const [currentSelected, setCurrentSelected] = useState<string | null>(null);
   const [showOverlay, setShowOverlay] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isSelectionDisabled, setIsSelectionDisabled] = useState(false);
 
   useEffect(() => {
     const savedClasses = localStorage.getItem('classes');
@@ -614,46 +615,46 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
       return newStudents;
     });
   };
-const handleGroupSize = (size: number) => {
-  if (students.length < 4) {
-    toast.error('მინიმუმ 4 მოსწავლე ჯგუფების შესაქმნელად');
-    return;
-  }
 
-  // Shuffle students
-  const shuffled = [...students].sort(() => Math.random() - 0.5);
-  const totalStudents = shuffled.length;
+  const handleGroupSize = (size: number) => {
+    if (students.length < 4) {
+      toast.error('მინიმუმ 4 მოსწავლე ჯგუფების შესაქმნელად');
+      return;
+    }
 
-  // Calculate number of groups ensuring minimum 2 students per group
-  const maxGroups = Math.floor(totalStudents / 2); // მაქსიმალური ჯგუფების რაოდენობა (მინ. 2 კაცი)
-  const requestedGroups = Math.ceil(totalStudents / size); // მოთხოვნილი ჯგუფების რაოდენობა
-  const numGroups = Math.min(maxGroups, requestedGroups);
+    // Shuffle students
+    const shuffled = [...students].sort(() => Math.random() - 0.5);
+    const totalStudents = shuffled.length;
 
-  // Calculate minimum students per group and extras
-  const minStudentsPerGroup = Math.floor(totalStudents / numGroups);
-  const extraStudents = totalStudents % numGroups;
+    // Calculate number of groups ensuring minimum 2 students per group
+    const maxGroups = Math.floor(totalStudents / 2); // მაქსიმალური ჯგუფების რაოდენობა (მინ. 2 კაცი)
+    const requestedGroups = Math.ceil(totalStudents / size); // მოთხოვნილი ჯგუფების რაოდენობა
+    const numGroups = Math.min(maxGroups, requestedGroups);
 
-  // Create groups with even distribution
-  const newGroups: Group[] = [];
-  let currentIndex = 0;
+    // Calculate minimum students per group and extras
+    const minStudentsPerGroup = Math.floor(totalStudents / numGroups);
+    const extraStudents = totalStudents % numGroups;
 
-  for (let i = 0; i < numGroups; i++) {
-    // Add one extra student to early groups if we have remainder
-    const groupSize = i < extraStudents ? minStudentsPerGroup + 1 : minStudentsPerGroup;
-    
-    newGroups.push({
-      id: Date.now() + i,
-      members: shuffled.slice(currentIndex, currentIndex + groupSize)
-    });
-    
-    currentIndex += groupSize;
-  }
+    // Create groups with even distribution
+    const newGroups: Group[] = [];
+    let currentIndex = 0;
 
-  setGroups(newGroups);
-  setSelectedSize(size);
-  setIsExpanded(true);
-};
+    for (let i = 0; i < numGroups; i++) {
+      // Add one extra student to early groups if we have remainder
+      const groupSize = i < extraStudents ? minStudentsPerGroup + 1 : minStudentsPerGroup;
+      
+      newGroups.push({
+        id: Date.now() + i,
+        members: shuffled.slice(currentIndex, currentIndex + groupSize)
+      });
+      
+      currentIndex += groupSize;
+    }
 
+    setGroups(newGroups);
+    setSelectedSize(size);
+    setIsExpanded(true);
+  };
 
   const handleAddClass = () => {
     if (!className.trim()) {
@@ -697,6 +698,10 @@ const handleGroupSize = (size: number) => {
       
       setClasses(updatedClasses);
       localStorage.setItem('classes', JSON.stringify(updatedClasses));
+      toast.success('კლასი წარმატებით განახლდა!', {
+        autoClose: 2000,
+        hideProgressBar: false,
+      });
     } else {
       const newClass: Class = {
         id: classId,
@@ -707,6 +712,10 @@ const handleGroupSize = (size: number) => {
       const updatedClasses = [...classes, newClass];
       setClasses(updatedClasses);
       localStorage.setItem('classes', JSON.stringify(updatedClasses));
+      toast.success('კლასი წარმატებით დაემატა!', {
+        autoClose: 2000,
+        hideProgressBar: false,
+      });
     }
     
     setClassName('');
@@ -775,6 +784,10 @@ const handleGroupSize = (size: number) => {
   };
 
   const handleRandomSelect = () => {
+    if (isSelectionDisabled) {
+      return;
+    }
+
     const availableStudents = students.filter(student => 
       !selectedStudents.includes(student.name)
     );
@@ -783,10 +796,16 @@ const handleGroupSize = (size: number) => {
       setSelectedStudents([]);
       setCurrentSelected(null);
       setShowOverlay(false);
+      setIsSelectionDisabled(true);
       toast.info('ყველა მოსწავლე შერჩეულია! ვიწყებთ თავიდან.', {
-        autoClose: 2000,
+        autoClose: 3000,
         hideProgressBar: false,
       });
+      
+      // 3 წამის შემდეგ ვრთავთ ღილაკს
+      setTimeout(() => {
+        setIsSelectionDisabled(false);
+      }, 3000);
       return;
     }
 
@@ -856,7 +875,11 @@ const handleGroupSize = (size: number) => {
         )}
         <MainContent $isExpanded={isExpanded}>
           <StudentListContainer>
-            <SelectButton onClick={handleRandomSelect}>
+            <SelectButton 
+              onClick={handleRandomSelect}
+              disabled={isSelectionDisabled}
+              style={{ opacity: isSelectionDisabled ? 0.5 : 1 }}
+            >
               მოსწავლის არჩევა
             </SelectButton>
             <StudentCount>
@@ -898,14 +921,7 @@ const handleGroupSize = (size: number) => {
                     ×
                   </IconButton>
                 ) : (
-                  <>
-                    <IconButton onClick={handleExpandGroups} title="გადიდება">
-                      ⛶
-                    </IconButton>
-                    <IconButton onClick={() => setIsExpanded(false)} title="დახურვა">
-                      ×
-                    </IconButton>
-                  </>
+                  <></>
                 )}
               </GroupControls>
             </GroupsHeader>
