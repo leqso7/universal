@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['vite.svg'],
+      includeAssets: ['logo.webp'],
       manifest: {
         name: 'Class Manager',
         short_name: 'Class Manager',
@@ -21,20 +21,12 @@ export default defineConfig({
         scope: '/class-manager-./',
         icons: [
           {
-            src: 'vite.svg',
-            sizes: '192x192',
-            type: 'image/svg+xml'
-          },
-          {
-            src: 'vite.svg',
-            sizes: '512x512',
-            type: 'image/svg+xml',
+            src: 'logo.webp',
+            sizes: '192x192 512x512',
+            type: 'image/webp',
             purpose: 'any maskable'
           }
         ]
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}']
       }
     })
   ]
