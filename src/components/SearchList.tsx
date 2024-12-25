@@ -921,7 +921,14 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
                     ×
                   </IconButton>
                 ) : (
-                  <></>
+                  <>
+                    <IconButton onClick={handleExpandGroups} title="გადიდება">
+                      ⛶
+                    </IconButton>
+                    <IconButton onClick={() => setIsExpanded(false)} title="დახურვა">
+                      ×
+                    </IconButton>
+                  </>
                 )}
               </GroupControls>
             </GroupsHeader>
