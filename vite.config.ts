@@ -17,7 +17,6 @@ export default defineConfig({
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
-        form_factor: 'wide',
         start_url: '/class-manager-./',
         scope: '/class-manager-./',
         icons: [

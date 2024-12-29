@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export interface Student {
+  id: string;
   name: string;
   timestamp: number;
   classId: string;
@@ -20,10 +21,37 @@ interface Class {
   students: Student[];
 }
 
+interface AttendanceRecord {
+  date: string;
+  presentStudents: string[];
+  classId: string;
+  className: string;
+}
+
 interface Props {
   students: Student[];
   setStudents: React.Dispatch<React.SetStateAction<Student[]>>;
 }
+
+import { 
+  Chart as ChartJS, 
+  CategoryScale, 
+  LinearScale, 
+  BarElement, 
+  Title, 
+  Tooltip, 
+  Legend 
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const Container = styled.div<{ $showModal: boolean }>`
   width: 100vw;
@@ -559,6 +587,272 @@ const CloseButton = styled.button`
   }
 `;
 
+const AttendanceButton = styled.button<{ $showModal?: boolean }>`
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 15px 25px;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  filter: ${props => props.$showModal ? 'blur(5px)' : 'none'};
+  pointer-events: ${props => props.$showModal ? 'none' : 'auto'};
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+`;
+
+const StatisticsModal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.98);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  animation: slideIn 0.3s ease-out;
+  overflow: hidden;
+
+  @media (min-width: 768px) {
+    padding: 30px;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+`;
+
+const StatisticsHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+`;
+
+const StatisticsTitle = styled.h2`
+  font-size: 32px;
+  color: #2c3e50;
+  margin: 0;
+  font-weight: 600;
+`;
+
+const CloseStatisticsButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #2c3e50;
+  cursor: pointer;
+  padding: 10px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: rotate(90deg);
+  }
+`;
+
+const StatisticsContent = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 10px 0;
+  
+  @media (min-width: 768px) {
+    padding: 15px 0;
+  }
+`;
+
+const StatisticsSelect = styled.select`
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  @media (min-width: 768px) {
+    width: 300px;
+  }
+
+  &:hover {
+    border-color: #4CAF50;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+  }
+`;
+
+const StatisticsSearch = styled.input`
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 16px;
+
+  @media (min-width: 768px) {
+    width: 300px;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #4CAF50;
+  }
+`;
+
+const ChartContainer = styled.div`
+  flex: 1;
+  min-height: 0;
+  background: white;
+  border-radius: 16px;
+  padding: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+`;
+
+const AttendanceGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 15px;
+  padding: 15px;
+  overflow-y: auto;
+  max-height: calc(100vh - 250px);
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+`;
+
+const AttendanceCard = styled.div<{ $percentage: number }>`
+  background: ${props => {
+    if (props.$percentage >= 80) return 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)';
+    if (props.$percentage >= 60) return 'linear-gradient(135deg, #FFA726 0%, #FB8C00 100%)';
+    return 'linear-gradient(135deg, #FF7043 0%, #F4511E 100%)';
+  }};
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform 0.2s ease;
+  color: white;
+  aspect-ratio: 2/3;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+`;
+
+const StudentName = styled.div`
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+  word-break: break-word;
+`;
+
+const AttendancePercentage = styled.div`
+  font-size: 28px;
+  font-weight: bold;
+  text-align: center;
+`;
+
+const CardsContainer = styled.div`
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 16px;
+  padding: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+`;
+
+const StatisticsTabs = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+
+  @media (min-width: 768px) {
+    gap: 10px;
+  }
+`;
+
+const StatisticsTab = styled.button<{ $active: boolean }>`
+  padding: 10px 20px;
+  background: ${props => props.$active ? '#4CAF50' : '#f5f5f5'};
+  color: ${props => props.$active ? 'white' : '#333'};
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  font-size: 14px;
+
+  @media (min-width: 768px) {
+    padding: 12px 24px;
+    font-size: 16px;
+  }
+
+  &:hover {
+    background: ${props => props.$active ? '#45a049' : '#e0e0e0'};
+  }
+`;
+
+const SaveAttendanceButton = styled.button`
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: #388E3C;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
 const SearchList: React.FC<Props> = ({ students, setStudents }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [groups, setGroups] = useState<Group[]>([]);
@@ -566,6 +860,12 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
   const [showModal, setShowModal] = useState(false);
   const [className, setClassName] = useState('');
   const [studentsList, setStudentsList] = useState('');
+  const [showAttendanceModal, setShowAttendanceModal] = useState(false);
+  const [selectedClassForAttendance, setSelectedClassForAttendance] = useState<string>('');
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(() => {
+    const savedRecords = localStorage.getItem('attendanceRecords');
+    return savedRecords ? JSON.parse(savedRecords) : [];
+  });
   const [classes, setClasses] = useState<Class[]>(() => {
     const savedClasses = localStorage.getItem('classes');
     return savedClasses ? JSON.parse(savedClasses) : [];
@@ -576,6 +876,11 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
   const [showOverlay, setShowOverlay] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isSelectionDisabled, setIsSelectionDisabled] = useState(false);
+  const [showSaveButton, setShowSaveButton] = useState(false);
+  const [currentClassId, setCurrentClassId] = useState<string>('');
+  const [currentClassName, setCurrentClassName] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'cards' | 'chart'>('cards');
+  const [nameFilter, setNameFilter] = useState('');
 
   useEffect(() => {
     const savedClasses = localStorage.getItem('classes');
@@ -594,25 +899,19 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
     localStorage.setItem('classes', JSON.stringify(classes));
   }, [classes]);
 
+  useEffect(() => {
+    localStorage.setItem('attendanceRecords', JSON.stringify(attendanceRecords));
+  }, [attendanceRecords]);
+
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleRemoveStudent = (timestamp: number, classId: string) => {
     setStudents(prevStudents => {
-      if (prevStudents.length === 0) {
-        return prevStudents;
-      }
-
-      const studentIndex = prevStudents.findIndex(student => 
-        student.timestamp === timestamp && student.classId === classId
+      return prevStudents.filter(student => 
+        !(student.timestamp === timestamp && student.classId === classId)
       );
-      
-      if (studentIndex === -1) return prevStudents;
-      
-      const newStudents = [...prevStudents];
-      newStudents.splice(studentIndex, 1);
-      return newStudents;
     });
   };
 
@@ -672,6 +971,7 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
       .map(name => name.trim())
       .filter(name => name)
       .map((name, index) => ({
+        id: crypto.randomUUID(),
         name,
         timestamp: Date.now() + index,
         classId
@@ -737,23 +1037,22 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
       );
 
       if (foundClass && Array.isArray(foundClass.students)) {
-        const newStudents: Student[] = foundClass.students.map((student: { name: string, classId: string }) => ({
+        // ჯერ გავასუფთავოთ წინა სია
+        setStudents([]);
+        setShowSaveButton(false);
+        
+        const newStudents: Student[] = foundClass.students.map(student => ({
+          id: student.id,
           name: student.name,
-          timestamp: Date.now(),
-          classId: student.classId
+          timestamp: Date.now() + Math.random(), // უნიკალური timestamp-ის უზრუნველსაყოფად
+          classId: foundClass.id
         }));
 
-        const existingNames = students.map(s => s.name.toLowerCase());
-        const uniqueNewStudents = newStudents.filter(
-          student => !existingNames.includes(student.name.toLowerCase())
-        );
-
-        if (uniqueNewStudents.length === 0) {
-          return;
-        }
-
-        setStudents(prev => [...prev, ...uniqueNewStudents]);
-        toast.success(`დაემატა ${uniqueNewStudents.length} მოსწავლე`);
+        setCurrentClassId(foundClass.id);
+        setCurrentClassName(foundClass.name);
+        setShowSaveButton(true);
+        setStudents(newStudents);
+        toast.success(`დაემატა ${newStudents.length} მოსწავლე`);
       } else {
         const existingStudent = students.find(
           s => s.name.toLowerCase() === term.toLowerCase()
@@ -764,6 +1063,7 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
         }
 
         const newStudent: Student = {
+          id: crypto.randomUUID(),
           name: term,
           timestamp: Date.now(),
           classId: ''
@@ -828,6 +1128,122 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
     setIsFullscreen(false);
   };
 
+  const handleSaveAttendance = () => {
+    const currentDate = new Date().toISOString().split('T')[0];
+    const presentStudents = filteredStudents.map(student => student.name);
+    
+    if (!currentClassId || !currentClassName) {
+      toast.error('კლასის ინფორმაცია ვერ მოიძებნა');
+      return;
+    }
+
+    const newRecord: AttendanceRecord = {
+      date: currentDate,
+      presentStudents,
+      classId: currentClassId,
+      className: currentClassName
+    };
+
+    setAttendanceRecords(prev => [...prev, newRecord]);
+    setShowSaveButton(false);
+    setStudents([]);
+    toast.success('დასწრება შენახულია!');
+  };
+
+  const calculateAttendance = (className: string) => {
+    const selectedClass = classes.find(c => c.name === className);
+    if (!selectedClass) return [];
+
+    const classRecords = attendanceRecords.filter(record => record.className === className);
+    const allStudents = selectedClass.students;
+    
+    const attendanceData = allStudents.map(student => {
+      const totalRecords = classRecords.length;
+      const presentCount = classRecords.filter(record => 
+        record.presentStudents.includes(student.name)
+      ).length;
+      
+      const percentage = totalRecords === 0 ? 0 : Math.round((presentCount / totalRecords) * 100);
+      return { id: student.id, name: student.name, percentage };
+    });
+
+    // დავალაგოთ დასწრების კლების მიხედვით
+    return attendanceData.sort((a, b) => b.percentage - a.percentage);
+  };
+
+  const getChartData = (attendanceData: { id: string; name: string; percentage: number }[]) => {
+    return {
+      labels: attendanceData.map(student => student.name),
+      datasets: [
+        {
+          label: 'დასწრების პროცენტი',
+          data: attendanceData.map(student => student.percentage),
+          backgroundColor: attendanceData.map(student => {
+            if (student.percentage >= 80) return 'rgba(76, 175, 80, 0.8)';
+            if (student.percentage >= 60) return 'rgba(255, 167, 38, 0.8)';
+            return 'rgba(244, 67, 54, 0.8)';
+          }),
+          borderColor: attendanceData.map(student => {
+            if (student.percentage >= 80) return '#4CAF50';
+            if (student.percentage >= 60) return '#FB8C00';
+            return '#F4511E';
+          }),
+          borderWidth: 1,
+        },
+      ],
+    };
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      title: {
+        display: true,
+        text: 'მოსწავლეების დასწრების სტატისტიკა',
+        font: {
+          size: 16,
+        },
+        padding: {
+          top: 5,
+          bottom: 10
+        }
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 100,
+        ticks: {
+          callback: (value: number) => `${value}%`,
+          font: {
+            size: 12
+          }
+        },
+      },
+      x: {
+        ticks: {
+          autoSkip: true,
+          maxRotation: 45,
+          minRotation: 45,
+          font: {
+            size: 11
+          }
+        }
+      }
+    },
+  };
+
+  const filterStudentsByName = (students: { id: string; name: string; percentage: number }[]) => {
+    if (!nameFilter) return students;
+    return students.filter(student => 
+      student.name.toLowerCase().includes(nameFilter.toLowerCase())
+    );
+  };
+
   return (
     <Container $showModal={showModal}>
       <Overlay $show={showOverlay} />
@@ -873,6 +1289,89 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
             </ModalContent>
           </ModalOverlay>
         )}
+
+        {showAttendanceModal && (
+          <StatisticsModal>
+            <StatisticsHeader>
+              <StatisticsTitle>დასწრების სტატისტიკა</StatisticsTitle>
+              <CloseStatisticsButton onClick={() => setShowAttendanceModal(false)}>
+                ×
+              </CloseStatisticsButton>
+            </StatisticsHeader>
+            <StatisticsContent>
+              <StatisticsSelect
+                value={selectedClassForAttendance}
+                onChange={(e) => {
+                  setSelectedClassForAttendance(e.target.value);
+                  setNameFilter('');
+                }}
+              >
+                <option value="">აირჩიეთ კლასი</option>
+                {classes.map(c => (
+                  <option key={c.id} value={c.name}>{c.name}</option>
+                ))}
+              </StatisticsSelect>
+              
+              {selectedClassForAttendance && (
+                <>
+                  <StatisticsSearch
+                    type="text"
+                    placeholder="მოძებნეთ მოსწავლე..."
+                    value={nameFilter}
+                    onChange={(e) => setNameFilter(e.target.value)}
+                  />
+
+                  <StatisticsTabs>
+                    <StatisticsTab 
+                      $active={viewMode === 'cards'} 
+                      onClick={() => setViewMode('cards')}
+                    >
+                      ბარათები
+                    </StatisticsTab>
+                    <StatisticsTab 
+                      $active={viewMode === 'chart'} 
+                      onClick={() => setViewMode('chart')}
+                    >
+                      გრაფიკი
+                    </StatisticsTab>
+                  </StatisticsTabs>
+
+                  {viewMode === 'cards' ? (
+                    <CardsContainer>
+                      <AttendanceGrid>
+                        {filterStudentsByName(calculateAttendance(selectedClassForAttendance))
+                          .map(student => (
+                            <AttendanceCard 
+                              key={student.id} 
+                              $percentage={student.percentage}
+                            >
+                              <StudentName>{student.name}</StudentName>
+                              <AttendancePercentage>{student.percentage}%</AttendancePercentage>
+                            </AttendanceCard>
+                          ))}
+                      </AttendanceGrid>
+                    </CardsContainer>
+                  ) : (
+                    <ChartContainer>
+                      <Bar 
+                        data={getChartData(filterStudentsByName(calculateAttendance(selectedClassForAttendance)))} 
+                        options={{
+                          ...chartOptions,
+                          scales: {
+                            y: {
+                              beginAtZero: true
+                            }
+                          }
+                        }}
+                      />
+                    </ChartContainer>
+                  )}
+                </>
+              )}
+            </StatisticsContent>
+          </StatisticsModal>
+        )}
+
         <MainContent $isExpanded={isExpanded}>
           <StudentListContainer>
             <SelectButton 
@@ -888,7 +1387,7 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
 
             <StudentList>
               {filteredStudents.map((student) => (
-                <StudentCard key={student.timestamp} $isRemoving={false}>
+                <StudentCard key={`${student.id}-${student.timestamp}`} $isRemoving={false}>
                   <span>{student.name}</span>
                   <DeleteButton 
                     onClick={() => handleRemoveStudent(student.timestamp, student.classId)}
@@ -898,6 +1397,15 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
                 </StudentCard>
               ))}
             </StudentList>
+
+            {showSaveButton && filteredStudents.length > 0 && (
+              <SaveAttendanceButton 
+                onClick={handleSaveAttendance}
+                title="თუ შენახვას დააჭერთ ამდროინდელი მოსწავლეთა სია შეინახება და გამოითვლება მოსწავლეთა დასწრების საშუალო მაჩვენებელი პროცენტებში"
+              >
+                შენახვა
+              </SaveAttendanceButton>
+            )}
 
             <ButtonContainer>
               {[2, 3, 4, 5, 6].map((size) => (
@@ -936,11 +1444,11 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
             <GroupsContent $isFullscreen={isFullscreen}>
               <GroupGrid $isFullscreen={isFullscreen}>
                 {groups.map((group, index) => (
-                  <GroupCard key={group.id}>
+                  <GroupCard key={`group-${index}-${group.members[0]?.id || index}`}>
                     <GroupTitle>ჯგუფი {index + 1}</GroupTitle>
                     <GroupMemberList>
                       {group.members.map(student => (
-                        <GroupMember key={student.timestamp}>
+                        <GroupMember key={`${student.id}-${student.timestamp}`}>
                           {student.name}
                         </GroupMember>
                       ))}
@@ -952,6 +1460,10 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
           </GroupsContainer>
         </MainContent>
       </ContentWrapper>
+      
+      <AttendanceButton onClick={() => setShowAttendanceModal(true)} $showModal={showModal}>
+        დასწრების ჩვენება
+      </AttendanceButton>
     </Container>
   );
 }

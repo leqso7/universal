@@ -146,28 +146,24 @@ function App() {
     };
 
     try {
-      const savedClasses: ClassData[] = JSON.parse(localStorage.getItem('classes') || '[]');
+      let savedClasses: ClassData[] = JSON.parse(localStorage.getItem('classes') || '[]');
       
-      const existingClassIndex = savedClasses.findIndex((c: ClassData) => 
-        c.name.toLowerCase() === className.trim().toLowerCase()
+      // ძველი კლასის სრულად წაშლა
+      savedClasses = savedClasses.filter(c => 
+        c.name.toLowerCase() !== className.trim().toLowerCase()
       );
 
-      if (existingClassIndex !== -1) {
-        savedClasses[existingClassIndex] = classData;
-        localStorage.setItem('classes', JSON.stringify(savedClasses));
-        toast.success('კლასი განახლდა', {
-          autoClose: 1500,
-          closeOnClick: true,
-          pauseOnHover: false
-        });
-      } else {
-        localStorage.setItem('classes', JSON.stringify([...savedClasses, classData]));
-        toast.success('კლასი წარმატებით შეინახა', {
-          autoClose: 1500,
-          closeOnClick: true,
-          pauseOnHover: false
-        });
-      }
+      // მხოლოდ ახალი კლასის დამატება
+      savedClasses.push(classData);
+      
+      // შენახვა
+      localStorage.setItem('classes', JSON.stringify(savedClasses));
+      
+      toast.success('კლასი წარმატებით შეინახა', {
+        autoClose: 1500,
+        closeOnClick: true,
+        pauseOnHover: false
+      });
       
       setClassName('');
       setClassList('');

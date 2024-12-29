@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { createClient } from '@supabase/supabase-js';
-import { toast } from 'react-toastify';
 
 // Initialize Supabase client
 const supabase = createClient(
