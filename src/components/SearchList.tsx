@@ -853,6 +853,49 @@ const SaveAttendanceButton = styled.button`
   }
 `;
 
+const AttendanceHistoryList = styled.div`
+  margin-top: 20px;
+`;
+
+const AttendanceHistoryDay = styled.div`
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 8px;
+`;
+
+const AttendanceHistoryDate = styled.h3`
+  margin-bottom: 10px;
+  color: #333;
+  font-size: 18px;
+`;
+
+const AttendanceHistoryStudents = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+`;
+
+const AttendanceHistoryStudent = styled.div<{ $present: boolean }>`
+  padding: 8px 12px;
+  background: ${props => props.$present ? '#4CAF50' : '#f44336'};
+  color: white;
+  border-radius: 6px;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`;
+
 const SearchList: React.FC<Props> = ({ students, setStudents }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [groups, setGroups] = useState<Group[]>([]);
@@ -881,6 +924,8 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
   const [currentClassName, setCurrentClassName] = useState<string>('');
   const [viewMode, setViewMode] = useState<'cards' | 'chart'>('cards');
   const [nameFilter, setNameFilter] = useState('');
+  const [showAttendanceHistory, setShowAttendanceHistory] = useState(false);
+  const [selectedClassForHistory, setSelectedClassForHistory] = useState<string>('');
 
   useEffect(() => {
     const savedClasses = localStorage.getItem('classes');
@@ -966,10 +1011,25 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
 
     const classId = Date.now().toString();
 
-    const newStudents = studentsList
+    // შევამოწმოთ დუბლიკატი სახელები
+    const studentNames = studentsList
       .split('\n')
       .map(name => name.trim())
-      .filter(name => name)
+      .filter(name => name);
+
+    const duplicateNames = studentNames.filter(
+      (name, index) => studentNames.indexOf(name) !== index
+    );
+
+    if (duplicateNames.length > 0) {
+      toast.error(`გთხოვთ წაშალოთ დუბლიკატი სახელები: ${duplicateNames.join(', ')}`, {
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
+      return;
+    }
+
+    const newStudents = studentNames
       .map((name, index) => ({
         id: crypto.randomUUID(),
         name,
@@ -991,9 +1051,16 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
 
     if (existingClassIndex !== -1) {
       const updatedClasses = [...classes];
+      const existingClass = updatedClasses[existingClassIndex];
+      
+      // Create a new class with the same ID as the existing class
       updatedClasses[existingClassIndex] = {
-        ...updatedClasses[existingClassIndex],
-        students: [...updatedClasses[existingClassIndex].students, ...newStudents]
+        id: existingClass.id, // Keep the same ID to preserve history
+        name: className,
+        students: newStudents.map(student => ({
+          ...student,
+          classId: existingClass.id // Use existing class ID for new students
+        }))
       };
       
       setClasses(updatedClasses);
@@ -1157,6 +1224,12 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
     const classRecords = attendanceRecords.filter(record => record.className === className);
     const allStudents = selectedClass.students;
     
+    // Create a map of all historical student names that have attendance records
+    const historicalStudentNames = new Set<string>();
+    classRecords.forEach(record => {
+      record.presentStudents.forEach(name => historicalStudentNames.add(name));
+    });
+    
     const attendanceData = allStudents.map(student => {
       const totalRecords = classRecords.length;
       const presentCount = classRecords.filter(record => 
@@ -1167,6 +1240,23 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
       return { id: student.id, name: student.name, percentage };
     });
 
+    // Add historical students that are no longer in the class with a note
+    Array.from(historicalStudentNames)
+      .filter(name => !allStudents.some(s => s.name === name))
+      .forEach(name => {
+        const totalRecords = classRecords.length;
+        const presentCount = classRecords.filter(record => 
+          record.presentStudents.includes(name)
+        ).length;
+        
+        const percentage = totalRecords === 0 ? 0 : Math.round((presentCount / totalRecords) * 100);
+        attendanceData.push({ 
+          id: `historical-${name}`, 
+          name: `${name} (აღარ არის კლასში)`, 
+          percentage 
+        });
+      });
+  
     // დავალაგოთ დასწრების კლების მიხედვით
     return attendanceData.sort((a, b) => b.percentage - a.percentage);
   };
@@ -1244,6 +1334,34 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
     );
   };
 
+  const getFormattedDate = (date: string) => {
+    const d = new Date(date);
+    
+    // შევამოწმოთ არის თუ არა თარიღი სწორი
+    if (isNaN(d.getTime())) {
+      return 'არასწორი თარიღის ფორმატი';
+    }
+
+    const georgianMonths = [
+      'იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი',
+      'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'
+    ];
+    
+    const day = d.getDate();
+    const month = georgianMonths[d.getMonth()];
+    const year = d.getFullYear();
+    const hours = d.getHours().toString().padStart(2, '0');
+    const minutes = d.getMinutes().toString().padStart(2, '0');
+
+    return `${day} ${month}, ${year} - ${hours}:${minutes}`;
+  };
+
+  const getClassAttendanceHistory = (className: string) => {
+    return attendanceRecords
+      .filter(record => record.className === className)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  };
+
   return (
     <Container $showModal={showModal}>
       <Overlay $show={showOverlay} />
@@ -1259,7 +1377,7 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="მოსწავლის/კლასის სახელი..."
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           />
           <AddButton onClick={handleSearch}>დამატება</AddButton>
         </SearchBar>
@@ -1288,88 +1406,6 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
               </ButtonGroup>
             </ModalContent>
           </ModalOverlay>
-        )}
-
-        {showAttendanceModal && (
-          <StatisticsModal>
-            <StatisticsHeader>
-              <StatisticsTitle>დასწრების სტატისტიკა</StatisticsTitle>
-              <CloseStatisticsButton onClick={() => setShowAttendanceModal(false)}>
-                ×
-              </CloseStatisticsButton>
-            </StatisticsHeader>
-            <StatisticsContent>
-              <StatisticsSelect
-                value={selectedClassForAttendance}
-                onChange={(e) => {
-                  setSelectedClassForAttendance(e.target.value);
-                  setNameFilter('');
-                }}
-              >
-                <option value="">აირჩიეთ კლასი</option>
-                {classes.map(c => (
-                  <option key={c.id} value={c.name}>{c.name}</option>
-                ))}
-              </StatisticsSelect>
-              
-              {selectedClassForAttendance && (
-                <>
-                  <StatisticsSearch
-                    type="text"
-                    placeholder="მოძებნეთ მოსწავლე..."
-                    value={nameFilter}
-                    onChange={(e) => setNameFilter(e.target.value)}
-                  />
-
-                  <StatisticsTabs>
-                    <StatisticsTab 
-                      $active={viewMode === 'cards'} 
-                      onClick={() => setViewMode('cards')}
-                    >
-                      ბარათები
-                    </StatisticsTab>
-                    <StatisticsTab 
-                      $active={viewMode === 'chart'} 
-                      onClick={() => setViewMode('chart')}
-                    >
-                      გრაფიკი
-                    </StatisticsTab>
-                  </StatisticsTabs>
-
-                  {viewMode === 'cards' ? (
-                    <CardsContainer>
-                      <AttendanceGrid>
-                        {filterStudentsByName(calculateAttendance(selectedClassForAttendance))
-                          .map(student => (
-                            <AttendanceCard 
-                              key={student.id} 
-                              $percentage={student.percentage}
-                            >
-                              <StudentName>{student.name}</StudentName>
-                              <AttendancePercentage>{student.percentage}%</AttendancePercentage>
-                            </AttendanceCard>
-                          ))}
-                      </AttendanceGrid>
-                    </CardsContainer>
-                  ) : (
-                    <ChartContainer>
-                      <Bar 
-                        data={getChartData(filterStudentsByName(calculateAttendance(selectedClassForAttendance)))} 
-                        options={{
-                          ...chartOptions,
-                          scales: {
-                            y: {
-                              beginAtZero: true
-                            }
-                          }
-                        }}
-                      />
-                    </ChartContainer>
-                  )}
-                </>
-              )}
-            </StatisticsContent>
-          </StatisticsModal>
         )}
 
         <MainContent $isExpanded={isExpanded}>
@@ -1462,8 +1498,170 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
       </ContentWrapper>
       
       <AttendanceButton onClick={() => setShowAttendanceModal(true)} $showModal={showModal}>
-        დასწრების ჩვენება
+        დასწრების სტატისტიკა
       </AttendanceButton>
+
+      {showAttendanceModal && (
+        <StatisticsModal>
+          <StatisticsHeader>
+            <StatisticsTitle>დასწრების სტატისტიკა</StatisticsTitle>
+            <CloseStatisticsButton onClick={() => setShowAttendanceModal(false)}>
+              ×
+            </CloseStatisticsButton>
+          </StatisticsHeader>
+
+          <StatisticsSelect
+            value={selectedClassForAttendance}
+            onChange={(e) => setSelectedClassForAttendance(e.target.value)}
+          >
+            <option value="">აირჩიეთ კლასი</option>
+            {classes.map(c => (
+              <option key={c.id} value={c.name}>{c.name}</option>
+            ))}
+          </StatisticsSelect>
+
+          {selectedClassForAttendance && (
+            <>
+              <StatisticsSearch
+                type="text"
+                placeholder="მოძებნეთ მოსწავლე..."
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
+              />
+
+              <StatisticsTabs>
+                <StatisticsTab 
+                  $active={viewMode === 'cards'} 
+                  onClick={() => setViewMode('cards')}
+                >
+                  ბარათები
+                </StatisticsTab>
+                <StatisticsTab 
+                  $active={viewMode === 'chart'} 
+                  onClick={() => setViewMode('chart')}
+                >
+                  გრაფიკი
+                </StatisticsTab>
+                <StatisticsTab 
+                  $active={false}
+                  onClick={() => {
+                    setSelectedClassForHistory(selectedClassForAttendance);
+                    setShowAttendanceHistory(true);
+                    setShowAttendanceModal(false);
+                  }}
+                >
+                  დასწრების ისტორია
+                </StatisticsTab>
+              </StatisticsTabs>
+
+              {viewMode === 'cards' ? (
+                <CardsContainer>
+                  <AttendanceGrid>
+                    {filterStudentsByName(calculateAttendance(selectedClassForAttendance))
+                      .map(student => (
+                        <AttendanceCard 
+                          key={student.id} 
+                          $percentage={student.percentage}
+                        >
+                          <StudentName>{student.name}</StudentName>
+                          <AttendancePercentage>{student.percentage}%</AttendancePercentage>
+                        </AttendanceCard>
+                      ))}
+                  </AttendanceGrid>
+                </CardsContainer>
+              ) : (
+                <ChartContainer>
+                  <Bar 
+                    data={getChartData(filterStudentsByName(calculateAttendance(selectedClassForAttendance)))} 
+                    options={{
+                      ...chartOptions,
+                      scales: {
+                        y: {
+                          beginAtZero: true
+                        }
+                      }
+                    }}
+                  />
+                </ChartContainer>
+              )}
+            </>
+          )}
+        </StatisticsModal>
+      )}
+      
+      {showAttendanceHistory && (
+        <>
+          <Overlay $show={true} />
+          <StatisticsModal style={{ 
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100%',
+            height: '100%',
+            maxWidth: 'none',
+            margin: 0,
+            borderRadius: 0,
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <StatisticsHeader>
+              <StatisticsTitle>დასწრების ისტორია</StatisticsTitle>
+              <CloseStatisticsButton onClick={() => {
+                setShowAttendanceHistory(false);
+                setShowAttendanceModal(true);
+              }}>
+                ×
+              </CloseStatisticsButton>
+            </StatisticsHeader>
+
+            <StatisticsSelect
+              value={selectedClassForHistory}
+              onChange={(e) => setSelectedClassForHistory(e.target.value)}
+              style={{ margin: '20px 0' }}
+            >
+              <option value="">აირჩიეთ კლასი</option>
+              {classes.map(c => (
+                <option key={c.id} value={c.name}>{c.name}</option>
+              ))}
+            </StatisticsSelect>
+
+            <StatisticsContent style={{ flex: 1, overflow: 'auto' }}>
+              <AttendanceHistoryList>
+                {getClassAttendanceHistory(selectedClassForHistory).map((record, index) => (
+                  <AttendanceHistoryDay key={index}>
+                    <AttendanceHistoryDate>
+                      {getFormattedDate(record.date)}
+                    </AttendanceHistoryDate>
+                    <AttendanceHistoryStudents>
+                      {classes
+                        .find(c => c.name === record.className)
+                        ?.students
+                        .sort((a, b) => {
+                          const aPresent = record.presentStudents.includes(a.name);
+                          const bPresent = record.presentStudents.includes(b.name);
+                          if (aPresent && !bPresent) return -1;
+                          if (!aPresent && bPresent) return 1;
+                          return 0;
+                        })
+                        .map(student => (
+                          <AttendanceHistoryStudent
+                            key={student.id}
+                            $present={record.presentStudents.includes(student.name)}
+                          >
+                            {student.name}
+                          </AttendanceHistoryStudent>
+                        ))}
+                    </AttendanceHistoryStudents>
+                  </AttendanceHistoryDay>
+                ))}
+              </AttendanceHistoryList>
+            </StatisticsContent>
+          </StatisticsModal>
+        </>
+      )}
+      
     </Container>
   );
 }

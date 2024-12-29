@@ -146,19 +146,15 @@ function App() {
     };
 
     try {
-      let savedClasses: ClassData[] = JSON.parse(localStorage.getItem('classes') || '[]');
+      const savedClasses: ClassData[] = JSON.parse(localStorage.getItem('classes') || '[]');
       
-      // ძველი კლასის სრულად წაშლა
-      savedClasses = savedClasses.filter(c => 
+      // Remove any existing class with the same name
+      const filteredClasses = savedClasses.filter((c: ClassData) => 
         c.name.toLowerCase() !== className.trim().toLowerCase()
       );
 
-      // მხოლოდ ახალი კლასის დამატება
-      savedClasses.push(classData);
-      
-      // შენახვა
-      localStorage.setItem('classes', JSON.stringify(savedClasses));
-      
+      // Add the new class data
+      localStorage.setItem('classes', JSON.stringify([...filteredClasses, classData]));
       toast.success('კლასი წარმატებით შეინახა', {
         autoClose: 1500,
         closeOnClick: true,
