@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/leqso7-class-manager-web/',
+  base: '/class-manager-web/',
   plugins: [
     react(),
     VitePWA({
@@ -17,8 +17,8 @@ export default defineConfig({
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/leqso7-class-manager-web/',
-        scope: '/leqso7-class-manager-web/',
+        start_url: '/class-manager-web/',
+        scope: 'class-manager-web/',
         icons: [
           {
             src: 'pwa-192x192.png',
