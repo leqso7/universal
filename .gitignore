@@ -32,5 +32,3 @@ dist-ssr
 .env.test.local
 .env.production.local
 
-# Repository name
-leqso7-class-manager-web
