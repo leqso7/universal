@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ადმინისტრატორის პანელი</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        #requests {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .request {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .approve {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .block {
+            background: #f44336;
+            color: white;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        .status-pending {
+            background: #FFC107;
+            color: black;
+        }
+
+        .status-approved {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .status-blocked {
+            background: #f44336;
+            color: white;
+        }
+
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        #overlay.show {
+            display: flex;
+        }
+
+        #confirmDialog {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+
+        #confirmDialog.show {
+            display: block;
+        }
+
+        #confirmDialog button {
+            margin: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        #blockAllButton {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>მოთხოვნების სია</h1>
+    <button id="blockAllButton" onclick="window.showBlockAllConfirmation()">ყველას დაბლოკვა</button>
+    <div id="requests">
+        <!-- აქ ჩაიტვირთება მოთხოვნები -->
+    </div>
+
+    <div id="overlay">
+        <div id="confirmDialog">
+            <h2>დაადასტურეთ მოქმედება</h2>
+            <p>ნამდვილად გსურთ ყველა მომხმარებლის დაბლოკვა?</p>
+            <button onclick="window.blockAllUsers()" class="block">დიახ</button>
+            <button onclick="window.hideBlockAllConfirmation()" class="approve">არა</button>
+        </div>
+    </div>
+
+    <script>
+        // ვიცდით Supabase-ის ჩატვირთვას
+        window.onload = function() {
+            const { createClient } = supabase;
+            const supabaseClient = createClient(
+                'https://loyzwjzsjnikmnuqilmv.supabase.co',
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxveXp3anpzam5pa21udXFpbG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM1NzY2OTMsImV4cCI6MjA0OTE1MjY5M30.vwXqtGwm4SG1juWZ_YxMhhZZSiQ7TbtUcB77h6wNYus'
+            );
+
+            async function loadRequests() {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('access_requests')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (error) {
+                        console.error('Error:', error);
+                        return;
+                    }
+
+                    console.log('Loaded data:', data);
+
+                    const container = document.getElementById('requests');
+                    container.innerHTML = '';
+
+                    if (!data || data.length === 0) {
+                        container.innerHTML = '<p>მოთხოვნები არ არის</p>';
+                        return;
+                    }
+
+                    data.forEach(request => {
+                        const div = document.createElement('div');
+                        div.className = 'request';
+                        
+                        const statusClass = `status status-${request.status || 'pending'}`;
+                        const statusText = {
+                            'pending': 'მოლოდინში',
+                            'approved': 'დადასტურებული',
+                            'blocked': 'დაბლოკილი'
+                        }[request.status || 'pending'];
+
+                        div.innerHTML = `
+                            <h3>${request.first_name || ''} ${request.last_name || ''}</h3>
+                            <p>კოდი: ${request.code || 'N/A'}</p>
+                            <div class="${statusClass}">${statusText}</div>
+                            <div class="buttons">
+                                <button class="approve" onclick="window.updateStatus('${request.code}', 'approved')">
+                                    დადასტურება
+                                </button>
+                                <button class="block" onclick="window.updateStatus('${request.code}', 'blocked')">
+                                    დაბლოკვა
+                                </button>
+                            </div>
+                        `;
+                        container.appendChild(div);
+                    });
+                } catch (err) {
+                    console.error('Error in loadRequests:', err);
+                }
+            }
+
+            async function updateStatus(code, status) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('access_requests')
+                        .update({ status: status })
+                        .eq('code', code);
+
+                    if (error) {
+                        console.error('Error:', error);
+                        return;
+                    }
+
+                    loadRequests();
+                } catch (err) {
+                    console.error('Error in updateStatus:', err);
+                }
+            }
+
+            async function blockAllUsers() {
+                try {
+                    const { error } = await supabaseClient
+                        .from('access_requests')
+                        .update({ status: 'blocked' })
+                        .neq('status', 'blocked');
+
+                    if (error) {
+                        console.error('Error:', error);
+                        return;
+                    }
+
+                    hideBlockAllConfirmation();
+                    loadRequests();
+                } catch (err) {
+                    console.error('Error in blockAllUsers:', err);
+                }
+            }
+
+            window.showBlockAllConfirmation = function() {
+                document.getElementById('overlay').classList.add('show');
+                document.getElementById('confirmDialog').classList.add('show');
+            }
+
+            window.hideBlockAllConfirmation = function() {
+                document.getElementById('overlay').classList.remove('show');
+                document.getElementById('confirmDialog').classList.remove('show');
+            }
+
+            // გლობალურად ვხდით ხელმისაწვდომს ფუნქციებს
+            window.updateStatus = updateStatus;
+            window.blockAllUsers = blockAllUsers;
+
+            // პირველი ჩატვირთვა
+            loadRequests();
+
+            // ავტომატური განახლება ყოველ 30 წამში
+            setInterval(loadRequests, 30000);
+        }
+    </script>
+</body>
+</html>
