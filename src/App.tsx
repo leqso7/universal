@@ -115,6 +115,12 @@ function App() {
   useEffect(() => {
     const status = localStorage.getItem('approvalStatus');
     const hasValidAccess = status === 'approved';
+    const isBlocked = status === 'blocked';
+    
+    if (isBlocked) {
+      navigate('/request', { replace: true });
+      return;
+    }
     
     if (hasValidAccess !== hasAccess) {
       setHasAccess(hasValidAccess);

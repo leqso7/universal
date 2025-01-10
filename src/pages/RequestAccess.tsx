@@ -140,12 +140,18 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
         },
         async (payload) => {
           console.log('Received payload:', payload);
-          if (payload.new && payload.new.status === 'approved') {
-            console.log('User approved, setting local storage');
-            localStorage.setItem('approvalStatus', 'approved');
-            localStorage.setItem('userCode', requestCode);
-            console.log('Calling onAccessGranted');
-            onAccessGranted();
+          if (payload.new) {
+            if (payload.new.status === 'approved') {
+              console.log('User approved, setting local storage');
+              localStorage.setItem('approvalStatus', 'approved');
+              localStorage.setItem('userCode', requestCode);
+              console.log('Calling onAccessGranted');
+              onAccessGranted();
+            } else if (payload.new.status === 'blocked') {
+              console.log('User blocked, updating local storage');
+              localStorage.setItem('approvalStatus', 'blocked');
+              setError('თქვენი წვდომა დაბლოკილია. გთხოვთ დაელოდოთ ადმინისტრატორის პასუხს.');
+            }
           }
         }
       )
@@ -173,6 +179,10 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
         localStorage.setItem('userCode', requestCode);
         console.log('Calling onAccessGranted');
         onAccessGranted();
+      } else if (data?.status === 'blocked') {
+        console.log('User blocked, updating local storage');
+        localStorage.setItem('approvalStatus', 'blocked');
+        setError('თქვენი წვდომა დაბლოკილია. გთხოვთ დაელოდოთ ადმინისტრატორის პასუხს.');
       }
     };
 
@@ -234,7 +244,7 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
             <StatusText>გვარი: {lastName}</StatusText>
           </CodeDisplay>
         ) : (
-          <>
+          <React.Fragment>
             <Input
               type="text"
               value={firstName}
@@ -252,7 +262,7 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
             <Button type="submit" disabled={loading}>
               {loading ? 'იგზავნება...' : 'გაგზავნა'}
             </Button>
-          </>
+          </React.Fragment>
         )}
         {error && <ErrorText>{error}</ErrorText>}
       </Form>
