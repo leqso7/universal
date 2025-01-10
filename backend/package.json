@@ -1,5 +1,5 @@
 {
-  "name": "class-manager-backend",
+  "name": "leqso7-class-manager-web",
   "version": "1.0.0",
   "description": "Backend for Class Manager application",
   "main": "src/index.js",
@@ -21,3 +21,4 @@
     "nodemon": "^3.0.2"
   }
 }
+
