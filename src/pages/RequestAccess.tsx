@@ -141,16 +141,18 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
         async (payload) => {
           console.log('Received payload:', payload);
           if (payload.new) {
-            if (payload.new.status === 'approved') {
+            const newStatus = payload.new.status;
+            localStorage.setItem('approvalStatus', newStatus);
+            
+            if (newStatus === 'approved') {
               console.log('User approved, setting local storage');
-              localStorage.setItem('approvalStatus', 'approved');
               localStorage.setItem('userCode', requestCode);
               console.log('Calling onAccessGranted');
               onAccessGranted();
-            } else if (payload.new.status === 'blocked') {
+            } else if (newStatus === 'blocked') {
               console.log('User blocked, updating local storage');
-              localStorage.setItem('approvalStatus', 'blocked');
               setError('თქვენი წვდომა დაბლოკილია. გთხოვთ დაელოდოთ ადმინისტრატორის პასუხს.');
+              window.location.reload(); // ვარეფრეშებთ გვერდს სტატუსის განახლებისთვის
             }
           }
         }
@@ -166,30 +168,29 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
         .eq('code', requestCode)
         .single();
 
-      console.log('Current status:', data);
-      
       if (error) {
         console.error('Error checking status:', error);
         return;
       }
 
+      console.log('Current status:', data);
       if (data?.status === 'approved') {
-        console.log('User already approved, setting local storage');
+        console.log('User is approved, setting local storage');
         localStorage.setItem('approvalStatus', 'approved');
         localStorage.setItem('userCode', requestCode);
         console.log('Calling onAccessGranted');
         onAccessGranted();
       } else if (data?.status === 'blocked') {
-        console.log('User blocked, updating local storage');
+        console.log('User is blocked, updating local storage');
         localStorage.setItem('approvalStatus', 'blocked');
         setError('თქვენი წვდომა დაბლოკილია. გთხოვთ დაელოდოთ ადმინისტრატორის პასუხს.');
+        window.location.reload(); // ვარეფრეშებთ გვერდს სტატუსის განახლებისთვის
       }
     };
 
     checkCurrentStatus();
 
     return () => {
-      console.log('Cleaning up subscription');
       subscription.unsubscribe();
     };
   }, [requestCode, onAccessGranted]);
