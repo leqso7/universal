@@ -113,19 +113,30 @@ function App() {
   };
 
   useEffect(() => {
-    const status = localStorage.getItem('approvalStatus');
-    const hasValidAccess = status === 'approved';
-    const isBlocked = status === 'blocked';
-    
-    if (isBlocked) {
-      navigate('/request', { replace: true });
-      return;
-    }
-    
-    if (hasValidAccess !== hasAccess) {
-      setHasAccess(hasValidAccess);
-      navigate(hasValidAccess ? '/' : '/request', { replace: true });
-    }
+    const checkStatus = () => {
+      const status = localStorage.getItem('approvalStatus');
+      const code = localStorage.getItem('userCode');
+      
+      if (status === 'blocked') {
+        setHasAccess(false);
+        navigate('/request', { replace: true });
+        return;
+      }
+      
+      const hasValidAccess = status === 'approved';
+      if (hasValidAccess !== hasAccess) {
+        setHasAccess(hasValidAccess);
+        navigate(hasValidAccess ? '/' : '/request', { replace: true });
+      }
+    };
+
+    // პირველი შემოწმება
+    checkStatus();
+
+    // ვამოწმებთ ყოველ 5 წამში
+    const interval = setInterval(checkStatus, 5000);
+
+    return () => clearInterval(interval);
   }, [hasAccess, navigate]);
 
   const handleSaveClass = () => {

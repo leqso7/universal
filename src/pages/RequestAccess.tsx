@@ -140,12 +140,19 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
         },
         async (payload) => {
           console.log('Received payload:', payload);
-          if (payload.new && payload.new.status === 'approved') {
-            console.log('User approved, setting local storage');
-            localStorage.setItem('approvalStatus', 'approved');
-            localStorage.setItem('userCode', requestCode);
-            console.log('Calling onAccessGranted');
-            onAccessGranted();
+          if (payload.new) {
+            const newStatus = payload.new.status;
+            localStorage.setItem('approvalStatus', newStatus);
+            
+            if (newStatus === 'approved') {
+              console.log('User approved, setting local storage');
+              localStorage.setItem('userCode', requestCode);
+              console.log('Calling onAccessGranted');
+              onAccessGranted();
+            } else if (newStatus === 'blocked') {
+              console.log('User blocked, updating local storage');
+              setError('თქვენი წვდომა დაბლოკილია. გთხოვთ დაელოდოთ ადმინისტრატორის პასუხს.');
+            }
           }
         }
       )
@@ -172,6 +179,10 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
         localStorage.setItem('userCode', requestCode);
         console.log('Calling onAccessGranted');
         onAccessGranted();
+      } else if (data?.status === 'blocked') {
+        console.log('User blocked, updating local storage');
+        localStorage.setItem('approvalStatus', 'blocked');
+        setError('თქვენი წვდომა დაბლოკილია. გთხოვთ დაელოდოთ ადმინისტრატორის პასუხს.');
       }
     };
 
