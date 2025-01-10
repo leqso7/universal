@@ -140,20 +140,12 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
         },
         async (payload) => {
           console.log('Received payload:', payload);
-          if (payload.new) {
-            const newStatus = payload.new.status;
-            localStorage.setItem('approvalStatus', newStatus);
-            
-            if (newStatus === 'approved') {
-              console.log('User approved, setting local storage');
-              localStorage.setItem('userCode', requestCode);
-              console.log('Calling onAccessGranted');
-              onAccessGranted();
-            } else if (newStatus === 'blocked') {
-              console.log('User blocked, updating local storage');
-              setError('თქვენი წვდომა დაბლოკილია. გთხოვთ დაელოდოთ ადმინისტრატორის პასუხს.');
-              window.location.reload(); // ვარეფრეშებთ გვერდს სტატუსის განახლებისთვის
-            }
+          if (payload.new && payload.new.status === 'approved') {
+            console.log('User approved, setting local storage');
+            localStorage.setItem('approvalStatus', 'approved');
+            localStorage.setItem('userCode', requestCode);
+            console.log('Calling onAccessGranted');
+            onAccessGranted();
           }
         }
       )
@@ -175,22 +167,18 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
 
       console.log('Current status:', data);
       if (data?.status === 'approved') {
-        console.log('User is approved, setting local storage');
+        console.log('User already approved, setting local storage');
         localStorage.setItem('approvalStatus', 'approved');
         localStorage.setItem('userCode', requestCode);
         console.log('Calling onAccessGranted');
         onAccessGranted();
-      } else if (data?.status === 'blocked') {
-        console.log('User is blocked, updating local storage');
-        localStorage.setItem('approvalStatus', 'blocked');
-        setError('თქვენი წვდომა დაბლოკილია. გთხოვთ დაელოდოთ ადმინისტრატორის პასუხს.');
-        window.location.reload(); // ვარეფრეშებთ გვერდს სტატუსის განახლებისთვის
       }
     };
 
     checkCurrentStatus();
 
     return () => {
+      console.log('Cleaning up subscription');
       subscription.unsubscribe();
     };
   }, [requestCode, onAccessGranted]);
