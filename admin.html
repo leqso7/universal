@@ -54,13 +54,14 @@
             display: inline-block;
             padding: 4px 8px;
             border-radius: 4px;
-            margin-top: 5px;
             font-size: 14px;
+            font-weight: bold;
+            margin: 5px 0;
         }
 
         .status-pending {
-            background: #FFC107;
-            color: black;
+            background: #ffd700;
+            color: #000;
         }
 
         .status-approved {
@@ -182,17 +183,38 @@
                             'blocked': 'დაბლოკილი'
                         }[request.status || 'pending'];
 
-                        div.innerHTML = `
-                            <h3>${request.first_name || ''} ${request.last_name || ''}</h3>
-                            <p>კოდი: ${request.code || 'N/A'}</p>
-                            <div class="${statusClass}">${statusText}</div>
-                            <div class="buttons">
+                        const buttons = [];
+                        
+                        // სტატუსის მიხედვით ვაჩვენებთ შესაბამის ღილაკებს
+                        if (request.status === 'pending') {
+                            buttons.push(`
                                 <button class="approve" onclick="window.updateStatus('${request.code}', 'approved')">
                                     დადასტურება
                                 </button>
                                 <button class="block" onclick="window.updateStatus('${request.code}', 'blocked')">
                                     დაბლოკვა
                                 </button>
+                            `);
+                        } else if (request.status === 'approved') {
+                            buttons.push(`
+                                <button class="block" onclick="window.updateStatus('${request.code}', 'blocked')">
+                                    დაბლოკვა
+                                </button>
+                            `);
+                        } else if (request.status === 'blocked') {
+                            buttons.push(`
+                                <button class="approve" onclick="window.updateStatus('${request.code}', 'approved')">
+                                    დადასტურება
+                                </button>
+                            `);
+                        }
+
+                        div.innerHTML = `
+                            <h3>${request.first_name || ''} ${request.last_name || ''}</h3>
+                            <p>კოდი: ${request.code || 'N/A'}</p>
+                            <div class="${statusClass}">${statusText}</div>
+                            <div class="buttons">
+                                ${buttons.join('')}
                             </div>
                         `;
                         container.appendChild(div);
