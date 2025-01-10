@@ -153,8 +153,8 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
             localStorage.removeItem('lastRequestCode');
             localStorage.removeItem('firstName');
             localStorage.removeItem('lastName');
-            // გადავამისამართოთ request გვერდზე
-            window.location.href = '/request';
+            console.log('Redirecting to request page...');
+            window.location.href = '/class-manager-/'; // გადამისამართება სწორ URL-ზე
           }
         }
       )
@@ -183,14 +183,14 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
         console.log('Calling onAccessGranted');
         onAccessGranted();
       } else if (data?.status === 'blocked') {
-        console.log('User blocked, clearing local storage');
+        console.log('User is blocked, clearing local storage');
         localStorage.removeItem('approvalStatus');
         localStorage.removeItem('userCode');
         localStorage.removeItem('lastRequestCode');
         localStorage.removeItem('firstName');
         localStorage.removeItem('lastName');
-        // გადავამისამართოთ request გვერდზე
-        window.location.href = '/request';
+        console.log('Redirecting to request page...');
+        window.location.href = '/class-manager-/'; // გადამისამართება სწორ URL-ზე
       }
     };
 
