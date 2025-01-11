@@ -225,20 +225,50 @@
             }
 
             async function updateStatus(code, status) {
+                console.log(`Updating status for code ${code} to ${status}`);
                 try {
-                    const { error } = await supabaseClient
-                        .from('access_requests')
-                        .update({ status: status })
-                        .eq('code', code);
+                    let { data, error };
+                    
+                    if (status === 'approved') {
+                        ({ data, error } = await supabaseClient
+                            .rpc('approve_access_request', { request_code: code }));
+                    } else if (status === 'blocked') {
+                        ({ data, error } = await supabaseClient
+                            .rpc('block_access_request', { request_code: code }));
+                    }
 
                     if (error) {
-                        console.error('Error:', error);
+                        console.error('Supabase Error:', error);
+                        alert(`შეცდომა: ${error.message}`);
                         return;
                     }
 
-                    loadRequests();
+                    console.log('Update successful:', data);
+                    
+                    // ვამოწმებთ განახლდა თუ არა
+                    const { data: checkData, error: checkError } = await supabaseClient
+                        .from('access_requests')
+                        .select('status')
+                        .eq('code', code)
+                        .single();
+
+                    if (checkError) {
+                        console.error('Check Error:', checkError);
+                        return;
+                    }
+
+                    console.log('Current status:', checkData);
+                    
+                    if (checkData.status === status) {
+                        console.log('Status updated successfully');
+                        loadRequests();
+                    } else {
+                        console.error('Status not updated correctly');
+                        alert('სტატუსის განახლება ვერ მოხერხდა');
+                    }
                 } catch (err) {
                     console.error('Error in updateStatus:', err);
+                    alert(`შეცდომა: ${err.message}`);
                 }
             }
 
