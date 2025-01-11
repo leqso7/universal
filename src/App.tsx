@@ -7,7 +7,6 @@ import styled from 'styled-components'
 import { useState, useEffect } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { supabase } from './supabase'; // Import supabase instance
 
 interface ClassData {
   name: string;
@@ -104,9 +103,6 @@ function App() {
   });
   const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
-  const [isClassFormVisible, setIsClassFormVisible] = useState(false);
-  const [className, setClassName] = useState('');
-  const [classList, setClassList] = useState('');
 
   const handleAccessGranted = () => {
     setHasAccess(true);
@@ -114,48 +110,38 @@ function App() {
   };
 
   useEffect(() => {
-    const checkStatus = async () => {
-      const code = localStorage.getItem('userCode');
-      
-      if (code) {
-        // შევამოწმოთ სტატუსი Supabase-ში
-        const { data, error } = await supabase
-          .from('access_requests')
-          .select('status')
-          .eq('code', code)
-          .single();
+    const checkUserStatus = async () => {
+      const userCode = localStorage.getItem('userCode');
+      if (!userCode) return;
 
-        if (error) {
-          console.error('Error checking status:', error);
-          return;
-        }
-
-        if (data?.status === 'blocked') {
-          console.log('User blocked, clearing access');
+      try {
+        const response = await fetch('/api/auth/check-access', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: userCode })
+        });
+        
+        const { data, error } = await response.json();
+        
+        if (error || data?.status === 'blocked') {
           localStorage.removeItem('userCode');
           localStorage.removeItem('approvalStatus');
-          setHasAccess(false);
           navigate('/request', { replace: true });
           return;
         }
 
-        const hasValidAccess = data?.status === 'approved';
-        if (hasValidAccess !== hasAccess) {
-          setHasAccess(hasValidAccess);
-          localStorage.setItem('approvalStatus', hasValidAccess ? 'approved' : 'pending');
-          navigate(hasValidAccess ? '/' : '/request', { replace: true });
+        if (data?.status === 'approved') {
+          setHasAccess(true);
         }
+      } catch (err) {
+        console.error('Error checking user status:', err);
       }
     };
 
-    // პირველი შემოწმება
-    checkStatus();
-
-    // ვამოწმებთ ყოველ 5 წამში
-    const interval = setInterval(checkStatus, 5000);
-
+    checkUserStatus();
+    const interval = setInterval(checkUserStatus, 5000);
     return () => clearInterval(interval);
-  }, [hasAccess, navigate]);
+  }, []);
 
   const handleSaveClass = () => {
     if (!className.trim() || !classList.trim()) {
@@ -198,7 +184,6 @@ function App() {
       
       setClassName('');
       setClassList('');
-      setIsClassFormVisible(false);
     } catch (error) {
       console.error('Error saving class:', error);
       toast.error('შეცდომა კლასის შენახვისას', {
@@ -208,6 +193,10 @@ function App() {
       });
     }
   };
+
+  const [className, setClassName] = useState('');
+  const [classList, setClassList] = useState('');
+  const [isClassFormVisible, setIsClassFormVisible] = useState(false);
 
   return (
     <>
