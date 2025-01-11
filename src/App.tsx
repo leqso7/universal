@@ -7,6 +7,7 @@ import styled from 'styled-components'
 import { useState, useEffect } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { supabase } from './supabase'; // Import supabase instance
 
 interface ClassData {
   name: string;
@@ -113,20 +114,37 @@ function App() {
   };
 
   useEffect(() => {
-    const checkStatus = () => {
-      const status = localStorage.getItem('approvalStatus');
+    const checkStatus = async () => {
       const code = localStorage.getItem('userCode');
       
-      if (status === 'blocked') {
-        setHasAccess(false);
-        navigate('/request', { replace: true });
-        return;
-      }
-      
-      const hasValidAccess = status === 'approved';
-      if (hasValidAccess !== hasAccess) {
-        setHasAccess(hasValidAccess);
-        navigate(hasValidAccess ? '/' : '/request', { replace: true });
+      if (code) {
+        // შევამოწმოთ სტატუსი Supabase-ში
+        const { data, error } = await supabase
+          .from('access_requests')
+          .select('status')
+          .eq('code', code)
+          .single();
+
+        if (error) {
+          console.error('Error checking status:', error);
+          return;
+        }
+
+        if (data?.status === 'blocked') {
+          console.log('User blocked, clearing access');
+          localStorage.removeItem('userCode');
+          localStorage.removeItem('approvalStatus');
+          setHasAccess(false);
+          navigate('/request', { replace: true });
+          return;
+        }
+
+        const hasValidAccess = data?.status === 'approved';
+        if (hasValidAccess !== hasAccess) {
+          setHasAccess(hasValidAccess);
+          localStorage.setItem('approvalStatus', hasValidAccess ? 'approved' : 'pending');
+          navigate(hasValidAccess ? '/' : '/request', { replace: true });
+        }
       }
     };
 
