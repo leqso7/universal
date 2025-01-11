@@ -244,28 +244,7 @@
                     }
 
                     console.log('Update successful:', data);
-                    
-                    // ვამოწმებთ განახლდა თუ არა
-                    const { data: checkData, error: checkError } = await supabaseClient
-                        .from('access_requests')
-                        .select('status')
-                        .eq('code', code)
-                        .single();
-
-                    if (checkError) {
-                        console.error('Check Error:', checkError);
-                        return;
-                    }
-
-                    console.log('Current status:', checkData);
-                    
-                    if (checkData.status === status) {
-                        console.log('Status updated successfully');
-                        loadRequests();
-                    } else {
-                        console.error('Status not updated correctly');
-                        alert('სტატუსის განახლება ვერ მოხერხდა');
-                    }
+                    loadRequests(); // პირდაპირ ვტვირთავთ ხელახლა
                 } catch (err) {
                     console.error('Error in updateStatus:', err);
                     alert(`შეცდომა: ${err.message}`);
