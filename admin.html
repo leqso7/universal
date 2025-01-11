@@ -227,7 +227,7 @@
             async function updateStatus(code, status) {
                 console.log(`Updating status for code ${code} to ${status}`);
                 try {
-                    let { data, error };
+                    let data, error;
                     
                     if (status === 'approved') {
                         ({ data, error } = await supabaseClient
