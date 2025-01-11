@@ -151,6 +151,14 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
               onAccessGranted();
             } else if (newStatus === 'blocked') {
               console.log('User blocked, updating local storage');
+              localStorage.removeItem('lastRequestCode');
+              localStorage.removeItem('firstName');
+              localStorage.removeItem('lastName');
+              localStorage.removeItem('userCode');
+              localStorage.removeItem('approvalStatus');
+              setRequestCode(null);
+              setFirstName('');
+              setLastName('');
               setError('თქვენი წვდომა დაბლოკილია. გთხოვთ დაელოდოთ ადმინისტრატორის პასუხს.');
             }
           }
@@ -181,7 +189,14 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
         onAccessGranted();
       } else if (data?.status === 'blocked') {
         console.log('User blocked, updating local storage');
-        localStorage.setItem('approvalStatus', 'blocked');
+        localStorage.removeItem('lastRequestCode');
+        localStorage.removeItem('firstName');
+        localStorage.removeItem('lastName');
+        localStorage.removeItem('userCode');
+        localStorage.removeItem('approvalStatus');
+        setRequestCode(null);
+        setFirstName('');
+        setLastName('');
         setError('თქვენი წვდომა დაბლოკილია. გთხოვთ დაელოდოთ ადმინისტრატორის პასუხს.');
       }
     };
