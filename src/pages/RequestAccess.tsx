@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { createClient } from '@supabase/supabase-js';
 
-// Initialize Edge Function URL
-const edgeFunctionUrl = '/functions/v1/access-request';
+// Initialize Supabase client
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 interface RequestAccessProps {
   onAccessGranted: () => void;
@@ -43,58 +47,65 @@ const Title = styled.h1`
   font-size: 24px;
 `;
 
+const Input = styled.input`
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: #4285f4;
+  }
+`;
+
 const Button = styled.button`
   background: #4285f4;
   color: white;
-  border: none;
   padding: 12px 24px;
-  border-radius: 5px;
+  border: none;
+  border-radius: 4px;
   font-size: 16px;
   cursor: pointer;
-  transition: background 0.2s;
-  
+  transition: background 0.3s ease;
+  width: 100%;
+  margin-top: 10px;
+
   &:hover {
     background: #3367d6;
   }
-  
+
   &:disabled {
     background: #ccc;
     cursor: not-allowed;
   }
 `;
 
+const ErrorText = styled.p`
+  color: #d32f2f;
+  margin-top: 10px;
+  font-size: 14px;
+`;
+
 const CodeDisplay = styled.div`
+  text-align: center;
   margin-top: 20px;
 `;
 
 const CodeText = styled.p`
+  font-size: 24px;
   font-weight: bold;
-  font-size: 18px;
   color: #333;
+  margin-bottom: 10px;
 `;
 
 const StatusText = styled.p`
   font-size: 16px;
   color: #666;
-`;
-
-const ErrorText = styled.p`
-  font-size: 16px;
-  color: #721c24;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 16px;
-  
-  &:focus {
-    outline: none;
-    border-color: #4285f4;
-  }
+  margin: 5px 0;
 `;
 
 const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
@@ -103,6 +114,10 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
   const [error, setError] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+
+  const generateCode = () => {
+    return Math.floor(10000 + Math.random() * 90000).toString();
+  };
 
   useEffect(() => {
     const savedCode = localStorage.getItem('lastRequestCode');
@@ -120,18 +135,66 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
 
     console.log('Setting up subscription for code:', requestCode);
 
+    const subscription = supabase
+      .channel('status_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'access_requests',
+          filter: `code=eq.${requestCode}`
+        },
+        async (payload) => {
+          console.log('Received payload:', payload);
+          if (payload.new) {
+            const newStatus = payload.new.status;
+            localStorage.setItem('approvalStatus', newStatus);
+            
+            if (newStatus === 'approved') {
+              console.log('User approved, setting local storage');
+              localStorage.setItem('userCode', requestCode);
+              console.log('Calling onAccessGranted');
+              onAccessGranted();
+            } else if (newStatus === 'blocked') {
+              console.log('User blocked, updating local storage');
+              localStorage.removeItem('lastRequestCode');
+              localStorage.removeItem('firstName');
+              localStorage.removeItem('lastName');
+              localStorage.removeItem('userCode');
+              localStorage.removeItem('approvalStatus');
+              setRequestCode(null);
+              setFirstName('');
+              setLastName('');
+              setError('თქვენი წვდომა დაბლოკილია. გთხოვთ დაელოდოთ ადმინისტრატორის პასუხს.');
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    // Check current status on mount
     const checkCurrentStatus = async () => {
       console.log('Checking current status for code:', requestCode);
-      const response = await fetch(`${edgeFunctionUrl}/${requestCode}`);
-      const data = await response.json();
+      const { data, error } = await supabase
+        .from('access_requests')
+        .select('status')
+        .eq('code', requestCode)
+        .single();
 
-      if (data.status === 'approved') {
+      if (error) {
+        console.error('Error checking status:', error);
+        return;
+      }
+
+      console.log('Current status:', data);
+      if (data?.status === 'approved') {
         console.log('User already approved, setting local storage');
         localStorage.setItem('approvalStatus', 'approved');
         localStorage.setItem('userCode', requestCode);
         console.log('Calling onAccessGranted');
         onAccessGranted();
-      } else if (data.status === 'blocked') {
+      } else if (data?.status === 'blocked') {
         console.log('User blocked, updating local storage');
         localStorage.removeItem('lastRequestCode');
         localStorage.removeItem('firstName');
@@ -146,6 +209,11 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
     };
 
     checkCurrentStatus();
+
+    return () => {
+      console.log('Cleaning up subscription');
+      subscription.unsubscribe();
+    };
   }, [requestCode, onAccessGranted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -160,25 +228,24 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
     setError(null);
 
     try {
-      const response = await fetch(edgeFunctionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-        }),
-      });
-
-      const data = await response.json();
+      const code = generateCode();
       
-      if (!response.ok) throw new Error(data.error);
+      const { error: insertError } = await supabase
+        .from('access_requests')
+        .insert([{ 
+          code,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          status: 'pending',
+          created_at: new Date().toISOString()
+        }]);
 
-      localStorage.setItem('lastRequestCode', data.code);
+      if (insertError) throw insertError;
+
+      localStorage.setItem('lastRequestCode', code);
       localStorage.setItem('firstName', firstName);
       localStorage.setItem('lastName', lastName);
-      setRequestCode(data.code);
+      setRequestCode(code);
     } catch (err: any) {
       console.error('Error submitting request:', err);
       setError('მოთხოვნის გაგზავნა ვერ მოხერხდა. გთხოვთ სცადოთ თავიდან.');
