@@ -89,7 +89,15 @@ serve(async (req) => {
 
     if (req.method === 'GET' && path === 'status') {
       const code = url.searchParams.get('code')
-      if (!code) throw new Error('კოდი სავალდებულოა')
+      if (!code) {
+        return new Response(
+          JSON.stringify({ error: 'კოდი სავალდებულოა' }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 400
+          }
+        )
+      }
 
       const { data, error } = await supabaseAdmin
         .from('access_requests')
@@ -97,7 +105,15 @@ serve(async (req) => {
         .eq('code', code)
         .single()
 
-      if (error) throw error
+      if (error) {
+        return new Response(
+          JSON.stringify({ error: error.message }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 400
+          }
+        )
+      }
 
       if (!data) {
         return new Response(
@@ -111,7 +127,10 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ status: data.status }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        }
       )
     }
 
