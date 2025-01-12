@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 
 // Edge Function URL
-const EDGE_FUNCTION_URL = 'https://loyzwjzsjnikmnuqilmv.supabase.co/functions/v1/access-manager';
+const EDGE_FUNCTION_URL = 'https://loyzwjzsjnikmnuqilmv.functions.supabase.co/access-manager';
 
 interface RequestAccessProps {
   onAccessGranted: () => void;
