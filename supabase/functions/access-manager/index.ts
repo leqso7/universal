@@ -38,20 +38,13 @@ serve(async (req) => {
       const code = Math.floor(10000 + Math.random() * 90000).toString()
       
       const { data, error } = await supabaseAdmin
-        .from('access_requests')
-        .insert([
-          {
-            code,
-            first_name: firstName.trim(),
-            last_name: lastName.trim(),
-            status: 'pending',
-            created_at: new Date().toISOString(),
-            ip_address: req.headers.get('x-real-ip'),
-            user_agent: req.headers.get('user-agent')
-          }
-        ])
-        .select()
-        .single()
+        .rpc('create_access_request', {
+          p_code: code,
+          p_first_name: firstName.trim(),
+          p_last_name: lastName.trim(),
+          p_ip_address: req.headers.get('x-real-ip'),
+          p_user_agent: req.headers.get('user-agent')
+        })
 
       if (error) throw error
 
