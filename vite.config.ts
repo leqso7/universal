@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/class-manager-web/',
+  base: process.env.VERCEL ? '/' : '/class-manager-web/',
   plugins: [
     react(),
     VitePWA({
