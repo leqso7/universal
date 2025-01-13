@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Edge Function URL
 const EDGE_FUNCTION_URL = 'https://loyzwjzsjnikmnuqilmv.functions.supabase.co/access-manager';
@@ -163,7 +165,14 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
     e.preventDefault();
 
     if (!firstName.trim() || !lastName.trim()) {
-      setError('გთხოვთ შეავსოთ სახელი და გვარი');
+      toast.error('გთხოვთ შეავსოთ სახელი და გვარი', {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
       return;
     }
 
@@ -184,15 +193,40 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
 
       const data = await response.json();
       
-      if (!response.ok) throw new Error(data.error);
+      if (!response.ok) {
+        toast.error(data.error || 'მოთხოვნის გაგზავნა ვერ მოხერხდა', {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        });
+        return;
+      }
 
       localStorage.setItem('lastRequestCode', data.code);
       localStorage.setItem('firstName', firstName);
       localStorage.setItem('lastName', lastName);
       setRequestCode(data.code);
+      
+      toast.success('მოთხოვნა წარმატებით გაიგზავნა', {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
     } catch (err: any) {
-      console.error('Error submitting request:', err);
-      setError('მოთხოვნის გაგზავნა ვერ მოხერხდა. გთხოვთ სცადოთ თავიდან.');
+      toast.error('მოთხოვნის გაგზავნა ვერ მოხერხდა', {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
     } finally {
       setLoading(false);
     }
@@ -202,36 +236,39 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
     <Container>
       <Form onSubmit={handleSubmit}>
         <Title>მოთხოვნის გაგზავნა</Title>
-        {requestCode ? (
-          <CodeDisplay>
-            <CodeText>თქვენი კოდი: {requestCode}</CodeText>
-            <StatusText>სტატუსი: მოლოდინში...</StatusText>
-            <StatusText>სახელი: {firstName}</StatusText>
-            <StatusText>გვარი: {lastName}</StatusText>
-          </CodeDisplay>
-        ) : (
-          <React.Fragment>
+        {!requestCode ? (
+          <>
             <Input
               type="text"
+              placeholder="სახელი"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder="სახელი"
-              required
+              disabled={loading}
             />
             <Input
               type="text"
+              placeholder="გვარი"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              placeholder="გვარი"
-              required
+              disabled={loading}
             />
             <Button type="submit" disabled={loading}>
               {loading ? 'იგზავნება...' : 'გაგზავნა'}
             </Button>
-          </React.Fragment>
+          </>
+        ) : (
+          <CodeDisplay>
+            <CodeText>{requestCode}</CodeText>
+            <StatusText>
+              თქვენი კოდი: {requestCode}
+            </StatusText>
+            <StatusText>
+              გთხოვთ დაელოდოთ ადმინისტრატორის დადასტურებას
+            </StatusText>
+          </CodeDisplay>
         )}
-        {error && <ErrorText>{error}</ErrorText>}
       </Form>
+      <ToastContainer />
     </Container>
   );
 };
