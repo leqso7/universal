@@ -115,22 +115,22 @@ function App() {
       if (!userCode) return;
 
       try {
-        const response = await fetch('/api/auth/check-access', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: userCode })
+        const response = await fetch('https://loyzwjzsjnikmnuqilmv.functions.supabase.co/access-manager/status?code=' + userCode, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
         });
         
-        const { data, error } = await response.json();
+        const data = await response.json();
         
-        if (error || data?.status === 'blocked') {
+        if (!response.ok || data.error || data.status === 'blocked') {
           localStorage.removeItem('userCode');
           localStorage.removeItem('approvalStatus');
+          setHasAccess(false);
           navigate('/request', { replace: true });
           return;
         }
 
-        if (data?.status === 'approved') {
+        if (data.status === 'approved') {
           setHasAccess(true);
         }
       } catch (err) {
@@ -141,7 +141,7 @@ function App() {
     checkUserStatus();
     const interval = setInterval(checkUserStatus, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [navigate]);
 
   const handleSaveClass = () => {
     if (!className.trim() || !classList.trim()) {
