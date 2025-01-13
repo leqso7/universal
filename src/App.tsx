@@ -16,12 +16,6 @@ interface ClassData {
   }[];
 }
 
-interface ServiceWorkerRegistration {
-  sync: {
-    register: (tag: string) => void;
-  };
-}
-
 const GlobalStyle = createGlobalStyle`
   * {
     margin: 0;
@@ -124,9 +118,12 @@ function App() {
       setIsOnline(true);
       checkUserStatus(true);
       // ვარეგისტრირებთ background sync-ს
-      if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
-        navigator.serviceWorker.ready.then((registration: ServiceWorkerRegistration) => {
-          (registration as any).sync.register('status-check');
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+          if ('sync' in registration) {
+            (registration as any).sync.register('status-check')
+              .catch((err: Error) => console.error('Background sync registration failed:', err));
+          }
         });
       }
     };
@@ -232,10 +229,48 @@ function App() {
   };
 
   useEffect(() => {
+    // ვამოწმებთ სტატუსს საიტის გახსნისას
     checkUserStatus();
-    const interval = setInterval(() => checkUserStatus(), 5000);
-    return () => clearInterval(interval);
-  }, [navigate, isOnline]);
+
+    // ინტელიგენტური ინტერვალი
+    const CHECK_INTERVAL = 5 * 60 * 1000; // 5 წუთში ერთხელ
+    const ACTIVE_CHECK_INTERVAL = 30 * 1000; // 30 წამში ერთხელ
+
+    let lastInteraction = Date.now();
+    let checkInterval: NodeJS.Timeout;
+
+    const handleUserInteraction = () => {
+      lastInteraction = Date.now();
+    };
+
+    const startChecking = () => {
+      checkInterval = setInterval(() => {
+        const timeSinceLastInteraction = Date.now() - lastInteraction;
+        
+        // თუ მომხმარებელი აქტიურია ბოლო 10 წუთის განმავლობაში
+        if (timeSinceLastInteraction < 10 * 60 * 1000) {
+          checkUserStatus();
+        }
+      }, navigator.onLine ? ACTIVE_CHECK_INTERVAL : CHECK_INTERVAL);
+    };
+
+    // ვიწყებთ შემოწმებას
+    startChecking();
+
+    // ვუსმენთ მომხმარებლის აქტივობას
+    window.addEventListener('mousemove', handleUserInteraction);
+    window.addEventListener('keypress', handleUserInteraction);
+    window.addEventListener('click', handleUserInteraction);
+    window.addEventListener('scroll', handleUserInteraction);
+
+    return () => {
+      clearInterval(checkInterval);
+      window.removeEventListener('mousemove', handleUserInteraction);
+      window.removeEventListener('keypress', handleUserInteraction);
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('scroll', handleUserInteraction);
+    };
+  }, []);
 
   const handleAccessGranted = () => {
     setHasAccess(true);

@@ -99,15 +99,15 @@ serve(async (req) => {
         )
       }
 
-      const { data: statusData, error: statusError } = await supabaseAdmin
+      const { data, error } = await supabaseAdmin
         .from('access_requests')
         .select('status')
         .eq('code', code)
         .single()
 
-      if (statusError) {
+      if (error) {
         return new Response(
-          JSON.stringify({ error: statusError.message }),
+          JSON.stringify({ error: error.message }),
           { 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 400
@@ -115,7 +115,7 @@ serve(async (req) => {
         )
       }
 
-      if (!statusData) {
+      if (!data) {
         return new Response(
           JSON.stringify({ error: 'კოდი ვერ მოიძებნა' }),
           { 
@@ -125,12 +125,8 @@ serve(async (req) => {
         )
       }
 
-      // ყოველთვის ვაბრუნებთ ვალიდურ JSON-ს
       return new Response(
-        JSON.stringify({ 
-          status: statusData.status,
-          timestamp: new Date().toISOString()
-        }),
+        JSON.stringify({ status: data.status }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200
