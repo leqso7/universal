@@ -155,8 +155,8 @@ function App() {
       if (cachedStatus === 'approved' && cachedTimestamp && wasEverApproved === 'true') {
         const timestamp = parseInt(cachedTimestamp);
         if (!isNaN(timestamp)) {
-          // თუ ოდესმე approved იყო, ვაძლევთ 7 დღემდე ოფლაინ წვდომას
-          const OFFLINE_ACCESS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 დღე
+          // დროებით 3 წამი ტესტირებისთვის
+          const OFFLINE_ACCESS_DURATION = 3 * 1000; // 3 seconds for testing
           if (now - timestamp < OFFLINE_ACCESS_DURATION) {
             setHasAccess(true);
             return;
@@ -213,7 +213,8 @@ function App() {
         if (cachedStatus === 'approved' && cachedTimestamp && wasEverApproved === 'true') {
           const timestamp = parseInt(cachedTimestamp);
           if (!isNaN(timestamp)) {
-            const OFFLINE_ACCESS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 დღე
+            // დროებით 3 წამი ტესტირებისთვის
+            const OFFLINE_ACCESS_DURATION = 3 * 1000; // 3 seconds for testing
             if (now - timestamp < OFFLINE_ACCESS_DURATION) {
               setHasAccess(true);
             } else {
