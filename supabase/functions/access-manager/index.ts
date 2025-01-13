@@ -32,6 +32,40 @@ const checkRateLimit = (ip: string) => {
   rateLimiter.set(key, count + 1);
 };
 
+// Rate limiting და ინტერვალების კონტროლი
+const checkRateLimitAndInterval = async (accessCode: string): Promise<boolean> => {
+  const supabaseAdmin = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  )
+
+  const { data: lastCheck, error: readError } = await supabaseAdmin
+    .from('status_checks')
+    .select('last_check_time')
+    .eq('access_code', accessCode)
+    .single();
+
+  const now = new Date().getTime();
+  const minInterval = 4 * 60 * 1000; // მინიმუმ 4 წუთი შემოწმებებს შორის
+
+  if (lastCheck?.last_check_time) {
+    const timeSinceLastCheck = now - new Date(lastCheck.last_check_time).getTime();
+    if (timeSinceLastCheck < minInterval) {
+      return false;
+    }
+  }
+
+  const { error: writeError } = await supabaseAdmin
+    .from('status_checks')
+    .upsert({ 
+      access_code: accessCode, 
+      last_check_time: new Date().toISOString(),
+      check_count: lastCheck ? (lastCheck.check_count || 0) + 1 : 1
+    });
+
+  return true;
+};
+
 // ვალიდაცია
 const validateInput = (firstName: string, lastName: string) => {
   const nameRegex = /^[\u10A0-\u10FF\s\w]{2,50}$/;
@@ -95,6 +129,21 @@ serve(async (req) => {
           { 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 400
+          }
+        )
+      }
+
+      // ვამოწმებთ rate limit-ს და ინტერვალებს
+      const canCheck = await checkRateLimitAndInterval(code);
+      if (!canCheck) {
+        return new Response(
+          JSON.stringify({ 
+            status: 'cached',
+            message: 'Using cached status, please wait before next check'
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200
           }
         )
       }

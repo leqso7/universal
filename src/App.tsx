@@ -105,9 +105,9 @@ const SaveButton = styled.button`
 `;
 
 function App() {
+  const navigate = useNavigate();
   const [hasAccess, setHasAccess] = useState(false); 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
   const [className, setClassName] = useState('');
   const [classList, setClassList] = useState('');
@@ -138,93 +138,109 @@ function App() {
     };
   }, []);
 
-  const checkUserStatus = async (forceCheck: boolean = false) => {
-    const userCode = localStorage.getItem('userCode');
-    if (!userCode) {
-      setHasAccess(false);
-      navigate('/request', { replace: true });
-      return;
-    }
+  const checkUserStatus = async (isImportantAction = false) => {
+    const maxRetries = isImportantAction ? 3 : 1;
+    let retryCount = 0;
 
-    const now = Date.now();
-    
-    // ოფლაინ რეჟიმის ლოგიკა
-    if (!isOnline && !forceCheck) {
+    // ოფლაინ ლოგიკა
+    const checkOfflineStatus = () => {
       const cachedStatus = localStorage.getItem('approvalStatus');
-      const cachedTimestamp = localStorage.getItem('statusTimestamp');
-      const wasEverApproved = localStorage.getItem('wasEverApproved');
-      
-      if (cachedStatus === 'approved' && cachedTimestamp && wasEverApproved === 'true') {
-        const timestamp = parseInt(cachedTimestamp);
-        if (!isNaN(timestamp)) {
-          // თუ ოდესმე approved იყო, ვაძლევთ 7 დღემდე ოფლაინ წვდომას
-          const OFFLINE_ACCESS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 დღე
-          if (now - timestamp < OFFLINE_ACCESS_DURATION) {
-            setHasAccess(true);
-            return;
-          }
-        }
+      const cachedTimestamp = parseInt(localStorage.getItem('statusTimestamp') || '0');
+      const now = Date.now();
+      const OFFLINE_ACCESS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 დღე
+
+      if (cachedStatus === 'approved' && (now - cachedTimestamp) < OFFLINE_ACCESS_DURATION) {
+        return true;
       }
-    }
+      return false;
+    };
+
+    const tryCheck = async (): Promise<boolean> => {
+      try {
+        if (!navigator.onLine) {
+          const offlineStatus = checkOfflineStatus();
+          console.log('Offline mode: using cached status');
+          setHasAccess(offlineStatus);
+          return offlineStatus;
+        }
+
+        const accessCode = localStorage.getItem('accessCode');
+        if (!accessCode) {
+          console.log('No access code found');
+          setHasAccess(false);
+          return false;
+        }
+
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/access-manager`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+              action: 'check',
+              accessCode
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // თუ სერვერი გვეუბნება რომ ქეში გამოვიყენოთ
+        if (data.status === 'cached') {
+          const offlineStatus = checkOfflineStatus();
+          console.log('Server suggested using cache:', data.message);
+          setHasAccess(offlineStatus);
+          return offlineStatus;
+        }
+        
+        if (data.status === 'approved') {
+          localStorage.setItem('approvalStatus', 'approved');
+          localStorage.setItem('statusTimestamp', Date.now().toString());
+          setHasAccess(true);
+          return true;
+        } else {
+          localStorage.removeItem('approvalStatus');
+          localStorage.removeItem('statusTimestamp');
+          setHasAccess(false);
+          return false;
+        }
+      } catch (error) {
+        if (error instanceof TypeError && error.message === 'Failed to fetch') {
+          // ქსელის პრობლემაა, ვიყენებთ ქეშს
+          const offlineStatus = checkOfflineStatus();
+          console.log('Network error: using cached status');
+          setHasAccess(offlineStatus);
+          return offlineStatus;
+        }
+        
+        console.error('Error checking status:', error);
+        retryCount++;
+        
+        if (retryCount < maxRetries) {
+          const delay = 1000 * Math.pow(2, retryCount); // ექსპონენციალური backoff
+          console.log(`Retrying in ${delay}ms... (${retryCount}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return tryCheck();
+        }
+        
+        throw error;
+      }
+    };
 
     try {
-      const response = await fetch('https://loyzwjzsjnikmnuqilmv.functions.supabase.co/access-manager/status?code=' + userCode, {
-        method: 'GET',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const data = await response.json();
-      
-      if (data.error || data.status === 'blocked') {
-        localStorage.removeItem('userCode');
-        localStorage.removeItem('approvalStatus');
-        localStorage.removeItem('statusTimestamp');
-        localStorage.removeItem('wasEverApproved');
-        setHasAccess(false);
-        navigate('/request', { replace: true });
-        return;
-      }
-
-      if (data.status === 'approved') {
-        localStorage.setItem('approvalStatus', 'approved');
-        localStorage.setItem('statusTimestamp', now.toString());
-        localStorage.setItem('wasEverApproved', 'true'); // ვიმახსოვრებთ რომ ოდესმე approved იყო
-        setHasAccess(true);
-      } else {
-        localStorage.removeItem('approvalStatus');
-        localStorage.removeItem('statusTimestamp');
-        setHasAccess(false);
-      }
-    } catch (err) {
-      console.error('Error checking user status:', err);
-      
-      if (!isOnline) {
-        const cachedStatus = localStorage.getItem('approvalStatus');
-        const cachedTimestamp = localStorage.getItem('statusTimestamp');
-        const wasEverApproved = localStorage.getItem('wasEverApproved');
-        
-        if (cachedStatus === 'approved' && cachedTimestamp && wasEverApproved === 'true') {
-          const timestamp = parseInt(cachedTimestamp);
-          if (!isNaN(timestamp)) {
-            // თუ ოდესმე approved იყო, ვაძლევთ 7 დღემდე ოფლაინ წვდომას
-            const OFFLINE_ACCESS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 დღე
-            if (now - timestamp < OFFLINE_ACCESS_DURATION) {
-              setHasAccess(true);
-            } else {
-              setHasAccess(false);
-            }
-          }
-        } else {
-          setHasAccess(false);
-        }
-      }
+      return await tryCheck();
+    } catch (error) {
+      console.error('Final error checking user status:', error);
+      const offlineStatus = checkOfflineStatus();
+      setHasAccess(offlineStatus);
+      return offlineStatus;
     }
   };
 
