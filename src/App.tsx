@@ -46,6 +46,14 @@ const AppContainer = styled.div`
   position: relative;
 `;
 
+const InstallContainer = styled.div`
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+`;
+
 const ClassForm = styled.div<{ $isVisible: boolean }>`
   position: fixed;
   top: 0;
@@ -101,47 +109,74 @@ function App() {
     const status = localStorage.getItem('approvalStatus');
     return status === 'approved';
   });
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
+  const [className, setClassName] = useState('');
+  const [classList, setClassList] = useState('');
+  const [isClassFormVisible, setIsClassFormVisible] = useState(false);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      checkUserStatus(); // Recheck status when back online
+    };
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  const checkUserStatus = async () => {
+    const userCode = localStorage.getItem('userCode');
+    if (!userCode) return;
+
+    try {
+      const response = await fetch('https://loyzwjzsjnikmnuqilmv.functions.supabase.co/access-manager/status?code=' + userCode, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok || data.error || data.status === 'blocked') {
+        localStorage.removeItem('userCode');
+        localStorage.removeItem('approvalStatus');
+        setHasAccess(false);
+        navigate('/request', { replace: true });
+        return;
+      }
+
+      if (data.status === 'approved') {
+        setHasAccess(true);
+        localStorage.setItem('approvalStatus', 'approved');
+      }
+    } catch (err) {
+      if (!isOnline) {
+        // If offline, use cached status
+        const cachedStatus = localStorage.getItem('approvalStatus');
+        setHasAccess(cachedStatus === 'approved');
+      } else {
+        console.error('Error checking user status:', err);
+      }
+    }
+  };
+
+  useEffect(() => {
+    checkUserStatus();
+    const interval = setInterval(checkUserStatus, 5000);
+    return () => clearInterval(interval);
+  }, [navigate, isOnline]);
 
   const handleAccessGranted = () => {
     setHasAccess(true);
     navigate('/', { replace: true });
   };
-
-  useEffect(() => {
-    const checkUserStatus = async () => {
-      const userCode = localStorage.getItem('userCode');
-      if (!userCode) return;
-
-      try {
-        const response = await fetch('https://loyzwjzsjnikmnuqilmv.functions.supabase.co/access-manager/status?code=' + userCode, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        
-        const data = await response.json();
-        
-        if (!response.ok || data.error || data.status === 'blocked') {
-          localStorage.removeItem('userCode');
-          localStorage.removeItem('approvalStatus');
-          setHasAccess(false);
-          navigate('/request', { replace: true });
-          return;
-        }
-
-        if (data.status === 'approved') {
-          setHasAccess(true);
-        }
-      } catch (err) {
-        console.error('Error checking user status:', err);
-      }
-    };
-
-    checkUserStatus();
-    const interval = setInterval(checkUserStatus, 5000);
-    return () => clearInterval(interval);
-  }, [navigate]);
 
   const handleSaveClass = () => {
     if (!className.trim() || !classList.trim()) {
@@ -194,21 +229,31 @@ function App() {
     }
   };
 
-  const [className, setClassName] = useState('');
-  const [classList, setClassList] = useState('');
-  const [isClassFormVisible, setIsClassFormVisible] = useState(false);
-
   return (
-    <>
+    <AppContainer>
       <GlobalStyle />
+      {!isOnline && (
+        <div style={{ 
+          position: 'fixed', 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          background: '#ff9800', 
+          color: 'white', 
+          padding: '10px', 
+          textAlign: 'center',
+          zIndex: 1000 
+        }}>
+          ოფლაინ რეჟიმი - ზოგიერთი ფუნქცია შეზღუდულია
+        </div>
+      )}
       <ToastContainer position="bottom-right" />
-      <InstallPWA />
       <Routes>
         <Route
           path="/"
           element={
             hasAccess ? (
-              <AppContainer>
+              <>
                 <SearchList students={students} setStudents={setStudents} />
                 <ClassForm $isVisible={isClassFormVisible}>
                   <h2>კლასის დამატება</h2>
@@ -226,7 +271,7 @@ function App() {
                   <SaveButton onClick={handleSaveClass}>შენახვა</SaveButton>
                   <SaveButton onClick={() => setIsClassFormVisible(false)}>დახურვა</SaveButton>
                 </ClassForm>
-              </AppContainer>
+              </>
             ) : (
               <Navigate to="/request" replace />
             )
@@ -243,7 +288,10 @@ function App() {
           }
         />
       </Routes>
-    </>
+      <InstallContainer>
+        <InstallPWA />
+      </InstallContainer>
+    </AppContainer>
   );
 }
 
