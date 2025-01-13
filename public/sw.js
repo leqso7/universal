@@ -58,3 +58,69 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
+
+// Background Sync რეგისტრაცია
+self.addEventListener('sync', function(event) {
+  if (event.tag === 'status-check') {
+    event.waitUntil(checkStatusInBackground());
+  }
+});
+
+async function checkStatusInBackground() {
+  const userCode = await getFromCache('userCode');
+  if (!userCode) return;
+
+  try {
+    const response = await fetch('https://loyzwjzsjnikmnuqilmv.functions.supabase.co/access-manager/status?code=' + userCode, {
+      method: 'GET',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      }
+    });
+
+    if (!response.ok) throw new Error('Network response was not ok');
+
+    const data = await response.json();
+    
+    if (data.error || data.status === 'blocked') {
+      // ვშლით ყველა ქეშირებულ მონაცემს
+      await clearUserData();
+      return;
+    }
+
+    if (data.status === 'approved') {
+      await saveToCache('approvalStatus', 'approved');
+      await saveToCache('statusTimestamp', Date.now().toString());
+      await saveToCache('wasEverApproved', 'true');
+    }
+  } catch (error) {
+    console.error('Background sync failed:', error);
+  }
+}
+
+async function getFromCache(key) {
+  const cache = await caches.open(CACHE_NAME);
+  const response = await cache.match(`cache-${key}`);
+  if (response) {
+    const data = await response.text();
+    return data;
+  }
+  return null;
+}
+
+async function saveToCache(key, value) {
+  const cache = await caches.open(CACHE_NAME);
+  await cache.put(
+    `cache-${key}`,
+    new Response(value)
+  );
+}
+
+async function clearUserData() {
+  const cache = await caches.open(CACHE_NAME);
+  await cache.delete('cache-userCode');
+  await cache.delete('cache-approvalStatus');
+  await cache.delete('cache-statusTimestamp');
+  await cache.delete('cache-wasEverApproved');
+}

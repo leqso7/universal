@@ -117,7 +117,13 @@ function App() {
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      checkUserStatus(true); 
+      checkUserStatus(true);
+      // ვარეგისტრირებთ background sync-ს
+      if ('serviceWorker' in navigator && 'sync' in navigator.serviceWorker) {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.sync.register('status-check');
+        });
+      }
     };
     const handleOffline = () => setIsOnline(false);
 
