@@ -16,6 +16,12 @@ interface ClassData {
   }[];
 }
 
+interface ServiceWorkerRegistration {
+  sync: {
+    register: (tag: string) => void;
+  };
+}
+
 const GlobalStyle = createGlobalStyle`
   * {
     margin: 0;
@@ -105,9 +111,8 @@ const SaveButton = styled.button`
 `;
 
 function App() {
-  const [hasAccess, setHasAccess] = useState<boolean>(false); 
+  const [hasAccess, setHasAccess] = useState(false); 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [lastChecked, setLastChecked] = useState<number>(0);
   const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
   const [className, setClassName] = useState('');
@@ -119,9 +124,9 @@ function App() {
       setIsOnline(true);
       checkUserStatus(true);
       // ვარეგისტრირებთ background sync-ს
-      if ('serviceWorker' in navigator && 'sync' in navigator.serviceWorker) {
-        navigator.serviceWorker.ready.then(registration => {
-          registration.sync.register('status-check');
+      if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+        navigator.serviceWorker.ready.then((registration: ServiceWorkerRegistration) => {
+          (registration as any).sync.register('status-check');
         });
       }
     };
@@ -200,8 +205,6 @@ function App() {
         localStorage.removeItem('statusTimestamp');
         setHasAccess(false);
       }
-      
-      setLastChecked(now);
     } catch (err) {
       console.error('Error checking user status:', err);
       
