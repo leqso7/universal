@@ -105,11 +105,9 @@ const SaveButton = styled.button`
 `;
 
 function App() {
-  const [hasAccess, setHasAccess] = useState<boolean>(() => {
-    const status = localStorage.getItem('approvalStatus');
-    return status === 'approved';
-  });
+  const [hasAccess, setHasAccess] = useState<boolean>(false); 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [lastChecked, setLastChecked] = useState<number>(0);
   const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
   const [className, setClassName] = useState('');
@@ -119,7 +117,7 @@ function App() {
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      checkUserStatus(); // Recheck status when back online
+      checkUserStatus(true); 
     };
     const handleOffline = () => setIsOnline(false);
 
@@ -132,44 +130,89 @@ function App() {
     };
   }, []);
 
-  const checkUserStatus = async () => {
+  const checkUserStatus = async (forceCheck: boolean = false) => {
     const userCode = localStorage.getItem('userCode');
-    if (!userCode) return;
+    if (!userCode) {
+      setHasAccess(false);
+      navigate('/request', { replace: true });
+      return;
+    }
+
+    const now = Date.now();
+    if (!isOnline && !forceCheck && lastChecked && (now - lastChecked < 5 * 60 * 1000)) {
+      const cachedStatus = localStorage.getItem('approvalStatus');
+      const cachedTimestamp = localStorage.getItem('statusTimestamp');
+      
+      if (cachedStatus && cachedTimestamp) {
+        const timestamp = parseInt(cachedTimestamp);
+        if (!isNaN(timestamp) && now - timestamp < 30 * 60 * 1000) { 
+          setHasAccess(cachedStatus === 'approved');
+          return;
+        }
+      }
+    }
 
     try {
       const response = await fetch('https://loyzwjzsjnikmnuqilmv.functions.supabase.co/access-manager/status?code=' + userCode, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
       });
       
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
       const data = await response.json();
       
-      if (!response.ok || data.error || data.status === 'blocked') {
+      if (data.error || data.status === 'blocked') {
         localStorage.removeItem('userCode');
         localStorage.removeItem('approvalStatus');
+        localStorage.removeItem('statusTimestamp');
         setHasAccess(false);
         navigate('/request', { replace: true });
         return;
       }
 
       if (data.status === 'approved') {
-        setHasAccess(true);
         localStorage.setItem('approvalStatus', 'approved');
-      }
-    } catch (err) {
-      if (!isOnline) {
-        // If offline, use cached status
-        const cachedStatus = localStorage.getItem('approvalStatus');
-        setHasAccess(cachedStatus === 'approved');
+        localStorage.setItem('statusTimestamp', now.toString());
+        setHasAccess(true);
       } else {
-        console.error('Error checking user status:', err);
+        localStorage.removeItem('approvalStatus');
+        localStorage.removeItem('statusTimestamp');
+        setHasAccess(false);
+      }
+      
+      setLastChecked(now);
+    } catch (err) {
+      console.error('Error checking user status:', err);
+      
+      if (!isOnline) {
+        const cachedStatus = localStorage.getItem('approvalStatus');
+        const cachedTimestamp = localStorage.getItem('statusTimestamp');
+        
+        if (cachedStatus && cachedTimestamp) {
+          const timestamp = parseInt(cachedTimestamp);
+          if (!isNaN(timestamp) && now - timestamp < 30 * 60 * 1000) {
+            setHasAccess(cachedStatus === 'approved');
+          } else {
+            localStorage.removeItem('approvalStatus');
+            localStorage.removeItem('statusTimestamp');
+            setHasAccess(false);
+          }
+        } else {
+          setHasAccess(false);
+        }
       }
     }
   };
 
   useEffect(() => {
     checkUserStatus();
-    const interval = setInterval(checkUserStatus, 5000);
+    const interval = setInterval(() => checkUserStatus(), 5000);
     return () => clearInterval(interval);
   }, [navigate, isOnline]);
 
@@ -204,12 +247,10 @@ function App() {
     try {
       const savedClasses: ClassData[] = JSON.parse(localStorage.getItem('classes') || '[]');
       
-      // Remove any existing class with the same name
       const filteredClasses = savedClasses.filter((c: ClassData) => 
         c.name.toLowerCase() !== className.trim().toLowerCase()
       );
 
-      // Add the new class data
       localStorage.setItem('classes', JSON.stringify([...filteredClasses, classData]));
       toast.success('კლასი წარმატებით შეინახა', {
         autoClose: 1500,
