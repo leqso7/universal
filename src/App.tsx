@@ -228,13 +228,18 @@ function App() {
     }
   };
 
+  const handleImportantAction = async () => {
+    await checkUserStatus(true);
+    // აქ შეგიძლია გააგრძელო ქმედება თუ სტატუსი approved არის
+  };
+
   useEffect(() => {
     // ვამოწმებთ სტატუსს საიტის გახსნისას
     checkUserStatus();
 
     // ინტელიგენტური ინტერვალი
-    const CHECK_INTERVAL = 5 * 60 * 1000; // 5 წუთში ერთხელ
-    const ACTIVE_CHECK_INTERVAL = 30 * 1000; // 30 წამში ერთხელ
+    const CHECK_INTERVAL = 30 * 60 * 1000; // 30 წუთში ერთხელ
+    const ACTIVE_CHECK_INTERVAL = 5 * 60 * 1000; // 5 წუთში ერთხელ
 
     let lastInteraction = Date.now();
     let checkInterval: NodeJS.Timeout;
@@ -243,12 +248,18 @@ function App() {
       lastInteraction = Date.now();
     };
 
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        checkUserStatus();
+      }
+    };
+
     const startChecking = () => {
       checkInterval = setInterval(() => {
         const timeSinceLastInteraction = Date.now() - lastInteraction;
         
-        // თუ მომხმარებელი აქტიურია ბოლო 10 წუთის განმავლობაში
-        if (timeSinceLastInteraction < 10 * 60 * 1000) {
+        // თუ მომხმარებელი აქტიურია ბოლო 30 წუთის განმავლობაში
+        if (timeSinceLastInteraction < 30 * 60 * 1000) {
           checkUserStatus();
         }
       }, navigator.onLine ? ACTIVE_CHECK_INTERVAL : CHECK_INTERVAL);
@@ -262,6 +273,9 @@ function App() {
     window.addEventListener('keypress', handleUserInteraction);
     window.addEventListener('click', handleUserInteraction);
     window.addEventListener('scroll', handleUserInteraction);
+    
+    // ვამოწმებთ როცა ტაბს უბრუნდება
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       clearInterval(checkInterval);
@@ -269,6 +283,7 @@ function App() {
       window.removeEventListener('keypress', handleUserInteraction);
       window.removeEventListener('click', handleUserInteraction);
       window.removeEventListener('scroll', handleUserInteraction);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
