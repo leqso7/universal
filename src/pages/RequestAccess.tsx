@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from 'react-router-dom';
 
 // Edge Function URL
 const EDGE_FUNCTION_URL = 'https://loyzwjzsjnikmnuqilmv.functions.supabase.co/access-manager';
@@ -107,6 +108,7 @@ const StatusText = styled.p`
 `;
 
 const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [requestCode, setRequestCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -123,6 +125,51 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
       setLastName(savedLastName || '');
     }
   }, []);
+
+  useEffect(() => {
+    const checkExistingStatus = async () => {
+      const userCode = localStorage.getItem('userCode');
+      if (!userCode) return;
+
+      try {
+        const response = await fetch(`${EDGE_FUNCTION_URL}/status?code=${userCode}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+        
+        if (data.status === 'approved') {
+          localStorage.setItem('approvalStatus', 'approved');
+          localStorage.setItem('statusTimestamp', Date.now().toString());
+          localStorage.setItem('wasEverApproved', 'true');
+          navigate('/', { replace: true });
+        } else if (data.status === 'blocked') {
+          localStorage.removeItem('userCode');
+          localStorage.removeItem('approvalStatus');
+          localStorage.removeItem('statusTimestamp');
+          localStorage.removeItem('wasEverApproved');
+          toast.error('თქვენი წვდომა დაბლოკილია', {
+            position: "top-center",
+            autoClose: 3000
+          });
+        }
+      } catch (err) {
+        console.error('Error checking status:', err);
+      }
+    };
+
+    // ვამოწმებთ სტატუსს როცა კომპონენტი ჩაიტვირთება
+    checkExistingStatus();
+
+    // ვამოწმებთ სტატუსს როცა ონლაინ ვხდებით
+    const handleOnline = () => {
+      checkExistingStatus();
+    };
+
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [navigate]);
 
   useEffect(() => {
     if (!requestCode) return;
