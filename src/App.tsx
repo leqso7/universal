@@ -139,15 +139,22 @@ function App() {
     }
 
     const now = Date.now();
-    if (!isOnline && !forceCheck && lastChecked && (now - lastChecked < 5 * 60 * 1000)) {
+    
+    // ოფლაინ რეჟიმის ლოგიკა
+    if (!isOnline && !forceCheck) {
       const cachedStatus = localStorage.getItem('approvalStatus');
       const cachedTimestamp = localStorage.getItem('statusTimestamp');
+      const wasEverApproved = localStorage.getItem('wasEverApproved');
       
-      if (cachedStatus && cachedTimestamp) {
+      if (cachedStatus === 'approved' && cachedTimestamp && wasEverApproved === 'true') {
         const timestamp = parseInt(cachedTimestamp);
-        if (!isNaN(timestamp) && now - timestamp < 30 * 60 * 1000) { 
-          setHasAccess(cachedStatus === 'approved');
-          return;
+        if (!isNaN(timestamp)) {
+          // თუ ოდესმე approved იყო, ვაძლევთ 7 დღემდე ოფლაინ წვდომას
+          const OFFLINE_ACCESS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 დღე
+          if (now - timestamp < OFFLINE_ACCESS_DURATION) {
+            setHasAccess(true);
+            return;
+          }
         }
       }
     }
@@ -171,6 +178,7 @@ function App() {
         localStorage.removeItem('userCode');
         localStorage.removeItem('approvalStatus');
         localStorage.removeItem('statusTimestamp');
+        localStorage.removeItem('wasEverApproved');
         setHasAccess(false);
         navigate('/request', { replace: true });
         return;
@@ -179,6 +187,7 @@ function App() {
       if (data.status === 'approved') {
         localStorage.setItem('approvalStatus', 'approved');
         localStorage.setItem('statusTimestamp', now.toString());
+        localStorage.setItem('wasEverApproved', 'true'); // ვიმახსოვრებთ რომ ოდესმე approved იყო
         setHasAccess(true);
       } else {
         localStorage.removeItem('approvalStatus');
@@ -193,15 +202,17 @@ function App() {
       if (!isOnline) {
         const cachedStatus = localStorage.getItem('approvalStatus');
         const cachedTimestamp = localStorage.getItem('statusTimestamp');
+        const wasEverApproved = localStorage.getItem('wasEverApproved');
         
-        if (cachedStatus && cachedTimestamp) {
+        if (cachedStatus === 'approved' && cachedTimestamp && wasEverApproved === 'true') {
           const timestamp = parseInt(cachedTimestamp);
-          if (!isNaN(timestamp) && now - timestamp < 30 * 60 * 1000) {
-            setHasAccess(cachedStatus === 'approved');
-          } else {
-            localStorage.removeItem('approvalStatus');
-            localStorage.removeItem('statusTimestamp');
-            setHasAccess(false);
+          if (!isNaN(timestamp)) {
+            const OFFLINE_ACCESS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 დღე
+            if (now - timestamp < OFFLINE_ACCESS_DURATION) {
+              setHasAccess(true);
+            } else {
+              setHasAccess(false);
+            }
           }
         } else {
           setHasAccess(false);
