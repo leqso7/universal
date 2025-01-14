@@ -107,7 +107,6 @@ const SaveButton = styled.button`
 function App() {
   const navigate = useNavigate();
   const [hasAccess, setHasAccess] = useState(false); 
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [students, setStudents] = useState<Student[]>([]);
   const [className, setClassName] = useState('');
   const [classList, setClassList] = useState('');
@@ -115,9 +114,7 @@ function App() {
 
   useEffect(() => {
     const handleOnline = () => {
-      setIsOnline(true);
       checkUserStatus(true);
-      // ვარეგისტრირებთ background sync-ს
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then(registration => {
           if ('sync' in registration) {
@@ -127,7 +124,7 @@ function App() {
         });
       }
     };
-    const handleOffline = () => setIsOnline(false);
+    const handleOffline = () => {};
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -138,35 +135,45 @@ function App() {
     };
   }, []);
 
+  const checkOfflineStatus = () => {
+    const cachedStatus = localStorage.getItem('approvalStatus');
+    const cachedServerTime = localStorage.getItem('lastServerTime');
+    const cachedValidUntil = localStorage.getItem('validUntil');
+    const cachedConfig = JSON.parse(localStorage.getItem('appConfig') || '{}');
+    
+    if (!cachedStatus || !cachedServerTime || !cachedValidUntil || !cachedConfig) {
+      return false;
+    }
+
+    const lastServerTime = new Date(cachedServerTime).getTime();
+    const validUntil = new Date(cachedValidUntil).getTime();
+    const elapsedTime = Date.now() - lastServerTime;
+    const estimatedServerTime = new Date(lastServerTime + elapsedTime);
+
+    const maxOfflineTime = parseInt(cachedConfig.OFFLINE_ACCESS_DURATION) || 604800000;
+    if (elapsedTime > maxOfflineTime) {
+      return false;
+    }
+
+    if (estimatedServerTime > new Date(validUntil)) {
+      return false;
+    }
+
+    return cachedStatus === 'approved';
+  };
+
   const checkUserStatus = async (isImportantAction = false) => {
     const maxRetries = isImportantAction ? 3 : 1;
     let retryCount = 0;
 
-    // ოფლაინ ლოგიკა
-    const checkOfflineStatus = () => {
-      const cachedStatus = localStorage.getItem('approvalStatus');
-      const cachedTimestamp = parseInt(localStorage.getItem('statusTimestamp') || '0');
-      const now = Date.now();
-      const OFFLINE_ACCESS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 დღე
-
-      if (cachedStatus === 'approved' && (now - cachedTimestamp) < OFFLINE_ACCESS_DURATION) {
-        return true;
-      }
-      return false;
-    };
-
-    const tryCheck = async (): Promise<boolean> => {
+    const attemptCheck = async (): Promise<boolean> => {
       try {
-        if (!navigator.onLine) {
-          const offlineStatus = checkOfflineStatus();
-          console.log('Offline mode: using cached status');
-          setHasAccess(offlineStatus);
-          return offlineStatus;
+        if (checkOfflineStatus()) {
+          return true;
         }
 
         const accessCode = localStorage.getItem('accessCode');
         if (!accessCode) {
-          console.log('No access code found');
           setHasAccess(false);
           return false;
         }
@@ -192,70 +199,51 @@ function App() {
 
         const data = await response.json();
         
-        // თუ სერვერი გვეუბნება რომ ქეში გამოვიყენოთ
-        if (data.status === 'cached') {
-          const offlineStatus = checkOfflineStatus();
-          console.log('Server suggested using cache:', data.message);
-          setHasAccess(offlineStatus);
-          return offlineStatus;
+        if (data.config) {
+          localStorage.setItem('appConfig', JSON.stringify(data.config));
+        }
+        
+        if (data.serverTime) {
+          localStorage.setItem('lastServerTime', data.serverTime);
+        }
+        if (data.validUntil) {
+          localStorage.setItem('validUntil', data.validUntil);
+        }
+
+        if (data.status === 'expired') {
+          localStorage.removeItem('approvalStatus');
+          setHasAccess(false);
+          return false;
         }
         
         if (data.status === 'approved') {
           localStorage.setItem('approvalStatus', 'approved');
-          localStorage.setItem('statusTimestamp', Date.now().toString());
           setHasAccess(true);
           return true;
         } else {
           localStorage.removeItem('approvalStatus');
-          localStorage.removeItem('statusTimestamp');
           setHasAccess(false);
           return false;
         }
       } catch (error) {
-        if (error instanceof TypeError && error.message === 'Failed to fetch') {
-          // ქსელის პრობლემაა, ვიყენებთ ქეშს
-          const offlineStatus = checkOfflineStatus();
-          console.log('Network error: using cached status');
-          setHasAccess(offlineStatus);
-          return offlineStatus;
+        if (retryCount < maxRetries - 1) {
+          retryCount++;
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return attemptCheck();
         }
-        
-        console.error('Error checking status:', error);
-        retryCount++;
-        
-        if (retryCount < maxRetries) {
-          const delay = 1000 * Math.pow(2, retryCount); // ექსპონენციალური backoff
-          console.log(`Retrying in ${delay}ms... (${retryCount}/${maxRetries})`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          return tryCheck();
-        }
-        
-        throw error;
+        console.error('Failed to check user status:', error);
+        return false;
       }
-    };
-
-    try {
-      return await tryCheck();
-    } catch (error) {
-      console.error('Final error checking user status:', error);
-      const offlineStatus = checkOfflineStatus();
-      setHasAccess(offlineStatus);
-      return offlineStatus;
     }
-  };
 
-  const handleImportantAction = async () => {
-    await checkUserStatus(true);
-    // აქ შეგიძლია გააგრძელო ქმედება თუ სტატუსი approved არის
+    return attemptCheck();
   };
 
   useEffect(() => {
-    // ვამოწმებთ სტატუსს საიტის გახსნისას
     checkUserStatus();
 
-    // ინტელიგენტური ინტერვალი
-    const CHECK_INTERVAL = 30 * 60 * 1000; // 30 წუთში ერთხელ
-    const ACTIVE_CHECK_INTERVAL = 5 * 60 * 1000; // 5 წუთში ერთხელ
+    const CHECK_INTERVAL = 30 * 60 * 1000; 
+    const ACTIVE_CHECK_INTERVAL = 5 * 60 * 1000; 
 
     let lastInteraction = Date.now();
     let checkInterval: NodeJS.Timeout;
@@ -274,23 +262,19 @@ function App() {
       checkInterval = setInterval(() => {
         const timeSinceLastInteraction = Date.now() - lastInteraction;
         
-        // თუ მომხმარებელი აქტიურია ბოლო 30 წუთის განმავლობაში
-        if (timeSinceLastInteraction < 30 * 60 * 1000) {
+        if (timeSinceLastInteraction < CHECK_INTERVAL) {
           checkUserStatus();
         }
-      }, navigator.onLine ? ACTIVE_CHECK_INTERVAL : CHECK_INTERVAL);
+      }, ACTIVE_CHECK_INTERVAL);
     };
 
-    // ვიწყებთ შემოწმებას
     startChecking();
 
-    // ვუსმენთ მომხმარებლის აქტივობას
     window.addEventListener('mousemove', handleUserInteraction);
     window.addEventListener('keypress', handleUserInteraction);
     window.addEventListener('click', handleUserInteraction);
     window.addEventListener('scroll', handleUserInteraction);
     
-    // ვამოწმებთ როცა ტაბს უბრუნდება
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
@@ -360,21 +344,6 @@ function App() {
   return (
     <AppContainer>
       <GlobalStyle />
-      {!isOnline && (
-        <div style={{ 
-          position: 'fixed', 
-          top: 0, 
-          left: 0, 
-          right: 0, 
-          background: '#ff9800', 
-          color: 'white', 
-          padding: '10px', 
-          textAlign: 'center',
-          zIndex: 1000 
-        }}>
-          ოფლაინ რეჟიმი - ზოგიერთი ფუნქცია შეზღუდულია
-        </div>
-      )}
       <ToastContainer position="bottom-right" />
       <Routes>
         <Route

@@ -83,12 +83,6 @@ const Button = styled.button`
   }
 `;
 
-const ErrorText = styled.p`
-  color: #d32f2f;
-  margin-top: 10px;
-  font-size: 14px;
-`;
-
 const CodeDisplay = styled.div`
   text-align: center;
   margin-top: 20px;
@@ -111,7 +105,6 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [requestCode, setRequestCode] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
 
@@ -194,7 +187,7 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
           setRequestCode(null);
           setFirstName('');
           setLastName('');
-          setError('თქვენი წვდომა დაბლოკილია. გთხოვთ დაელოდოთ ადმინისტრატორის პასუხს.');
+          toast.error('თქვენი წვდომა დაბლოკილია. გთხოვთ დაელოდოთ ადმინისტრატორის პასუხს.');
         }
       } catch (err) {
         console.error('Error checking status:', err);
@@ -224,7 +217,6 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
     }
 
     setLoading(true);
-    setError(null);
 
     try {
       const response = await fetch(`${EDGE_FUNCTION_URL}/request`, {

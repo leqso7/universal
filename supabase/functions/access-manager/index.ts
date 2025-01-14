@@ -8,190 +8,164 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400'
 }
 
-// უსაფრთხო კოდის გენერაცია
-const generateSecureCode = () => {
-  const array = new Uint32Array(1);
-  crypto.getRandomValues(array);
-  return (array[0] % 90000 + 10000).toString();
-};
+const supabaseAdmin = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+);
 
-// Rate limiting
-const RATE_LIMIT = 100; // მოთხოვნები საათში
-const rateLimiter = new Map();
-
-const checkRateLimit = (ip: string) => {
-  const now = Date.now();
-  const hour = Math.floor(now / 3600000);
-  const key = `${ip}:${hour}`;
-  const count = rateLimiter.get(key) || 0;
+const getConfig = async () => {
+  const { data, error } = await supabaseAdmin
+    .from('app_config')
+    .select('key, value');
   
-  if (count >= RATE_LIMIT) {
-    throw new Error('მოთხოვნების ლიმიტი ამოწურულია');
+  if (error) {
+    console.error('Error fetching config:', error);
+    return null;
   }
-  
-  rateLimiter.set(key, count + 1);
+
+  const config: { [key: string]: string } = {};
+  if (data) {
+    data.forEach((item: { key: string; value: string }) => {
+      config[item.key] = item.value;
+    });
+  }
+  return config;
 };
 
-// Rate limiting და ინტერვალების კონტროლი
-const checkRateLimitAndInterval = async (accessCode: string): Promise<boolean> => {
-  const supabaseAdmin = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-  )
+const approveAccessRequest = async (code: string) => {
+  const config = await getConfig();
+  if (!config) return { error: 'Configuration error' };
 
-  const { data: lastCheck, error: readError } = await supabaseAdmin
+  const validityDays = parseInt(config['DEFAULT_CODE_VALIDITY']) || 30;
+  const validUntil = new Date();
+  validUntil.setDate(validUntil.getDate() + validityDays);
+
+  const { error } = await supabaseAdmin
+    .from('access_requests')
+    .update({ 
+      status: 'approved',
+      valid_until: validUntil.toISOString()
+    })
+    .eq('code', code);
+
+  if (error) return { error: 'Failed to approve request' };
+  return { success: true, validUntil: validUntil.toISOString() };
+};
+
+const checkAccessStatus = async (code: string) => {
+  const canCheck = await checkRateLimitAndInterval(code);
+  if (!canCheck) {
+    return { 
+      status: 'rate_limited',
+      message: 'Too many requests or too frequent checks'
+    };
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('access_requests')
+    .select('status, valid_until')
+    .eq('code', code)
+    .single();
+
+  if (error) return { error: 'Failed to check status' };
+
+  if (data.valid_until) {
+    const now = new Date();
+    const validUntil = new Date(data.valid_until);
+    if (now > validUntil) {
+      return { 
+        status: 'expired',
+        serverTime: now.toISOString(),
+        validUntil: data.valid_until
+      };
+    }
+  }
+
+  return {
+    status: data.status,
+    serverTime: new Date().toISOString(),
+    validUntil: data.valid_until
+  };
+};
+
+const checkRateLimitAndInterval = async (code: string): Promise<boolean> => {
+  const config = await getConfig();
+  if (!config) return true;
+
+  const { data: lastCheck, error } = await supabaseAdmin
     .from('status_checks')
-    .select('last_check_time')
-    .eq('access_code', accessCode)
+    .select('last_check_time, check_count')
+    .eq('access_code', code)
     .single();
 
   const now = new Date().getTime();
-  const minInterval = 4 * 60 * 1000; // მინიმუმ 4 წუთი შემოწმებებს შორის
+  const minInterval = parseInt(config['MIN_CHECK_INTERVAL']) || 300000;
+  const maxChecksPerHour = parseInt(config['RATE_LIMIT_PER_HOUR']) || 100;
 
   if (lastCheck?.last_check_time) {
     const timeSinceLastCheck = now - new Date(lastCheck.last_check_time).getTime();
     if (timeSinceLastCheck < minInterval) {
       return false;
     }
+
+    if ((lastCheck.check_count as number) >= maxChecksPerHour) {
+      return false;
+    }
   }
 
-  const { error: writeError } = await supabaseAdmin
+  await supabaseAdmin
     .from('status_checks')
     .upsert({ 
-      access_code: accessCode, 
+      access_code: code, 
       last_check_time: new Date().toISOString(),
-      check_count: lastCheck ? (lastCheck.check_count || 0) + 1 : 1
+      check_count: ((lastCheck?.check_count as number) || 0) + 1
     });
 
   return true;
 };
 
-// ვალიდაცია
-const validateInput = (firstName: string, lastName: string) => {
-  const nameRegex = /^[\u10A0-\u10FF\s\w]{2,50}$/;
-  if (!firstName?.trim() || !lastName?.trim()) {
-    throw new Error('სახელი და გვარი სავალდებულოა');
-  }
-  if (!nameRegex.test(firstName) || !nameRegex.test(lastName)) {
-    throw new Error('სახელი და გვარი უნდა შეიცავდეს მინიმუმ 2 სიმბოლოს');
-  }
-};
-
 serve(async (req) => {
-  // CORS
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    const url = new URL(req.url);
+    const path = url.pathname.split('/').pop();
 
-    const url = new URL(req.url)
-    const path = url.pathname.split('/').pop()
-    const clientIP = req.headers.get('x-real-ip') || 'unknown';
+    if (req.method === 'POST') {
+      const { action, accessCode } = await req.json();
 
-    // Rate limiting შემოწმება
-    checkRateLimit(clientIP);
+      switch (action) {
+        case 'check':
+          const status = await checkAccessStatus(accessCode);
+          return new Response(JSON.stringify(status), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
 
-    if (req.method === 'POST' && path === 'request') {
-      const { firstName, lastName } = await req.json()
-      
-      // ვალიდაცია
-      validateInput(firstName, lastName);
+        case 'approve':
+          const result = await approveAccessRequest(accessCode);
+          return new Response(JSON.stringify(result), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
 
-      const code = generateSecureCode();
-      
-      const { data, error } = await supabaseAdmin
-        .rpc('create_access_request', {
-          p_code: code,
-          p_first_name: firstName.trim(),
-          p_last_name: lastName.trim(),
-          p_ip_address: clientIP,
-          p_user_agent: req.headers.get('user-agent')
-        })
-
-      if (error) throw error
-
-      return new Response(
-        JSON.stringify({ code }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    if (req.method === 'GET' && path === 'status') {
-      const code = url.searchParams.get('code')
-      if (!code) {
-        return new Response(
-          JSON.stringify({ error: 'კოდი სავალდებულოა' }),
-          { 
+        default:
+          return new Response(JSON.stringify({ error: 'Invalid action' }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 400
-          }
-        )
+          });
       }
-
-      // ვამოწმებთ rate limit-ს და ინტერვალებს
-      const canCheck = await checkRateLimitAndInterval(code);
-      if (!canCheck) {
-        return new Response(
-          JSON.stringify({ 
-            status: 'cached',
-            message: 'Using cached status, please wait before next check'
-          }),
-          { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 200
-          }
-        )
-      }
-
-      const { data, error } = await supabaseAdmin
-        .from('access_requests')
-        .select('status')
-        .eq('code', code)
-        .single()
-
-      if (error) {
-        return new Response(
-          JSON.stringify({ error: error.message }),
-          { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 400
-          }
-        )
-      }
-
-      if (!data) {
-        return new Response(
-          JSON.stringify({ error: 'კოდი ვერ მოიძებნა' }),
-          { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 404
-          }
-        )
-      }
-
-      return new Response(
-        JSON.stringify({ status: data.status }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200
-        }
-      )
     }
 
-    throw new Error('არასწორი მოთხოვნა')
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 405
+    });
 
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400
-      }
-    )
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500
+    });
   }
-})
+});
