@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -12,20 +12,27 @@ interface RequestAccessProps {
 }
 
 const Container = styled.div`
-  min-height: 100vh;
-  width: 100vw;
-  max-width: 100vw;
-  background: linear-gradient(120deg, #ffeb3b 0%, #8bc34a 100%);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  min-height: 100vh;
   padding: 20px;
-  box-sizing: border-box;
-  overflow-x: hidden;
-  margin: 0;
+  background-color: #f5f5f5;
+`;
+
+const OfflineIndicator = styled.div<{ isOffline: boolean }>`
   position: fixed;
-  top: 0;
-  left: 0;
+  top: 10px;
+  right: 10px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  background-color: ${props => props.isOffline ? '#ff4444' : '#44b700'};
+  color: white;
+  font-size: 14px;
+  opacity: ${props => props.isOffline ? 1 : 0};
+  transition: opacity 0.3s ease-in-out;
+  z-index: 1000;
 `;
 
 const Form = styled.form`
@@ -107,10 +114,12 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
   const [requestCode, setRequestCode] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? window.navigator.onLine : true);
 
   // ვამოწმებთ ოფლაინ წვდომას
-  const checkOfflineAccess = () => {
+  const checkOfflineAccess = useCallback(() => {
+    if (typeof window === 'undefined') return false;
+    
     const wasEverApproved = localStorage.getItem('wasEverApproved') === 'true';
     const lastStatusCheck = localStorage.getItem('statusTimestamp');
     
@@ -121,19 +130,19 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
     const MAX_OFFLINE_TIME = 24 * 60 * 60 * 1000; // 24 საათი
     
     return now - lastCheckTime < MAX_OFFLINE_TIME;
-  };
+  }, []);
 
   // ონლაინ სტატუსის მონიტორინგი
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const handleOnline = () => {
       setIsOnline(true);
-      // როცა ონლაინ ვართ, მაშინვე ვამოწმებთ სტატუსს
       checkExistingStatus();
     };
 
     const handleOffline = () => {
       setIsOnline(false);
-      // თუ გვაქვს ოფლაინ წვდომა, ვაგრძელებთ მუშაობას
       if (checkOfflineAccess()) {
         onAccessGranted();
       }
@@ -143,7 +152,7 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
     window.addEventListener('offline', handleOffline);
 
     // თავიდანვე ვამოწმებთ ოფლაინ წვდომას
-    if (!navigator.onLine && checkOfflineAccess()) {
+    if (!window.navigator.onLine && checkOfflineAccess()) {
       onAccessGranted();
     }
 
@@ -151,7 +160,7 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [onAccessGranted]);
+  }, [onAccessGranted, checkOfflineAccess]);
 
   useEffect(() => {
     const savedCode = localStorage.getItem('lastRequestCode');
@@ -343,6 +352,9 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
 
   return (
     <Container>
+      <OfflineIndicator isOffline={!isOnline}>
+        ხაზგარეშე რეჟიმი
+      </OfflineIndicator>
       <Form onSubmit={handleSubmit}>
         <Title>მოთხოვნის გაგზავნა</Title>
         {!requestCode ? (
