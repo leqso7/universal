@@ -124,14 +124,88 @@ const checkRateLimitAndInterval = async (code: string): Promise<boolean> => {
   return true;
 };
 
+const CHECK_INTERVAL_ACTIVE = 10 * 60 * 1000;    // 10 წუთი
+const CHECK_INTERVAL_INACTIVE = 60 * 60 * 1000;  // 1 საათი
+
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "https://class-manager--one.vercel.app",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
+
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     const url = new URL(req.url);
-    const path = url.pathname.split('/').pop();
+    const path = url.pathname;
+    
+    // სტატუსის შემოწმება
+    if (path === "/status" && req.method === "GET") {
+      const code = url.searchParams.get("code");
+      const isActive = url.searchParams.get("isActive") === "true";
+      
+      if (!code) {
+        return new Response(
+          JSON.stringify({ error: "კოდი არ არის მითითებული" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      // ვამოწმებთ ბოლო შემოწმების დროს
+      const { data: lastCheck } = await supabaseAdmin
+        .from('status_checks')
+        .select('created_at')
+        .eq('code', code)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (lastCheck) {
+        const timeSinceLastCheck = Date.now() - new Date(lastCheck.created_at).getTime();
+        const minInterval = isActive ? CHECK_INTERVAL_ACTIVE : CHECK_INTERVAL_INACTIVE;
+
+        if (timeSinceLastCheck < minInterval) {
+          return new Response(
+            JSON.stringify({ error: "გთხოვთ დაიცადოთ შემდეგ შემოწმებამდე" }),
+            {
+              status: 429,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            }
+          );
+        }
+      }
+
+      // ვინახავთ შემოწმების ისტორიას
+      await supabaseAdmin
+        .from('status_checks')
+        .insert([
+          { 
+            code,
+            is_active: isActive,
+            ip: req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for"),
+            user_agent: req.headers.get("user-agent")
+          }
+        ]);
+
+      const { data: request } = await supabaseAdmin
+        .from('access_requests')
+        .select('status')
+        .eq('code', code)
+        .single();
+
+      return new Response(
+        JSON.stringify({ status: request?.status || "pending" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     if (req.method === 'POST') {
       const { action, accessCode } = await req.json();

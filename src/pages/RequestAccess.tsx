@@ -107,24 +107,51 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
   const [requestCode, setRequestCode] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  // ინტერვალები მილიწამებში
-  const CHECK_INTERVAL_ACTIVE = 10 * 60 * 1000;    // 10 წუთი
-  const CHECK_INTERVAL_INACTIVE = 60 * 60 * 1000;  // 1 საათი
+  // ვამოწმებთ ოფლაინ წვდომას
+  const checkOfflineAccess = () => {
+    const wasEverApproved = localStorage.getItem('wasEverApproved') === 'true';
+    const lastStatusCheck = localStorage.getItem('statusTimestamp');
+    
+    if (!wasEverApproved || !lastStatusCheck) return false;
+    
+    const lastCheckTime = parseInt(lastStatusCheck);
+    const now = Date.now();
+    const MAX_OFFLINE_TIME = 24 * 60 * 60 * 1000; // 24 საათი
+    
+    return now - lastCheckTime < MAX_OFFLINE_TIME;
+  };
 
-  // ვამოწმებთ არის თუ არა ბრაუზერის ტაბი აქტიური
-  const [isTabActive, setIsTabActive] = useState(!document.hidden);
-
+  // ონლაინ სტატუსის მონიტორინგი
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      setIsTabActive(!document.hidden);
+    const handleOnline = () => {
+      setIsOnline(true);
+      // როცა ონლაინ ვართ, მაშინვე ვამოწმებთ სტატუსს
+      checkExistingStatus();
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    const handleOffline = () => {
+      setIsOnline(false);
+      // თუ გვაქვს ოფლაინ წვდომა, ვაგრძელებთ მუშაობას
+      if (checkOfflineAccess()) {
+        onAccessGranted();
+      }
     };
-  }, []);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // თავიდანვე ვამოწმებთ ოფლაინ წვდომას
+    if (!navigator.onLine && checkOfflineAccess()) {
+      onAccessGranted();
+    }
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [onAccessGranted]);
 
   useEffect(() => {
     const savedCode = localStorage.getItem('lastRequestCode');
@@ -137,39 +164,46 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
     }
   }, []);
 
-  useEffect(() => {
-    const checkExistingStatus = async () => {
-      const userCode = localStorage.getItem('userCode');
-      if (!userCode) return;
+  const checkExistingStatus = async () => {
+    const userCode = localStorage.getItem('userCode');
+    if (!userCode) return;
 
-      try {
-        const response = await fetch(`${EDGE_FUNCTION_URL}/status?code=${userCode}`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
+    try {
+      const response = await fetch(`${EDGE_FUNCTION_URL}/status?code=${userCode}&isActive=${!document.hidden}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.status === 429) return;
+
+      const data = await response.json();
+      
+      if (data.status === 'approved') {
+        localStorage.setItem('approvalStatus', 'approved');
+        localStorage.setItem('statusTimestamp', Date.now().toString());
+        localStorage.setItem('wasEverApproved', 'true');
+        navigate('/', { replace: true });
+      } else if (data.status === 'blocked') {
+        // თუ დაბლოკილია, ვშლით ყველა ლოკალურ მონაცემს
+        localStorage.removeItem('userCode');
+        localStorage.removeItem('approvalStatus');
+        localStorage.removeItem('statusTimestamp');
+        localStorage.removeItem('wasEverApproved');
+        toast.error('თქვენი წვდომა დაბლოკილია', {
+          position: "top-center",
+          autoClose: 3000
         });
-
-        const data = await response.json();
-        
-        if (data.status === 'approved') {
-          localStorage.setItem('approvalStatus', 'approved');
-          localStorage.setItem('statusTimestamp', Date.now().toString());
-          localStorage.setItem('wasEverApproved', 'true');
-          navigate('/', { replace: true });
-        } else if (data.status === 'blocked') {
-          localStorage.removeItem('userCode');
-          localStorage.removeItem('approvalStatus');
-          localStorage.removeItem('statusTimestamp');
-          localStorage.removeItem('wasEverApproved');
-          toast.error('თქვენი წვდომა დაბლოკილია', {
-            position: "top-center",
-            autoClose: 3000
-          });
-        }
-      } catch (err) {
-        console.error('Error checking status:', err);
       }
-    };
+    } catch (err) {
+      console.error('Error checking status:', err);
+      // თუ ოფლაინ ვართ და გვაქვს წვდომა, ვაგრძელებთ მუშაობას
+      if (!navigator.onLine && checkOfflineAccess()) {
+        onAccessGranted();
+      }
+    }
+  };
 
+  useEffect(() => {
     // ვამოწმებთ სტატუსს როცა კომპონენტი ჩაიტვირთება
     checkExistingStatus();
 
@@ -187,7 +221,16 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
 
     const checkStatus = async () => {
       try {
-        const response = await fetch(`${EDGE_FUNCTION_URL}/status?code=${requestCode}`);
+        const response = await fetch(
+          `${EDGE_FUNCTION_URL}/status?code=${requestCode}&isActive=${!document.hidden}`,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+
+        if (response.status === 429) return;
+
         const data = await response.json();
 
         if (!response.ok) throw new Error(data.error);
@@ -195,6 +238,8 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
         if (data.status === 'approved') {
           localStorage.setItem('approvalStatus', 'approved');
           localStorage.setItem('userCode', requestCode);
+          localStorage.setItem('statusTimestamp', Date.now().toString());
+          localStorage.setItem('wasEverApproved', 'true');
           onAccessGranted();
         } else if (data.status === 'blocked') {
           localStorage.removeItem('lastRequestCode');
@@ -202,6 +247,8 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
           localStorage.removeItem('lastName');
           localStorage.removeItem('userCode');
           localStorage.removeItem('approvalStatus');
+          localStorage.removeItem('statusTimestamp');
+          localStorage.removeItem('wasEverApproved');
           setRequestCode(null);
           setFirstName('');
           setLastName('');
@@ -214,14 +261,15 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
 
     // შემოწმება ყოველ 5 წამში
     const interval = setInterval(() => {
-      if (isTabActive) {
+      if (navigator.onLine) {
         checkStatus();
       }
-    }, isTabActive ? CHECK_INTERVAL_ACTIVE : CHECK_INTERVAL_INACTIVE);
+    }, 5000);
+    
     checkStatus(); // პირველი შემოწმება
 
     return () => clearInterval(interval);
-  }, [requestCode, onAccessGranted, isTabActive]);
+  }, [requestCode, onAccessGranted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
