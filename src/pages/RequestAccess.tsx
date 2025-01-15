@@ -142,27 +142,17 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
       const userCode = localStorage.getItem('userCode');
       if (!userCode) return;
 
-      // შევამოწმოთ ბოლო შემოწმების დრო
-      const lastCheck = localStorage.getItem('lastStatusCheck');
-      const now = Date.now();
-      const interval = isTabActive ? CHECK_INTERVAL_ACTIVE : CHECK_INTERVAL_INACTIVE;
-
-      if (lastCheck && now - parseInt(lastCheck) < interval) {
-        return; // ჯერ არ არის შემოწმების დრო
-      }
-
       try {
-        localStorage.setItem('lastStatusCheck', now.toString());
         const response = await fetch(`${EDGE_FUNCTION_URL}/status?code=${userCode}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         });
 
         const data = await response.json();
-
+        
         if (data.status === 'approved') {
           localStorage.setItem('approvalStatus', 'approved');
-          localStorage.setItem('statusTimestamp', now.toString());
+          localStorage.setItem('statusTimestamp', Date.now().toString());
           localStorage.setItem('wasEverApproved', 'true');
           navigate('/', { replace: true });
         } else if (data.status === 'blocked') {
@@ -180,33 +170,23 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
       }
     };
 
-    // პირველი შემოწმება გვინდა მაშინვე
+    // ვამოწმებთ სტატუსს როცა კომპონენტი ჩაიტვირთება
     checkExistingStatus();
 
-    // შემდეგი შემოწმებები ინტერვალით
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        checkExistingStatus();
-      }
-    }, isTabActive ? CHECK_INTERVAL_ACTIVE : CHECK_INTERVAL_INACTIVE);
+    // ვამოწმებთ სტატუსს როცა ონლაინ ვხდებით
+    const handleOnline = () => {
+      checkExistingStatus();
+    };
 
-    return () => clearInterval(interval);
-  }, [navigate, isTabActive]);
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [navigate]);
 
   useEffect(() => {
     if (!requestCode) return;
 
     const checkStatus = async () => {
-      const lastCheck = localStorage.getItem('lastStatusCheck');
-      const now = Date.now();
-      const interval = isTabActive ? CHECK_INTERVAL_ACTIVE : CHECK_INTERVAL_INACTIVE;
-
-      if (lastCheck && now - parseInt(lastCheck) < interval) {
-        return; // ჯერ არ არის შემოწმების დრო
-      }
-
       try {
-        localStorage.setItem('lastStatusCheck', now.toString());
         const response = await fetch(`${EDGE_FUNCTION_URL}/status?code=${requestCode}`);
         const data = await response.json();
 
@@ -232,15 +212,13 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
       }
     };
 
-    // პირველი შემოწმება
-    checkStatus();
-
-    // პერიოდული შემოწმება
+    // შემოწმება ყოველ 5 წამში
     const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
+      if (isTabActive) {
         checkStatus();
       }
     }, isTabActive ? CHECK_INTERVAL_ACTIVE : CHECK_INTERVAL_INACTIVE);
+    checkStatus(); // პირველი შემოწმება
 
     return () => clearInterval(interval);
   }, [requestCode, onAccessGranted, isTabActive]);
@@ -275,7 +253,7 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
       });
 
       const data = await response.json();
-
+      
       if (!response.ok) {
         toast.error(data.error || 'მოთხოვნის გაგზავნა ვერ მოხერხდა', {
           position: "top-center",
@@ -292,7 +270,7 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
       localStorage.setItem('firstName', firstName);
       localStorage.setItem('lastName', lastName);
       setRequestCode(data.code);
-
+      
       toast.success('მოთხოვნა წარმატებით გაიგზავნა', {
         position: "top-center",
         autoClose: 3000,
