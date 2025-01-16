@@ -49,9 +49,19 @@ const AppContainer = styled.div`
 
 const InstallContainer = styled.div`
   position: fixed;
-  bottom: 20px;
-  left: 20px;
+  top: 80px;
+  right: 20px;
   z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+`;
+
+const InstallText = styled.div`
+  color: #1877f2;
+  font-size: 14px;
+  font-weight: 500;
 `;
 
 const ClassForm = styled.div<{ $isVisible: boolean }>`
@@ -347,6 +357,10 @@ function App() {
       <AppContainer>
         <FacebookLink />
         <ToastContainer position="bottom-right" />
+        <InstallContainer>
+          <InstallText>დააინსტალირე აპლიკაცია</InstallText>
+          <InstallPWA />
+        </InstallContainer>
         <Routes>
           <Route
             path="/"
@@ -387,9 +401,6 @@ function App() {
             }
           />
         </Routes>
-        <InstallContainer>
-          <InstallPWA />
-        </InstallContainer>
       </AppContainer>
     </>
   );
