@@ -36,20 +36,28 @@ const OfflineIndicator = styled.div<{ isOffline: boolean }>`
 `;
 
 const LoadingContainer = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
 `;
 
 const Spinner = styled.div`
-  width: 50px;
-  height: 50px;
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #3498db;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 10px;
 
   @keyframes spin {
     0% { transform: rotate(0deg); }
@@ -58,7 +66,7 @@ const Spinner = styled.div`
 `;
 
 const LoadingText = styled.div`
-  font-size: 18px;
+  font-size: 16px;
   color: #333;
   text-align: center;
 `;
@@ -118,13 +126,13 @@ const Button = styled.button`
 `;
 
 const CodeDisplay = styled.div`
-  text-align: center;
-  margin-top: 20px;
   background: rgba(255, 255, 255, 0.9);
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
+  width: 100%;
+  max-width: 400px;
 `;
 
 const CodeText = styled.p`
@@ -410,19 +418,22 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
         </Form>
       ) : (
         <>
-          <CodeDisplay>
-            <CodeText>{requestCode}</CodeText>
-            <StatusText>
-              თქვენი კოდი: {requestCode}
-            </StatusText>
-            <StatusText>
-              გთხოვთ დაელოდოთ ადმინისტრატორის დადასტურებას
-            </StatusText>
-          </CodeDisplay>
-          <LoadingContainer>
-            <Spinner />
-            <LoadingText>სტატუსი მოწმდება...</LoadingText>
-          </LoadingContainer>
+          {localStorage.getItem('approvalStatus') === 'approved' ? (
+            <LoadingContainer>
+              <Spinner />
+              <LoadingText>სტატუსი მოწმდება...</LoadingText>
+            </LoadingContainer>
+          ) : (
+            <CodeDisplay>
+              <CodeText>{requestCode}</CodeText>
+              <StatusText>
+                თქვენი კოდი: {requestCode}
+              </StatusText>
+              <StatusText>
+                გთხოვთ დაელოდოთ ადმინისტრატორის დადასტურებას
+              </StatusText>
+            </CodeDisplay>
+          )}
         </>
       )}
       <ToastContainer position="top-center" />
