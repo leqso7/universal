@@ -18,7 +18,6 @@ const Container = styled.div`
   justify-content: center;
   min-height: 100vh;
   padding: 20px;
-  background: linear-gradient(120deg, #ffeb3b 0%, #8bc34a 100%);
 `;
 
 const OfflineIndicator = styled.div<{ isOffline: boolean }>`
