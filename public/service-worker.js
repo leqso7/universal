@@ -4,15 +4,8 @@ const VERSION = '1.0.0';
 // ქეშის სახელი
 const CACHE_NAME = `class-manager-${VERSION}`;
 
-// ბექგრაუნდ სინქრონიზაცია
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'status-check') {
-    event.waitUntil(checkStatusInBackground());
-  }
-});
-
-// სტატუსის შემოწმება ბექგრაუნდში
-async function checkStatusInBackground() {
+// ონლაინ სტატუსის შემოწმება
+self.addEventListener('online', async () => {
   try {
     const accessCode = await getFromDB('accessCode');
     if (!accessCode) return;
@@ -52,10 +45,19 @@ async function checkStatusInBackground() {
     } else if (data.status === 'approved') {
       await saveToDB('approvalStatus', 'approved');
     }
+
+    // ვაგზავნით შეტყობინებას აპლიკაციას
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'STATUS_UPDATE',
+        status: data.status
+      });
+    });
   } catch (error) {
-    console.error('Background sync failed:', error);
+    console.error('Status check failed:', error);
   }
-}
+});
 
 // IndexedDB-სთან მუშაობის ფუნქციები
 async function getFromDB(key) {
@@ -105,9 +107,24 @@ async function saveToDB(key, value) {
 // Service Worker-ის ინსტალაცია
 self.addEventListener('install', (event) => {
   self.skipWaiting();
+  console.log('Service Worker installed');
 });
 
 // Service Worker-ის აქტივაცია
 self.addEventListener('activate', (event) => {
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      // ვშლით ძველ ქეშს
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames
+            .filter(cacheName => cacheName.startsWith('class-manager-'))
+            .filter(cacheName => cacheName !== CACHE_NAME)
+            .map(cacheName => caches.delete(cacheName))
+        );
+      })
+    ])
+  );
+  console.log('Service Worker activated');
 });
