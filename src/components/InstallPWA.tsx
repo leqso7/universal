@@ -55,11 +55,13 @@ const InstallPWA = () => {
 
   useEffect(() => {
     const handler = (e: Event) => {
+      console.log('beforeinstallprompt event triggered');
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
+    console.log('InstallPWA component mounted');
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
@@ -75,12 +77,16 @@ const InstallPWA = () => {
       
       if (choiceResult.outcome === 'accepted') {
         console.log('User accepted the install prompt');
+      } else {
+        console.log('User dismissed the install prompt');
       }
       setDeferredPrompt(null);
     } catch (err) {
       console.error('Error installing PWA:', err);
     }
   };
+
+  console.log('deferredPrompt state:', !!deferredPrompt);
 
   if (!deferredPrompt) return null;
 

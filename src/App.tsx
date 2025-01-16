@@ -50,7 +50,7 @@ const AppContainer = styled.div`
 const InstallContainer = styled.div`
   position: fixed;
   bottom: 20px;
-  right: 20px;
+  left: 80px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
