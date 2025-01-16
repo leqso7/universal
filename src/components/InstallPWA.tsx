@@ -7,9 +7,6 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const InstallButton = styled.button`
-  position: fixed;
-  bottom: 70px;
-  left: 20px;
   background: #4CAF50;
   color: white;
   border: none;
@@ -17,7 +14,6 @@ const InstallButton = styled.button`
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
-  z-index: 1001;
   transition: all 0.3s ease;
 
   &:hover {
@@ -45,8 +41,6 @@ const InstallButton = styled.button`
   @media (max-width: 768px) {
     padding: 8px 15px;
     font-size: 14px;
-    bottom: 60px;
-    left: 10px;
   }
 `;
 
@@ -69,7 +63,10 @@ const InstallPWA = () => {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      alert('ინსტალაცია ამჟამად არ არის ხელმისაწვდომი. გთხოვთ სცადოთ მოგვიანებით.');
+      return;
+    }
 
     try {
       await deferredPrompt.prompt();
@@ -87,8 +84,6 @@ const InstallPWA = () => {
   };
 
   console.log('deferredPrompt state:', !!deferredPrompt);
-
-  if (!deferredPrompt) return null;
 
   return (
     <InstallButton onClick={handleInstallClick}>
