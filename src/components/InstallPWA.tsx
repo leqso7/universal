@@ -6,23 +6,6 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-const InfoText = styled.div`
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 15px;
-  border-radius: 8px;
-  font-size: 14px;
-  max-width: 300px;
-  margin-bottom: 15px;
-  line-height: 1.4;
-`;
-
-const InstallContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
-
 const InstallButton = styled.button`
   background: #4CAF50;
   color: white;
@@ -36,6 +19,23 @@ const InstallButton = styled.button`
   &:hover {
     background: #45a049;
     transform: translateY(-2px);
+
+    &:after {
+      content: "თუ ამ ღილაკს დააჭერთ თქვენ შეძლებთ დააინსტალიროთ ვებსაიტი და დადოთ დესკტოპზე და გამოიყენოთ ინტერნეტის გარეშე";
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 14px;
+      width: max-content;
+      max-width: 300px;
+      margin-bottom: 10px;
+      white-space: normal;
+      line-height: 1.4;
+    }
   }
 
   @media (max-width: 768px) {
@@ -79,14 +79,9 @@ const InstallPWA = () => {
   if (!deferredPrompt) return null;
 
   return (
-    <InstallContainer>
-      <InfoText>
-        თუ ამ ღილაკს დააჭერთ თქვენ შეძლებთ დააინსტალიროთ ვებსაიტი და დადოთ დესკტოპზე და გამოიყენოთ ინტერნეტის გარეშე
-      </InfoText>
-      <InstallButton onClick={handleInstallClick}>
-        დაინსტალირეთ აპლიკაცია
-      </InstallButton>
-    </InstallContainer>
+    <InstallButton onClick={handleInstallClick}>
+      დაინსტალირეთ აპლიკაცია
+    </InstallButton>
   );
 };
 
