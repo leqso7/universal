@@ -79,48 +79,49 @@ const Form = styled.form`
   width: 100%;
   max-width: 400px;
   backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 `;
 
 const Title = styled.h1`
-  text-align: center;
-  margin-bottom: 20px;
-  color: #333;
   font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
 `;
 
 const Input = styled.input`
   width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
+  padding: 12px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 5px;
   font-size: 16px;
-  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s;
 
   &:focus {
-    outline: none;
-    border-color: #4285f4;
+    border-color: #3498db;
   }
 `;
 
 const Button = styled.button`
-  background: #4285f4;
+  width: 100%;
+  padding: 12px;
+  background: #3498db;
   color: white;
-  padding: 12px 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   font-size: 16px;
   cursor: pointer;
-  transition: background 0.3s ease;
-  width: 100%;
-  margin-top: 10px;
+  transition: background 0.2s;
 
   &:hover {
-    background: #3367d6;
+    background: #2980b9;
   }
 
   &:disabled {
-    background: #ccc;
+    background: #bdc3c7;
     cursor: not-allowed;
   }
 `;
