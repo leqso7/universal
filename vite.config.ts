@@ -31,4 +31,16 @@ export default defineConfig({
       }
     })
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name === 'service-worker.js') {
+            return 'service-worker.js';
+          }
+          return `assets/[name]-[hash][extname]`;
+        },
+      },
+    },
+  },
 })
