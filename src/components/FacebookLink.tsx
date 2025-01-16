@@ -1,15 +1,27 @@
 import styled from 'styled-components';
 
 const FacebookContainer = styled.a`
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
+  position: relative;
   cursor: pointer;
   transition: transform 0.2s;
 
   &:hover {
     transform: scale(1.1);
+  }
+
+  &:hover::after {
+    content: 'Facebook';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    margin-top: 5px;
   }
 `;
 

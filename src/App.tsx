@@ -49,7 +49,7 @@ const AppContainer = styled.div`
 
 const InstallContainer = styled.div`
   position: fixed;
-  top: 80px;
+  bottom: 20px;
   right: 20px;
   z-index: 1000;
   display: flex;
@@ -62,6 +62,13 @@ const InstallText = styled.div`
   color: #1877f2;
   font-size: 14px;
   font-weight: 500;
+`;
+
+const SocialContainer = styled.div`
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
 `;
 
 const ClassForm = styled.div<{ $isVisible: boolean }>`
@@ -355,7 +362,9 @@ function App() {
     <>
       <GlobalStyle />
       <AppContainer>
-        <FacebookLink />
+        <SocialContainer>
+          <FacebookLink />
+        </SocialContainer>
         <ToastContainer position="bottom-right" />
         <InstallContainer>
           <InstallText>დააინსტალირე აპლიკაცია</InstallText>
