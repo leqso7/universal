@@ -18,7 +18,7 @@ const Container = styled.div`
   justify-content: center;
   min-height: 100vh;
   padding: 20px;
-  background-color: #f5f5f5;
+  background: linear-gradient(120deg, #ffeb3b 0%, #8bc34a 100%);
 `;
 
 const OfflineIndicator = styled.div<{ isOffline: boolean }>`
@@ -35,15 +35,42 @@ const OfflineIndicator = styled.div<{ isOffline: boolean }>`
   z-index: 1000;
 `;
 
+const LoadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+`;
+
+const Spinner = styled.div`
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+const LoadingText = styled.div`
+  font-size: 18px;
+  color: #333;
+  text-align: center;
+`;
+
 const Form = styled.form`
-  background: white;
+  background: rgba(255, 255, 255, 0.9);
   padding: 30px;
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
   width: 100%;
-  margin: 0 auto;
-  text-align: center;
+  max-width: 400px;
+  backdrop-filter: blur(10px);
 `;
 
 const Title = styled.h1`
@@ -93,6 +120,11 @@ const Button = styled.button`
 const CodeDisplay = styled.div`
   text-align: center;
   margin-top: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
 `;
 
 const CodeText = styled.p`
@@ -355,29 +387,29 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
       <OfflineIndicator isOffline={!isOnline}>
         ხაზგარეშე რეჟიმი
       </OfflineIndicator>
-      <Form onSubmit={handleSubmit}>
-        <Title>მოთხოვნის გაგზავნა</Title>
-        {!requestCode ? (
-          <>
-            <Input
-              type="text"
-              placeholder="სახელი"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              disabled={loading}
-            />
-            <Input
-              type="text"
-              placeholder="გვარი"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              disabled={loading}
-            />
-            <Button type="submit" disabled={loading}>
-              {loading ? 'იგზავნება...' : 'გაგზავნა'}
-            </Button>
-          </>
-        ) : (
+      {!requestCode ? (
+        <Form onSubmit={handleSubmit}>
+          <Title>მოთხოვნის გაგზავნა</Title>
+          <Input
+            type="text"
+            placeholder="სახელი"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            required
+          />
+          <Input
+            type="text"
+            placeholder="გვარი"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            required
+          />
+          <Button type="submit" disabled={loading}>
+            {loading ? 'იგზავნება...' : 'გაგზავნა'}
+          </Button>
+        </Form>
+      ) : (
+        <>
           <CodeDisplay>
             <CodeText>{requestCode}</CodeText>
             <StatusText>
@@ -387,9 +419,13 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
               გთხოვთ დაელოდოთ ადმინისტრატორის დადასტურებას
             </StatusText>
           </CodeDisplay>
-        )}
-      </Form>
-      <ToastContainer />
+          <LoadingContainer>
+            <Spinner />
+            <LoadingText>სტატუსი მოწმდება...</LoadingText>
+          </LoadingContainer>
+        </>
+      )}
+      <ToastContainer position="top-center" />
     </Container>
   );
 };
