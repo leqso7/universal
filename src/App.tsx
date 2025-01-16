@@ -3,6 +3,7 @@ import { createGlobalStyle } from 'styled-components'
 import RequestAccess from './pages/RequestAccess'
 import SearchList, { Student } from './components/SearchList'
 import InstallPWA from './components/InstallPWA'
+import FacebookLink from './components/FacebookLink'
 import styled from 'styled-components'
 import { useState, useEffect } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
@@ -341,53 +342,56 @@ function App() {
   };
 
   return (
-    <AppContainer>
+    <>
       <GlobalStyle />
-      <ToastContainer position="bottom-right" />
-      <Routes>
-        <Route
-          path="/"
-          element={
-            hasAccess ? (
-              <>
-                <SearchList students={students} setStudents={setStudents} />
-                <ClassForm $isVisible={isClassFormVisible}>
-                  <h2>კლასის დამატება</h2>
-                  <Input
-                    type="text"
-                    placeholder="კლასის სახელი"
-                    value={className}
-                    onChange={(e) => setClassName(e.target.value)}
-                  />
-                  <TextArea
-                    placeholder="მოსწავლეების სია (თითო მოსწავლე ახალ ხაზზე)"
-                    value={classList}
-                    onChange={(e) => setClassList(e.target.value)}
-                  />
-                  <SaveButton onClick={handleSaveClass}>შენახვა</SaveButton>
-                  <SaveButton onClick={() => setIsClassFormVisible(false)}>დახურვა</SaveButton>
-                </ClassForm>
-              </>
-            ) : (
-              <Navigate to="/request" replace />
-            )
-          }
-        />
-        <Route
-          path="/request"
-          element={
-            hasAccess ? (
-              <Navigate to="/" replace />
-            ) : (
-              <RequestAccess onAccessGranted={handleAccessGranted} />
-            )
-          }
-        />
-      </Routes>
-      <InstallContainer>
-        <InstallPWA />
-      </InstallContainer>
-    </AppContainer>
+      <AppContainer>
+        <FacebookLink />
+        <ToastContainer position="bottom-right" />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              hasAccess ? (
+                <>
+                  <SearchList students={students} setStudents={setStudents} />
+                  <ClassForm $isVisible={isClassFormVisible}>
+                    <h2>კლასის დამატება</h2>
+                    <Input
+                      type="text"
+                      placeholder="კლასის სახელი"
+                      value={className}
+                      onChange={(e) => setClassName(e.target.value)}
+                    />
+                    <TextArea
+                      placeholder="მოსწავლეების სია (თითო მოსწავლე ახალ ხაზზე)"
+                      value={classList}
+                      onChange={(e) => setClassList(e.target.value)}
+                    />
+                    <SaveButton onClick={handleSaveClass}>შენახვა</SaveButton>
+                    <SaveButton onClick={() => setIsClassFormVisible(false)}>დახურვა</SaveButton>
+                  </ClassForm>
+                </>
+              ) : (
+                <Navigate to="/request" replace />
+              )
+            }
+          />
+          <Route
+            path="/request"
+            element={
+              hasAccess ? (
+                <Navigate to="/" replace />
+              ) : (
+                <RequestAccess onAccessGranted={handleAccessGranted} />
+              )
+            }
+          />
+        </Routes>
+        <InstallContainer>
+          <InstallPWA />
+        </InstallContainer>
+      </AppContainer>
+    </>
   );
 }
 
