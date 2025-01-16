@@ -64,13 +64,6 @@ const InstallText = styled.div`
   font-weight: 500;
 `;
 
-const SocialContainer = styled.div`
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-`;
-
 const ClassForm = styled.div<{ $isVisible: boolean }>`
   position: fixed;
   top: 0;
@@ -362,9 +355,7 @@ function App() {
     <>
       <GlobalStyle />
       <AppContainer>
-        <SocialContainer>
-          <FacebookLink />
-        </SocialContainer>
+        <FacebookLink />
         <ToastContainer position="bottom-right" />
         <InstallContainer>
           <InstallText>დააინსტალირე აპლიკაცია</InstallText>
