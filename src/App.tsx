@@ -154,7 +154,7 @@ function App() {
     const elapsedTime = Date.now() - lastServerTime;
     const estimatedServerTime = new Date(lastServerTime + elapsedTime);
 
-    const maxOfflineTime = parseInt(cachedConfig.OFFLINE_ACCESS_DURATION) || 604800000;
+    const maxOfflineTime = parseInt(cachedConfig.OFFLINE_ACCESS_DURATION) || 604800000; // 7 days in milliseconds
     if (elapsedTime > maxOfflineTime) {
       return false;
     }
