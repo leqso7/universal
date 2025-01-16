@@ -49,8 +49,7 @@ const AppContainer = styled.div`
 const InstallContainer = styled.div`
   position: fixed;
   bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 20px;
   z-index: 1000;
 `;
 
