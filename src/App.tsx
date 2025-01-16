@@ -349,11 +349,15 @@ function App() {
     <>
       <GlobalStyle />
       <AppContainer>
-        <FacebookLink />
+        {hasAccess && (
+          <>
+            <FacebookLink />
+            <InstallContainer>
+              <InstallPWA />
+            </InstallContainer>
+          </>
+        )}
         <ToastContainer position="bottom-right" />
-        <InstallContainer>
-          <InstallPWA />
-        </InstallContainer>
         <Routes>
           <Route
             path="/"
