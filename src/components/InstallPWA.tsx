@@ -49,13 +49,11 @@ const InstallPWA = () => {
 
   useEffect(() => {
     const handler = (e: Event) => {
-      console.log('beforeinstallprompt event triggered');
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
-    console.log('InstallPWA component mounted');
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
@@ -63,10 +61,7 @@ const InstallPWA = () => {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      alert('ინსტალაცია ამჟამად არ არის ხელმისაწვდომი. გთხოვთ სცადოთ მოგვიანებით.');
-      return;
-    }
+    if (!deferredPrompt) return;
 
     try {
       await deferredPrompt.prompt();
@@ -74,8 +69,6 @@ const InstallPWA = () => {
       
       if (choiceResult.outcome === 'accepted') {
         console.log('User accepted the install prompt');
-      } else {
-        console.log('User dismissed the install prompt');
       }
       setDeferredPrompt(null);
     } catch (err) {
@@ -83,7 +76,7 @@ const InstallPWA = () => {
     }
   };
 
-  console.log('deferredPrompt state:', !!deferredPrompt);
+  if (!deferredPrompt) return null;
 
   return (
     <InstallButton onClick={handleInstallClick}>
