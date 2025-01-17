@@ -16,7 +16,6 @@ self.addEventListener('online', async () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxveXp3anpzam5pa21udXFpbG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM1NzY2OTMsImV4cCI6MjA0OTE1MjY5M30.SZEpzqjcOEbNhptBygA-teHLEgZx2_2B_m4tXrp5_vE',
         },
         body: JSON.stringify({
           action: 'check',
