@@ -432,6 +432,58 @@ const AddClassButton = styled.button`
   &:hover {
     background: #45a049;
   }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: calc(100% + 2px);
+    right: 20px;
+    border: 8px solid transparent;
+    border-bottom-color: rgba(0, 0, 0, 0.9);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+
+  &::after {
+    content: "კლასის დამატების ფუნქცია საშუალებას გაძლევთ შეინახოთ მთლიანი კლასის სია. ამის შემდეგ, საძიებო ველში მხოლოდ კლასის სახელის შეყვანით, ავტომატურად დაემატება ყველა მოსწავლე ეკრანზე. ეს დაგიზოგავთ დროს და აღარ მოგიწევთ მოსწავლეების სათითაოდ დამატება ყოველ გაკვეთილზე";
+    position: absolute;
+    top: calc(100% + 20px);
+    right: 0;
+    width: 300px;
+    padding: 15px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.5;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    text-align: left;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    white-space: normal;
+    
+    @media (max-width: 768px) {
+      width: 250px;
+      font-size: 13px;
+      right: -10px;
+    }
+    
+    @media (max-width: 480px) {
+      width: 200px;
+      font-size: 12px;
+      right: -20px;
+    }
+  }
+
+  &:hover::before,
+  &:hover::after {
+    opacity: 1;
+    visibility: visible;
+  }
 `;
 
 const SearchInput = styled.input`
@@ -532,25 +584,61 @@ const Button = styled.button<{ $primary?: boolean }>`
   }
 `;
 
-const NumberButton = styled.button<{ $active: boolean }>`
-  padding: 8px 16px;
+const NumberButton = styled.button<{ 
+  $isValid: boolean;
+  $studentsCount: number;
+}>`
+  position: relative;
+  padding: 8px 12px;
   margin: 0 4px;
   border: none;
   border-radius: 4px;
-  background: ${props => props.$active ? '#007bff' : '#e9ecef'};
-  color: ${props => props.$active ? 'white' : '#495057'};
   cursor: pointer;
-  transform: scale(1);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: ${props => props.$isValid ? '#e8f5e9' : '#ffebee'};
+  color: ${props => props.$isValid ? '#2e7d32' : '#c62828'};
+  transition: all 0.3s ease;
+  box-shadow: 0 0 8px ${props => props.$isValid ? 
+    'rgba(46, 125, 50, 0.3)' : 
+    'rgba(198, 40, 40, 0.3)'};
 
   &:hover {
-    transform: scale(1.1);
-    background: ${props => props.$active ? '#0056b3' : '#dee2e6'};
+    background: ${props => props.$isValid ? '#81c784' : '#ef5350'};
+    color: white;
   }
 
-  &:active {
-    transform: scale(0.95);
+  &:hover::after {
+    content: "${props => 
+      `${props.children} კაციანი ჯგუფები - ${Math.ceil(props.$studentsCount / Number(props.children))} ჯგუფი`}";
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 4px;
+    font-size: 14px;
+    white-space: nowrap;
+    animation: tooltipFadeIn 0.2s ease-out;
+    z-index: 1000;
   }
+
+  @keyframes tooltipFadeIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 5px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+`;
+
+const GroupSizeIndicator = styled.div`
+  margin-top: 10px;
+  font-size: 14px;
+  color: #666;
 `;
 
 const StudentCount = styled.div`
@@ -832,7 +920,8 @@ const StatisticsTab = styled.button<{ $active: boolean }>`
   }
 `;
 
-const SaveAttendanceButton = styled.button`
+// სტილის კომპონენტი გადავიტანოთ ცალკე
+const StyledSaveButton = styled.button`
   background: #4CAF50;
   color: white;
   border: none;
@@ -841,6 +930,7 @@ const SaveAttendanceButton = styled.button`
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;
+  position: relative;
   
   &:hover {
     background: #388E3C;
@@ -851,7 +941,64 @@ const SaveAttendanceButton = styled.button`
   &:active {
     transform: translateY(0);
   }
+
+  &::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    width: 300px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.5;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    text-align: left;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    
+    @media (max-width: 768px) {
+      width: 250px;
+      font-size: 13px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    @media (max-width: 480px) {
+      width: 200px;
+      font-size: 12px;
+    }
+  }
+
+  &:hover::after {
+    opacity: 1;
+    visibility: visible;
+  }
 `;
+
+// ახალი კომპონენტი tooltip-ისთვის
+const SaveAttendanceButton: React.FC<{ className: string; onClick: () => void }> = ({ 
+  className, 
+  onClick 
+}) => {
+  const tooltipText = `ამ ღილაკზე დაჭერის შემდეგ: შეინახება "${className}" კლასის დღევანდელი დასწრების სია, გამოითვლება მოსწავლეთა დასწრების საშუალო მაჩვენებელი და დაგენერირდება გრაფიკები. ამ ინფორმაციის ნახვას კი შეძლებთ დასწრების სტატისტიკაზე დაჭერის შემდეგ.`;
+
+  return (
+    <StyledSaveButton
+      onClick={onClick}
+      data-tooltip={tooltipText}
+    >
+      შენახვა
+    </StyledSaveButton>
+  );
+};
 
 const AttendanceHistoryList = styled.div`
   margin-top: 20px;
@@ -1436,23 +1583,27 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
 
             {showSaveButton && filteredStudents.length > 0 && (
               <SaveAttendanceButton 
+                className={currentClassName} 
                 onClick={handleSaveAttendance}
-                title="თუ შენახვას დააჭერთ ამდროინდელი მოსწავლეთა სია შეინახება და გამოითვლება მოსწავლეთა დასწრების საშუალო მაჩვენებელი პროცენტებში"
-              >
-                შენახვა
-              </SaveAttendanceButton>
+              />
             )}
 
             <ButtonContainer>
-              {[2, 3, 4, 5, 6].map((size) => (
+              {[2, 3, 4, 5, 6].map((number) => (
                 <NumberButton
-                  key={size}
-                  onClick={() => handleGroupSize(size)}
-                  $active={selectedSize === size}
+                  key={number}
+                  $isValid={filteredStudents.length % number === 0}
+                  $studentsCount={filteredStudents.length}
+                  onClick={() => handleGroupSize(number)}
                 >
-                  {size}
+                  {number}
                 </NumberButton>
               ))}
+              <GroupSizeIndicator>
+                {filteredStudents.length > 0 
+                  ? `${selectedSize} კაციანი ჯგუფები - ${Math.ceil(filteredStudents.length / selectedSize)} ჯგუფი`
+                  : 'აირჩიეთ ჯგუფის ზომა'}
+              </GroupSizeIndicator>
             </ButtonContainer>
           </StudentListContainer>
 
