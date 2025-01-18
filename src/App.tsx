@@ -248,11 +248,36 @@ function App() {
   };
 
   useEffect(() => {
-    checkUserStatus();
+    // თავდაპირველი შემოწმება
+    const initialCheck = async () => {
+      const status = await checkUserStatus();
+      if (status) {
+        // თუ წვდომა გვაქვს, ვინახავთ ლოკალურად
+        localStorage.setItem('lastAccessCheck', Date.now().toString());
+      }
+    };
+
+    const lastCheck = localStorage.getItem('lastAccessCheck');
+    const now = Date.now();
+    
+    // თუ ბოლო შემოწმებიდან 1 საათზე ნაკლები გავიდა, აღარ ვამოწმებთ
+    if (!lastCheck || now - parseInt(lastCheck) > 3600000) {
+      initialCheck();
+    }
 
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        checkUserStatus();
+        const lastCheck = localStorage.getItem('lastAccessCheck');
+        const now = Date.now();
+        
+        // მხოლოდ მაშინ ვამოწმებთ თუ ბოლო შემოწმებიდან 1 საათზე მეტი გავიდა
+        if (!lastCheck || now - parseInt(lastCheck) > 3600000) {
+          checkUserStatus().then(status => {
+            if (status) {
+              localStorage.setItem('lastAccessCheck', now.toString());
+            }
+          });
+        }
       }
     };
     
