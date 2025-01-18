@@ -154,7 +154,11 @@ function App() {
     const elapsedTime = Date.now() - lastServerTime;
     const estimatedServerTime = new Date(lastServerTime + elapsedTime);
 
-    const maxOfflineTime = parseInt(cachedConfig.OFFLINE_ACCESS_DURATION) || 604800000; // 7 days in milliseconds
+    const maxOfflineTime = parseInt(cachedConfig.OFFLINE_ACCESS_DURATION);
+    if (!maxOfflineTime) {
+      return false;
+    }
+
     if (elapsedTime > maxOfflineTime) {
       return false;
     }
@@ -246,47 +250,15 @@ function App() {
   useEffect(() => {
     checkUserStatus();
 
-    const CHECK_INTERVAL = 30 * 60 * 1000; 
-    const ACTIVE_CHECK_INTERVAL = 5 * 60 * 1000; 
-
-    let lastInteraction = Date.now();
-    let checkInterval: NodeJS.Timeout;
-
-    const handleUserInteraction = () => {
-      lastInteraction = Date.now();
-    };
-
     const handleVisibilityChange = () => {
       if (!document.hidden) {
         checkUserStatus();
       }
     };
-
-    const startChecking = () => {
-      checkInterval = setInterval(() => {
-        const timeSinceLastInteraction = Date.now() - lastInteraction;
-        
-        if (timeSinceLastInteraction < CHECK_INTERVAL) {
-          checkUserStatus();
-        }
-      }, ACTIVE_CHECK_INTERVAL);
-    };
-
-    startChecking();
-
-    window.addEventListener('mousemove', handleUserInteraction);
-    window.addEventListener('keypress', handleUserInteraction);
-    window.addEventListener('click', handleUserInteraction);
-    window.addEventListener('scroll', handleUserInteraction);
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      clearInterval(checkInterval);
-      window.removeEventListener('mousemove', handleUserInteraction);
-      window.removeEventListener('keypress', handleUserInteraction);
-      window.removeEventListener('click', handleUserInteraction);
-      window.removeEventListener('scroll', handleUserInteraction);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);

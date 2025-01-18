@@ -1042,7 +1042,6 @@ const AttendanceHistoryStudent = styled.div<{ $present: boolean }>`
     }
   }
 `;
-
 const SearchList: React.FC<Props> = ({ students, setStudents }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [groups, setGroups] = useState<Group[]>([]);
@@ -1818,3 +1817,4 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
 }
 
 export default SearchList;
+
