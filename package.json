@@ -29,7 +29,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "deploy:github": "gh-pages -d build -r https://github.com/leqso7/universal.git",
+    "deploy:github:branch": "gh-pages -d build -r https://github.com/leqso7/universal.git -b main"
   },
   "eslintConfig": {
     "extends": [
