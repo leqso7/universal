@@ -1,113 +1,140 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-
-const MenuContainer = styled.div`
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-`;
-
-const MenuButton = styled.button`
-  background: #2196F3;
-  border: none;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  padding: 10px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-
-  &:hover {
-    background: #1976D2;
-  }
-
-  span {
-    display: block;
-    width: 25px;
-    height: 3px;
-    background: white;
-    border-radius: 3px;
-    transition: all 0.3s ease;
-  }
-`;
-
-const MenuContent = styled.div`
-  position: absolute;
-  top: 60px;
-  right: 0;
-  background: white;
-  border-radius: 8px;
-  padding: 10px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  display: ${props => props.isOpen ? 'block' : 'none'};
-  min-width: 300px;
-  max-height: 80vh;
-  overflow-y: auto;
-`;
-
-const MenuItem = styled.button`
-  width: 100%;
-  padding: 10px;
-  border: none;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #333;
-  font-size: 16px;
-
-  &:hover {
-    background: #f5f5f5;
-  }
-
-  svg {
-    width: 20px;
-    height: 20px;
-  }
-`;
+import { useAuth } from '../context/AuthContext';
 
 const HamburgerMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [showDashboard, setShowDashboard] = useState(false);
+  const { user } = useAuth();
 
-  const toggleDashboard = () => {
-    setShowDashboard(!showDashboard);
-    setIsOpen(false);
-  };
-
-  const handleCloseDashboard = () => {
-    setShowDashboard(false);
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
   };
 
   return (
-    <MenuContainer>
-      <MenuButton onClick={() => setIsOpen(!isOpen)}>
-        <span />
-        <span />
-        <span />
+    <>
+      <MenuButton onClick={toggleMenu}>
+        <MenuIcon isOpen={isOpen}>
+          <span></span>
+          <span></span>
+          <span></span>
+        </MenuIcon>
       </MenuButton>
-      <MenuContent isOpen={isOpen}>
-        <MenuItem onClick={toggleDashboard}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="3" width="7" height="7" />
-            <rect x="14" y="3" width="7" height="7" />
-            <rect x="14" y="14" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" />
-          </svg>
-          პროგრესი
-        </MenuItem>
-      </MenuContent>
-      {showDashboard && <Dashboard onClose={handleCloseDashboard} />}
-    </MenuContainer>
+
+      <MenuOverlay isOpen={isOpen} onClick={toggleMenu}>
+        <MenuContent isOpen={isOpen} onClick={e => e.stopPropagation()}>
+          {user ? (
+            <>
+              <MenuItem>
+                <MenuLink to="/" onClick={toggleMenu}>მთავარი</MenuLink>
+              </MenuItem>
+              <MenuItem>
+                <MenuLink to="/tasks" onClick={toggleMenu}>დავალებები</MenuLink>
+              </MenuItem>
+              <MenuItem>
+                <MenuLink to="/puzzle" onClick={toggleMenu}>ფაზლი</MenuLink>
+              </MenuItem>
+              <MenuItem>
+                <MenuLink to="/scramble" onClick={toggleMenu}>სიტყვები</MenuLink>
+              </MenuItem>
+              <MenuItem>
+                <MenuLink to="/colors" onClick={toggleMenu}>ფერები</MenuLink>
+              </MenuItem>
+              <MenuItem>
+                <MenuLink to="/memory-game" onClick={toggleMenu}>მეხსიერება</MenuLink>
+              </MenuItem>
+            </>
+          ) : (
+            <MenuItem>
+              <MenuLink to="/request" onClick={toggleMenu}>მოითხოვე წვდომა</MenuLink>
+            </MenuItem>
+          )}
+        </MenuContent>
+      </MenuOverlay>
+    </>
   );
 };
+
+const MenuButton = styled.button`
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+`;
+
+const MenuIcon = styled.div`
+  width: 30px;
+  height: 20px;
+  position: relative;
+  
+  span {
+    display: block;
+    position: absolute;
+    height: 3px;
+    width: 100%;
+    background: #333;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+
+    &:first-child {
+      top: ${props => props.isOpen ? '50%' : '0'};
+      transform: ${props => props.isOpen ? 'rotate(45deg)' : 'none'};
+    }
+
+    &:nth-child(2) {
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: ${props => props.isOpen ? '0' : '1'};
+    }
+
+    &:last-child {
+      bottom: ${props => props.isOpen ? '50%' : '0'};
+      transform: ${props => props.isOpen ? 'rotate(-45deg)' : 'none'};
+    }
+  }
+`;
+
+const MenuOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
+  opacity: ${props => props.isOpen ? '1' : '0'};
+  transition: all 0.3s ease;
+  z-index: 999;
+`;
+
+const MenuContent = styled.div`
+  position: fixed;
+  top: 0;
+  left: ${props => props.isOpen ? '0' : '-300px'};
+  width: 300px;
+  height: 100%;
+  background: white;
+  padding: 60px 20px;
+  transition: all 0.3s ease;
+  z-index: 1000;
+`;
+
+const MenuItem = styled.div`
+  margin: 10px 0;
+`;
+
+const MenuLink = styled(Link)`
+  color: #333;
+  text-decoration: none;
+  font-size: 18px;
+  
+  &:hover {
+    color: #666;
+  }
+`;
 
 export default HamburgerMenu;
