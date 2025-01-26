@@ -1,13 +1,13 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import styled from 'styled-components';
 import MainMenu from './components/MainMenu';
 import Tasks from './components/Tasks';
 import PuzzleGame from './components/PuzzleGame';
 import ScrambleGame from './components/ScrambleGame';
 import HamburgerMenu from './components/HamburgerMenu';
-import { PlayerProvider } from './context/PlayerContext';
-import { useNavigate } from 'react-router-dom';
+import RequestAccess from './components/RequestAccess';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { createGlobalStyle } from 'styled-components';
 import ColorMatchingGame from './components/ColorMatchingGame';
 import MemoryGame from './components/MemoryGame';
@@ -51,6 +51,20 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>იტვირთება...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/request" />;
+  }
+
+  return children;
+};
+
 const Container = styled.div`
   min-height: 100vh;
   display: flex;
@@ -89,22 +103,65 @@ const HomeButtonWrapper = ({ children }) => {
 
 const App = () => {
   return (
-    <PlayerProvider>
+    <AuthProvider>
       <Router>
         <GlobalStyle />
         <Container>
           <HamburgerMenu />
           <Routes>
-            <Route path="/" element={<HomeButtonWrapper><MainMenu /></HomeButtonWrapper>} />
-            <Route path="/tasks" element={<HomeButtonWrapper><Tasks /></HomeButtonWrapper>} />
-            <Route path="/puzzle" element={<HomeButtonWrapper><PuzzleGame /></HomeButtonWrapper>} />
-            <Route path="/memory-game" element={<HomeButtonWrapper><MemoryGame /></HomeButtonWrapper>} />
-            <Route path="/scramble" element={<HomeButtonWrapper><ScrambleGame /></HomeButtonWrapper>} />
-            <Route path="/colors" element={<HomeButtonWrapper><ColorMatchingGame /></HomeButtonWrapper>} />
+            <Route path="/request" element={<RequestAccess />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <HomeButtonWrapper><MainMenu /></HomeButtonWrapper>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tasks"
+              element={
+                <ProtectedRoute>
+                  <HomeButtonWrapper><Tasks /></HomeButtonWrapper>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/puzzle"
+              element={
+                <ProtectedRoute>
+                  <HomeButtonWrapper><PuzzleGame /></HomeButtonWrapper>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/scramble"
+              element={
+                <ProtectedRoute>
+                  <HomeButtonWrapper><ScrambleGame /></HomeButtonWrapper>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/colors"
+              element={
+                <ProtectedRoute>
+                  <HomeButtonWrapper><ColorMatchingGame /></HomeButtonWrapper>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/memory-game"
+              element={
+                <ProtectedRoute>
+                  <HomeButtonWrapper><MemoryGame /></HomeButtonWrapper>
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </Container>
       </Router>
-    </PlayerProvider>
+    </AuthProvider>
   );
 };
 
