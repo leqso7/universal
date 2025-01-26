@@ -1,5 +1,5 @@
 -- Create access_requests table
-CREATE TABLE IF NOT EXISTS public.access_requests (
+CREATE TABLE IF NOT EXISTS public.access_requestss (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending',
@@ -7,10 +7,10 @@ CREATE TABLE IF NOT EXISTS public.access_requests (
 );
 
 -- Enable RLS
-ALTER TABLE public.access_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.access_requestss ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS policies
-CREATE POLICY "Enable all access" ON public.access_requests
+CREATE POLICY "Enable all access" ON public.access_requestss
     FOR ALL
     USING (true)
     WITH CHECK (true);

@@ -25,7 +25,7 @@ const RequestAccess = () => {
       console.log('Attempting to insert access request with name:', name);
       
       const { data, error: supabaseError } = await supabase
-        .from('access_requests')
+        .from('access_requestss')
         .insert([
           { 
             name: name.trim(),
