@@ -51,6 +51,24 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
+const Container = styled.div`
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+`;
+
+const HomeButtonWrapper = ({ children }) => {
+  return (
+    <Container>
+      {children}
+    </Container>
+  );
+};
+
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
@@ -63,38 +81,6 @@ const ProtectedRoute = ({ children }) => {
   }
 
   return children;
-};
-
-const Container = styled.div`
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-`;
-
-const HomeButton = styled.button`
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  font-size: 2rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-  z-index: 1000;
-
-  &:hover {
-    transform: scale(1.1);
-  }
-`;
-
-const HomeButtonWrapper = ({ children }) => {
-  return (
-    <>
-      {children}
-    </>
-  );
 };
 
 const App = () => {
@@ -110,7 +96,9 @@ const App = () => {
               path="/"
               element={
                 <ProtectedRoute>
-                  <HomeButtonWrapper><MainMenu /></HomeButtonWrapper>
+                  <HomeButtonWrapper>
+                    <MainMenu />
+                  </HomeButtonWrapper>
                 </ProtectedRoute>
               }
             />
@@ -118,7 +106,9 @@ const App = () => {
               path="/tasks"
               element={
                 <ProtectedRoute>
-                  <HomeButtonWrapper><Tasks /></HomeButtonWrapper>
+                  <HomeButtonWrapper>
+                    <Tasks />
+                  </HomeButtonWrapper>
                 </ProtectedRoute>
               }
             />
@@ -126,7 +116,9 @@ const App = () => {
               path="/puzzle"
               element={
                 <ProtectedRoute>
-                  <HomeButtonWrapper><PuzzleGame /></HomeButtonWrapper>
+                  <HomeButtonWrapper>
+                    <PuzzleGame />
+                  </HomeButtonWrapper>
                 </ProtectedRoute>
               }
             />
@@ -134,7 +126,9 @@ const App = () => {
               path="/scramble"
               element={
                 <ProtectedRoute>
-                  <HomeButtonWrapper><ScrambleGame /></HomeButtonWrapper>
+                  <HomeButtonWrapper>
+                    <ScrambleGame />
+                  </HomeButtonWrapper>
                 </ProtectedRoute>
               }
             />
@@ -142,7 +136,9 @@ const App = () => {
               path="/colors"
               element={
                 <ProtectedRoute>
-                  <HomeButtonWrapper><ColorMatchingGame /></HomeButtonWrapper>
+                  <HomeButtonWrapper>
+                    <ColorMatchingGame />
+                  </HomeButtonWrapper>
                 </ProtectedRoute>
               }
             />
@@ -150,7 +146,9 @@ const App = () => {
               path="/memory-game"
               element={
                 <ProtectedRoute>
-                  <HomeButtonWrapper><MemoryGame /></HomeButtonWrapper>
+                  <HomeButtonWrapper>
+                    <MemoryGame />
+                  </HomeButtonWrapper>
                 </ProtectedRoute>
               }
             />
