@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
           const { data, error } = await supabase
             .from('access_requests')
             .select('*')
-            .eq('access_code', session.user.email)
+            .eq('name', session.user.email)
             .single();
 
           console.log('Access request data:', data);
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }) => {
         const { data, error } = await supabase
           .from('access_requests')
           .select('*')
-          .eq('access_code', session.user.email)
+          .eq('name', session.user.email)
           .single();
 
         if (error) {
@@ -77,41 +77,28 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const checkAccess = async (accessCode) => {
+  const checkAccess = async (name) => {
     try {
-      console.log('Checking access for code:', accessCode);
+      console.log('Checking access for name:', name);
       
-      // First, check if the access request exists and is approved
-      const { data: accessData, error: accessError } = await supabase
+      const { data, error } = await supabase
         .from('access_requests')
         .select('*')
-        .eq('access_code', accessCode)
+        .eq('name', name)
         .single();
 
-      console.log('Access check result:', accessData, accessError);
+      console.log('Access check result:', { data, error });
 
-      if (accessError) {
-        console.error('Error checking access:', accessError);
+      if (error) {
+        console.error('Error checking access:', error);
         return false;
       }
 
-      if (!accessData || accessData.status !== 'approved') {
+      if (!data || data.status !== 'approved') {
         console.log('Access not approved or not found');
         return false;
       }
 
-      // If approved, create a session
-      const { data: sessionData, error: sessionError } = await supabase.auth.signInWithPassword({
-        email: accessCode,
-        password: accessCode // This should be handled more securely in production
-      });
-
-      if (sessionError) {
-        console.error('Error creating session:', sessionError);
-        return false;
-      }
-
-      setUser(sessionData.user);
       return true;
     } catch (error) {
       console.error('Error in checkAccess:', error);

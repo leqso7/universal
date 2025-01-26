@@ -5,57 +5,53 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const RequestAccess = () => {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const { checkAccess } = useAuth();
 
-  const generateAccessCode = () => {
-    return Math.floor(10000 + Math.random() * 90000).toString();
-  };
-
-  const handleSubmit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage('');
-
+    setError('');
+    
     try {
-      if (!firstName || !lastName) {
-        throw new Error('გთხოვთ შეავსოთ ყველა ველი');
+      if (!name.trim()) {
+        throw new Error('გთხოვთ შეიყვანოთ სახელი');
       }
 
-      const accessCode = generateAccessCode();
+      console.log('Attempting to insert access request with name:', name);
       
-      const { data, error } = await supabase
+      const { data, error: supabaseError } = await supabase
         .from('access_requests')
         .insert([
-          {
-            first_name: firstName,
-            last_name: lastName,
-            access_code: accessCode,
-            status: 'pending'
+          { 
+            name: name.trim(),
+            status: 'pending',
+            requested_at: new Date().toISOString()
           }
         ])
         .select();
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw new Error('შეცდომა მოთხოვნის გაგზავნისას: ' + error.message);
+      console.log('Supabase response:', { data, error: supabaseError });
+
+      if (supabaseError) {
+        console.error('Supabase error:', supabaseError);
+        throw new Error(supabaseError.message || 'შეცდომა მოთხოვნის გაგზავნისას');
       }
 
       if (!data || data.length === 0) {
         throw new Error('მონაცემები ვერ დამუშავდა');
       }
 
-      setMessage('თქვენი მოთხოვნა გაგზავნილია. გთხოვთ დაელოდოთ დადასტურებას.');
-      setFirstName('');
-      setLastName('');
+      setSuccess(true);
+      setName('');
 
       // Try to check access immediately
       try {
-        const hasAccess = await checkAccess(accessCode);
+        const hasAccess = await checkAccess(data[0].id);
         if (hasAccess) {
           navigate('/');
         }
@@ -63,9 +59,9 @@ const RequestAccess = () => {
         console.log('Access not yet granted:', accessError);
       }
 
-    } catch (error) {
-      console.error('Error in handleSubmit:', error);
-      setMessage(error.message || 'შეცდომა მოთხოვნის გაგზავნისას. გთხოვთ სცადოთ თავიდან.');
+    } catch (err) {
+      console.error('Error in handleSubmit:', err);
+      setError(err.message || 'დაფიქსირდა შეცდომა');
     } finally {
       setLoading(false);
     }
@@ -73,72 +69,89 @@ const RequestAccess = () => {
 
   return (
     <Container>
-      <Form onSubmit={handleSubmit}>
-        <Title>წვდომის მოთხოვნა</Title>
-        <Input
-          type="text"
-          placeholder="სახელი"
-          value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
-          required
-        />
-        <Input
-          type="text"
-          placeholder="გვარი"
-          value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
-          required
-        />
-        <Button type="submit" disabled={loading}>
-          {loading ? 'იგზავნება...' : 'გაგზავნა'}
-        </Button>
-        {message && <Message error={message.includes('შეცდომა')}>{message}</Message>}
-      </Form>
+      <Title>წვდომის მოთხოვნა</Title>
+      {success ? (
+        <SuccessMessage>
+          თქვენი მოთხოვნა მიღებულია! ჩვენ მალე დაგიკავშირდებით.
+        </SuccessMessage>
+      ) : (
+        <Form onSubmit={onSubmit}>
+          <Label>
+            სახელი
+            <Input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="შეიყვანეთ თქვენი სახელი"
+              disabled={loading}
+            />
+          </Label>
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+          <Button type="submit" disabled={loading}>
+            {loading ? 'იგზავნება...' : 'გაგზავნა'}
+          </Button>
+        </Form>
+      )}
     </Container>
   );
 };
 
 const Container = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
+  max-width: 400px;
+  margin: 40px auto;
   padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+const Title = styled.h1`
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
 `;
 
 const Form = styled.form`
-  background: white;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 `;
 
-const Title = styled.h2`
-  text-align: center;
-  margin-bottom: 20px;
-  color: #333;
+const Label = styled.label`
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: #666;
 `;
 
 const Input = styled.input`
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
+  padding: 8px 12px;
   border: 1px solid #ddd;
-  border-radius: 5px;
+  border-radius: 4px;
   font-size: 16px;
+
+  &:focus {
+    outline: none;
+    border-color: #2196F3;
+  }
+
+  &:disabled {
+    background: #f5f5f5;
+  }
 `;
 
 const Button = styled.button`
-  width: 100%;
-  padding: 12px;
-  background: #4285f4;
+  padding: 10px;
+  background: #2196F3;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   font-size: 16px;
   cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #1976D2;
+  }
 
   &:disabled {
     background: #ccc;
@@ -146,10 +159,16 @@ const Button = styled.button`
   }
 `;
 
-const Message = styled.div`
-  margin-top: 15px;
+const ErrorMessage = styled.div`
+  color: #f44336;
+  font-size: 14px;
+`;
+
+const SuccessMessage = styled.div`
+  color: #4CAF50;
   text-align: center;
-  color: ${props => props.error ? '#d32f2f' : '#43a047'};
+  padding: 20px;
+  font-size: 16px;
 `;
 
 export default RequestAccess;
