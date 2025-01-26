@@ -90,12 +90,8 @@ const HomeButton = styled.button`
 `;
 
 const HomeButtonWrapper = ({ children }) => {
-  const navigate = useNavigate();
   return (
     <>
-      {window.location.pathname !== '/' && (
-        <HomeButton onClick={() => navigate('/')}>🏠</HomeButton>
-      )}
       {children}
     </>
   );
