@@ -1,50 +1,57 @@
-const API_URL = process.env.REACT_APP_API_URL || 'https://hwramsfqytxqkeyonhxv.supabase.co/rest/v1';
+import { createClient } from '@supabase/supabase-js';
 
-const headers = {
-  'Content-Type': 'application/json',
-  'apikey': process.env.REACT_APP_SUPABASE_ANON_KEY,
-  'Authorization': `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`,
-  'Accept': 'application/vnd.pgrst.object+json',
-  'Accept-Profile': 'public'
-};
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Supabase credentials are missing!');
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export const api = {
-  async checkAccess(code) {
+  async submitAccessRequest(name, surname) {
     try {
-      const response = await fetch(
-        `${API_URL}/access_requests?select=status&code=eq.${code}`,
-        { headers }
-      );
-      if (!response.ok) throw new Error('Network response was not ok');
-      const data = await response.json();
+      const { data, error } = await supabase
+        .from('access_requests')
+        .insert([{ 
+          name: name.trim(), 
+          surname: surname.trim(),
+          status: 'pending'
+        }])
+        .select('access_code')
+        .single();
+
+      if (error) throw error;
       return data;
     } catch (error) {
-      console.error('API Error:', error);
+      console.error('Error:', error);
       throw error;
     }
   },
 
-  async submitAccessRequest(name, surname, code) {
+  async checkAccess(code) {
     try {
-      const response = await fetch(
-        `${API_URL}/access_requests`,
-        {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            name,
-            surname,
-            code,
-            status: 'pending'
-          })
-        }
-      );
-      if (!response.ok) throw new Error('Network response was not ok');
-      const data = await response.json();
-      return data;
+      if (!code) return null;
+      
+      const { data, error } = await supabase
+        .from('access_requests')
+        .select('status')
+        .eq('access_code', code)
+        .eq('status', 'approved')  // მხოლოდ დამტკიცებული მოთხოვნები
+        .single();
+
+      if (error) return null;
+      
+      // თუ მოთხოვნა დამტკიცებულია
+      if (data && data.status === 'approved') {
+        return { isApproved: true };
+      }
+      
+      return { isApproved: false };
     } catch (error) {
-      console.error('API Error:', error);
-      throw error;
+      console.error('Error:', error);
+      return { isApproved: false };
     }
   }
 }; 

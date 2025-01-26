@@ -60,56 +60,74 @@ const SuccessMessage = styled.div`
 const RequestAccess = ({ onAccessGranted }) => {
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [accessCode, setAccessCode] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showAccessForm, setShowAccessForm] = useState(true);
 
   useEffect(() => {
-    const storedCode = localStorage.getItem('accessCode');
-    if (storedCode) {
-      setAccessCode(storedCode);
-      setIsSubmitted(true);
-    }
-  }, []);
+    const checkExistingAccess = async () => {
+      const savedCode = localStorage.getItem('accessCode');
+      if (savedCode) {
+        try {
+          const accessData = await api.checkAccess(savedCode);
+          if (accessData && accessData.isApproved) {
+            setShowAccessForm(false);
+            onAccessGranted();
+            return;
+          }
+        } catch (err) {
+          console.error('Error checking access:', err);
+        }
+      }
+      setLoading(false);
+    };
+
+    checkExistingAccess();
+  }, [onAccessGranted]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError(null);
+
+    if (!name.trim() || !surname.trim()) {
+      setError('გთხოვთ შეავსოთ ყველა ველი');
+      setLoading(false);
+      return;
+    }
 
     try {
-      if (localStorage.getItem('accessCode')) {
-        setError('თქვენ უკვე გაგზავნილი გაქვთ მოთხოვნა');
-        return;
+      const response = await api.submitAccessRequest(name.trim(), surname.trim());
+      
+      if (response && response.access_code) {
+        localStorage.setItem('accessCode', response.access_code);
+        setShowAccessForm(false);
       }
-
-      const code = Math.floor(10000 + Math.random() * 90000).toString();
-      
-      await api.submitAccessRequest(name.trim(), surname.trim(), code);
-      
-      localStorage.setItem('accessCode', code);
-      setAccessCode(code);
-      setIsSubmitted(true);
-      
     } catch (err) {
       console.error('Error:', err);
-      setError('მოხდა შეცდომა. გთხოვთ სცადოთ თავიდან');
+      setError(err.message || 'მოთხოვნის გაგზავნა ვერ მოხერხდა');
     } finally {
       setLoading(false);
     }
   };
 
-  if (isSubmitted) {
+  if (loading) {
+    return (
+      <Container>
+        <Form style={{ textAlign: 'center' }}>
+          <h2>გთხოვთ მოიცადოთ...</h2>
+        </Form>
+      </Container>
+    );
+  }
+
+  if (!showAccessForm) {
     return (
       <Container>
         <Form style={{ textAlign: 'center' }}>
           <h2>მოთხოვნა გაგზავნილია</h2>
           <SuccessMessage>
             გთხოვთ დაელოდოთ ადმინისტრატორის დადასტურებას.
-            <br />
-            <br />
-            თქვენი კოდი: <strong>{accessCode}</strong>
           </SuccessMessage>
         </Form>
       </Container>
@@ -126,6 +144,7 @@ const RequestAccess = ({ onAccessGranted }) => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
+          minLength={2}
           disabled={loading}
         />
         <Input
@@ -134,9 +153,10 @@ const RequestAccess = ({ onAccessGranted }) => {
           value={surname}
           onChange={(e) => setSurname(e.target.value)}
           required
+          minLength={2}
           disabled={loading}
         />
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading || !name.trim() || !surname.trim()}>
           {loading ? 'იგზავნება...' : 'მოთხოვნის გაგზავნა'}
         </Button>
         {error && <ErrorMessage>{error}</ErrorMessage>}

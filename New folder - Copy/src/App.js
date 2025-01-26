@@ -13,6 +13,7 @@ import ColorMatchingGame from './components/ColorMatchingGame';
 import MemoryGame from './components/MemoryGame';
 import RequestAccess from './components/RequestAccess';
 import { api } from './services/api';
+import HomePage from './components/HomePage';
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -90,33 +91,41 @@ const HomeButtonWrapper = ({ children }) => {
 };
 
 const App = () => {
-  const [hasAccess, setHasAccess] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAccess();
+    const checkAuthStatus = async () => {
+      try {
+        const savedCode = localStorage.getItem('accessCode');
+        if (savedCode) {
+          const accessData = await api.checkAccess(savedCode);
+          if (accessData && accessData.isApproved) {
+            setIsAuthenticated(true);
+          } else {
+            localStorage.removeItem('accessCode');
+            setIsAuthenticated(false);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuthStatus();
+    const interval = setInterval(checkAuthStatus, 30000);
+    return () => clearInterval(interval);
   }, []);
 
-  const checkAccess = async () => {
-    const code = localStorage.getItem('accessCode');
-    if (!code) {
-      setHasAccess(false);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const data = await api.checkAccess(code);
-      setHasAccess(data?.status === 'approved');
-    } catch (error) {
-      console.error('Error checking access:', error);
-      setHasAccess(false);
-    }
-    setIsLoading(false);
+  const handleAccessGranted = () => {
+    setIsAuthenticated(true);
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
+  if (loading) {
+    return <div>გთხოვთ მოიცადოთ...</div>;
   }
 
   return (
@@ -126,24 +135,26 @@ const App = () => {
         <Container>
           <HamburgerMenu />
           <Routes>
-            <Route 
-              path="/request" 
-              element={
-                hasAccess ? 
-                  <Navigate to="/" replace /> : 
-                  <RequestAccess onAccessGranted={checkAccess} />
-              } 
-            />
             <Route
-              path="/*"
+              path="/"
               element={
-                hasAccess ? (
-                  <MainContent />
+                isAuthenticated ? (
+                  <HomePage />
                 ) : (
-                  <Navigate to="/request" replace />
+                  <RequestAccess onAccessGranted={handleAccessGranted} />
                 )
               }
             />
+            {isAuthenticated && (
+              <>
+                <Route path="/tasks" element={<Tasks />} />
+                <Route path="/puzzle" element={<PuzzleGame />} />
+                <Route path="/scramble" element={<ScrambleGame />} />
+                <Route path="/memory" element={<MemoryGame />} />
+                <Route path="/color-matching" element={<ColorMatchingGame />} />
+              </>
+            )}
+            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Container>
       </Router>
