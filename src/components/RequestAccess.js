@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { supabase } from '../config/supabase';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const RequestAccess = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
+  const { checkAccess } = useAuth();
 
   const generateAccessCode = () => {
     return Math.floor(10000 + Math.random() * 90000).toString();
@@ -18,9 +22,13 @@ const RequestAccess = () => {
     setMessage('');
 
     try {
+      if (!firstName || !lastName) {
+        throw new Error('გთხოვთ შეავსოთ ყველა ველი');
+      }
+
       const accessCode = generateAccessCode();
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('access_requests')
         .insert([
           {
@@ -29,16 +37,35 @@ const RequestAccess = () => {
             access_code: accessCode,
             status: 'pending'
           }
-        ]);
+        ])
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw new Error('შეცდომა მოთხოვნის გაგზავნისას: ' + error.message);
+      }
+
+      if (!data || data.length === 0) {
+        throw new Error('მონაცემები ვერ დამუშავდა');
+      }
 
       setMessage('თქვენი მოთხოვნა გაგზავნილია. გთხოვთ დაელოდოთ დადასტურებას.');
       setFirstName('');
       setLastName('');
+
+      // Try to check access immediately
+      try {
+        const hasAccess = await checkAccess(accessCode);
+        if (hasAccess) {
+          navigate('/');
+        }
+      } catch (accessError) {
+        console.log('Access not yet granted:', accessError);
+      }
+
     } catch (error) {
-      setMessage('შეცდომა მოთხოვნის გაგზავნისას. გთხოვთ სცადოთ თავიდან.');
-      console.error('Error:', error);
+      console.error('Error in handleSubmit:', error);
+      setMessage(error.message || 'შეცდომა მოთხოვნის გაგზავნისას. გთხოვთ სცადოთ თავიდან.');
     } finally {
       setLoading(false);
     }
