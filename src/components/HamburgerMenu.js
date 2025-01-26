@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { usePlayer } from '../context/PlayerContext';
-import Dashboard from './Dashboard';
 
 const MenuContainer = styled.div`
   position: fixed;
@@ -79,12 +77,6 @@ const MenuItem = styled.button`
 const HamburgerMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
-  const { setShowNameModal } = usePlayer();
-
-  const handleChangeName = () => {
-    setShowNameModal(true);
-    setIsOpen(false);
-  };
 
   const toggleDashboard = () => {
     setShowDashboard(!showDashboard);
@@ -111,13 +103,6 @@ const HamburgerMenu = () => {
             <rect x="3" y="14" width="7" height="7" />
           </svg>
           პროგრესი
-        </MenuItem>
-        <MenuItem onClick={handleChangeName}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          სახელის შეცვლა
         </MenuItem>
       </MenuContent>
       {showDashboard && <Dashboard onClose={handleCloseDashboard} />}
