@@ -65,45 +65,45 @@ const RequestAccess = () => {
         <Button type="submit" disabled={loading}>
           {loading ? 'იგზავნება...' : 'გაგზავნა'}
         </Button>
-        {message && <Message>{message}</Message>}
+        {message && <Message error={message.includes('შეცდომა')}>{message}</Message>}
       </Form>
     </Container>
   );
 };
 
-const Container = styled.div\`
+const Container = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   padding: 20px;
-\`;
+`;
 
-const Form = styled.form\`
+const Form = styled.form`
   background: white;
   padding: 30px;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
-\`;
+`;
 
-const Title = styled.h2\`
+const Title = styled.h2`
   text-align: center;
   margin-bottom: 20px;
   color: #333;
-\`;
+`;
 
-const Input = styled.input\`
+const Input = styled.input`
   width: 100%;
   padding: 10px;
   margin-bottom: 15px;
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 16px;
-\`;
+`;
 
-const Button = styled.button\`
+const Button = styled.button`
   width: 100%;
   padding: 12px;
   background: #4285f4;
@@ -112,17 +112,17 @@ const Button = styled.button\`
   border-radius: 5px;
   font-size: 16px;
   cursor: pointer;
-  
+
   &:disabled {
     background: #ccc;
     cursor: not-allowed;
   }
-\`;
+`;
 
-const Message = styled.div\`
+const Message = styled.div`
   margin-top: 15px;
   text-align: center;
   color: ${props => props.error ? '#d32f2f' : '#43a047'};
-\`;
+`;
 
 export default RequestAccess;
