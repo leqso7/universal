@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
 
         if (session) {
           const { data, error } = await supabase
-            .from('access_requestss')
+            .from('access_requests')
             .select('*')
             .eq('name', session.user.email)
             .single();
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }) => {
       console.log('Auth state changed:', event, session);
       if (session) {
         const { data, error } = await supabase
-          .from('access_requestss')
+          .from('access_requests')
           .select('*')
           .eq('name', session.user.email)
           .single();
@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }) => {
       console.log('Checking access for name:', name);
       
       const { data, error } = await supabase
-        .from('access_requestss')
+        .from('access_requests')
         .select('*')
         .eq('name', name)
         .single();

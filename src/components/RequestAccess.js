@@ -4,11 +4,16 @@ import { supabase } from '../config/supabase';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+const generateAccessCode = () => {
+  return Math.floor(10000 + Math.random() * 90000).toString();
+};
+
 const RequestAccess = () => {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [accessCode, setAccessCode] = useState('');
   const navigate = useNavigate();
   const { checkAccess } = useAuth();
 
@@ -22,36 +27,28 @@ const RequestAccess = () => {
         throw new Error('გთხოვთ შეიყვანოთ სახელი');
       }
 
-      console.log('Attempting to insert access request with name:', name);
-      
-      const { data, error: supabaseError } = await supabase
-        .from('access_requestss')
-        .insert([
-          { 
-            name: name.trim(),
-            status: 'pending',
-            requested_at: new Date().toISOString()
-          }
-        ])
-        .select();
+      const code = generateAccessCode();
+      console.log('Generated access code:', code);
 
-      console.log('Supabase response:', { data, error: supabaseError });
+      const { error: supabaseError } = await supabase
+        .from('access_requests')
+        .insert({
+          name: name.trim(),
+          access_code: code
+        });
 
       if (supabaseError) {
         console.error('Supabase error:', supabaseError);
         throw new Error(supabaseError.message || 'შეცდომა მოთხოვნის გაგზავნისას');
       }
 
-      if (!data || data.length === 0) {
-        throw new Error('მონაცემები ვერ დამუშავდა');
-      }
-
+      setAccessCode(code);
       setSuccess(true);
       setName('');
 
       // Try to check access immediately
       try {
-        const hasAccess = await checkAccess(data[0].id);
+        const hasAccess = await checkAccess();
         if (hasAccess) {
           navigate('/');
         }
@@ -72,7 +69,9 @@ const RequestAccess = () => {
       <Title>წვდომის მოთხოვნა</Title>
       {success ? (
         <SuccessMessage>
-          თქვენი მოთხოვნა მიღებულია! ჩვენ მალე დაგიკავშირდებით.
+          <p>თქვენი მოთხოვნა მიღებულია!</p>
+          <p>თქვენი წვდომის კოდია: <strong>{accessCode}</strong></p>
+          <p>გთხოვთ შეინახოთ ეს კოდი.</p>
         </SuccessMessage>
       ) : (
         <Form onSubmit={onSubmit}>
@@ -169,6 +168,19 @@ const SuccessMessage = styled.div`
   text-align: center;
   padding: 20px;
   font-size: 16px;
+
+  p {
+    margin: 10px 0;
+  }
+
+  strong {
+    font-size: 24px;
+    display: block;
+    margin: 15px 0;
+    padding: 10px;
+    background: #e8f5e9;
+    border-radius: 4px;
+  }
 `;
 
 export default RequestAccess;
