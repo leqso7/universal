@@ -60,60 +60,75 @@ const SuccessMessage = styled.div`
 const RequestAccess = ({ onAccessGranted }) => {
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [accessCode, setAccessCode] = useState('');
   const [showAccessForm, setShowAccessForm] = useState(true);
+
+  useEffect(() => {
+    const checkExistingAccess = async () => {
+      const savedCode = localStorage.getItem('accessCode');
+      if (savedCode) {
+        try {
+          const accessData = await api.checkAccess(savedCode);
+          if (accessData && accessData.isApproved) {
+            setShowAccessForm(false);
+            onAccessGranted();
+            return;
+          }
+        } catch (err) {
+          console.error('Error checking access:', err);
+        }
+      }
+      setLoading(false);
+    };
+
+    checkExistingAccess();
+  }, [onAccessGranted]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
+    if (!name.trim() || !surname.trim()) {
+      setError('გთხოვთ შეავსოთ ყველა ველი');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await api.submitAccessRequest(name, surname);
-      if (response) {
+      const response = await api.submitAccessRequest(name.trim(), surname.trim());
+      
+      if (response && response.access_code) {
+        localStorage.setItem('accessCode', response.access_code);
         setShowAccessForm(false);
-        // თუ კოდი დაბრუნდა response-ში
-        if (response[0]?.access_code) {
-          setAccessCode(response[0].access_code);
-          localStorage.setItem('accessCode', response[0].access_code);
-          onAccessGranted();
-        }
       }
     } catch (err) {
-      setError('მოთხოვნის გაგზავნა ვერ მოხერხდა. გთხოვთ სცადოთ მოგვიანებით.');
       console.error('Error:', err);
+      setError(err.message || 'მოთხოვნის გაგზავნა ვერ მოხერხდა');
     } finally {
       setLoading(false);
     }
   };
 
-  if (showAccessForm) {
+  if (loading) {
     return (
       <Container>
-        <Form onSubmit={handleSubmit}>
-          <h2>წვდომის მოთხოვნა</h2>
-          <Input
-            type="text"
-            placeholder="სახელი"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            disabled={loading}
-          />
-          <Input
-            type="text"
-            placeholder="გვარი"
-            value={surname}
-            onChange={(e) => setSurname(e.target.value)}
-            required
-            disabled={loading}
-          />
-          <Button type="submit" disabled={loading}>
-            {loading ? 'იგზავნება...' : 'მოთხოვნის გაგზავნა'}
-          </Button>
-          {error && <ErrorMessage>{error}</ErrorMessage>}
+        <Form style={{ textAlign: 'center' }}>
+          <h2>გთხოვთ მოიცადოთ...</h2>
+        </Form>
+      </Container>
+    );
+  }
+
+  if (!showAccessForm) {
+    return (
+      <Container>
+        <Form style={{ textAlign: 'center' }}>
+          <h2>მოთხოვნა გაგზავნილია</h2>
+          <SuccessMessage>
+            გთხოვთ დაელოდოთ ადმინისტრატორის დადასტურებას.
+          </SuccessMessage>
         </Form>
       </Container>
     );
@@ -121,14 +136,30 @@ const RequestAccess = ({ onAccessGranted }) => {
 
   return (
     <Container>
-      <Form style={{ textAlign: 'center' }}>
-        <h2>მოთხოვნა გაგზავნილია</h2>
-        <SuccessMessage>
-          გთხოვთ დაელოდოთ ადმინისტრატორის დადასტურებას.
-          <br />
-          <br />
-          თქვენი კოდი: <strong>{accessCode}</strong>
-        </SuccessMessage>
+      <Form onSubmit={handleSubmit}>
+        <h2>წვდომის მოთხოვნა</h2>
+        <Input
+          type="text"
+          placeholder="სახელი"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          minLength={2}
+          disabled={loading}
+        />
+        <Input
+          type="text"
+          placeholder="გვარი"
+          value={surname}
+          onChange={(e) => setSurname(e.target.value)}
+          required
+          minLength={2}
+          disabled={loading}
+        />
+        <Button type="submit" disabled={loading || !name.trim() || !surname.trim()}>
+          {loading ? 'იგზავნება...' : 'მოთხოვნის გაგზავნა'}
+        </Button>
+        {error && <ErrorMessage>{error}</ErrorMessage>}
       </Form>
     </Container>
   );

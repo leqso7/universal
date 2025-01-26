@@ -6,75 +6,72 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 100vh;
   padding: 20px;
-  background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+  width: 100%;
+  max-width: 800px;
 `;
 
 const Title = styled.h1`
-  font-size: 3rem;
-  color: #1565C0;
-  text-align: center;
-  margin-bottom: 40px;
-  animation: float 3s ease-in-out infinite;
-
-  @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0px); }
-  }
+  font-size: 2.5rem;
+  color: #fff;
+  margin-bottom: 30px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 `;
 
-const ButtonsContainer = styled.div`
+const GameGrid = styled.div`
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
-  max-width: 600px;
   width: 100%;
 `;
 
-const StyledLink = styled(Link)`
-  text-decoration: none;
-  padding: 20px;
-  font-size: 1.5rem;
-  border-radius: 15px;
-  background: white;
-  color: #1565C0;
+const GameCard = styled(Link)`
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  text-decoration: none;
+  color: #333;
+  transition: transform 0.3s ease;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
 
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  &:active {
-    transform: translateY(-1px);
+    transform: translateY(-5px);
   }
 `;
 
-const Emoji = styled.span`
-  font-size: 2rem;
+const GameIcon = styled.span`
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+`;
+
+const GameTitle = styled.h3`
+  font-size: 1.2rem;
+  text-align: center;
 `;
 
 const HomePage = () => {
+  const games = [
+    { path: '/tasks', title: 'კროსვორდი', icon: '🎯' },
+    { path: '/puzzle', title: 'ფაზლი', icon: '🧩' },
+    { path: '/scramble', title: 'დაზლი', icon: '🔤' },
+    { path: '/memory', title: 'მეხსიერება', icon: '🎮' },
+    { path: '/color-matching', title: 'ფერების შესაბამისობა', icon: '🎨' }
+  ];
+
   return (
     <Container>
       <Title>თამაშები 🎮</Title>
-      <ButtonsContainer>
-        <StyledLink to="/tasks">
-          <Emoji>🎯</Emoji>
-          ამოცანები
-        </StyledLink>
-        <StyledLink to="/puzzle">
-          <Emoji>🧩</Emoji>
-          ფაზლი
-        </StyledLink>
-      </ButtonsContainer>
+      <GameGrid>
+        {games.map((game, index) => (
+          <GameCard key={index} to={game.path}>
+            <GameIcon>{game.icon}</GameIcon>
+            <GameTitle>{game.title}</GameTitle>
+          </GameCard>
+        ))}
+      </GameGrid>
     </Container>
   );
 };
