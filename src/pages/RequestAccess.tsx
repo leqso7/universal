@@ -148,6 +148,88 @@ const StatusText = styled.p`
   margin: 5px 0;
 `;
 
+const InstructionButton = styled.button`
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 24px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  
+  &:hover {
+    background: #2980b9;
+  }
+`;
+
+const Modal = styled.div<{ isOpen: boolean }>`
+  display: ${props => props.isOpen ? 'flex' : 'none'};
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  max-width: 500px;
+  width: 90%;
+`;
+
+const InstructionList = styled.ol`
+  margin: 20px 0;
+  padding-left: 20px;
+`;
+
+const InstructionItem = styled.li`
+  margin: 10px 0;
+  line-height: 1.5;
+`;
+
+const ExpiryNote = styled.p`
+  color: #e74c3c;
+  font-weight: bold;
+  margin-top: 15px;
+`;
+
+const CloseButton = styled.button`
+  float: right;
+  padding: 8px 16px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  
+  &:hover {
+    background: #c0392b;
+  }
+`;
+
+// დავამატოთ ახალი styled კომპონენტი ფეისბუქის ლინკისთვის
+const FacebookLink = styled.a`
+  display: block;
+  margin-top: 20px;
+  color: #3b5998;
+  text-decoration: none;
+  font-weight: 500;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
 const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -155,6 +237,7 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? window.navigator.onLine : true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // ვამოწმებთ ოფლაინ წვდომას
   const checkOfflineAccess = useCallback(() => {
@@ -271,7 +354,7 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
     const checkStatus = async () => {
       try {
         const response = await fetch(
-          `${EDGE_FUNCTION_URL}/status?code=${requestCode}&isActive=${!document.hidden}`,
+          `${EDGE_FUNCTION_URL}/status?code=${requestCode}&isActive=true`,
           {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
@@ -307,17 +390,10 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
         console.error('Error checking status:', err);
       }
     };
-
-    // შემოწმება ყოველ 5 წამში
-    const interval = setInterval(() => {
-      if (navigator.onLine) {
-        checkStatus();
-      }
-    }, 5000);
     
-    checkStatus(); // პირველი შემოწმება
-
-    return () => clearInterval(interval);
+    // მხოლოდ ერთხელ შევამოწმოთ სტატუსი კომპონენტის ჩატვირთვისას
+    checkStatus();
+    
   }, [requestCode, onAccessGranted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -436,6 +512,41 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
           )}
         </>
       )}
+      <InstructionButton onClick={() => setIsModalOpen(true)}>
+        ინსტრუქცია
+      </InstructionButton>
+
+      <Modal isOpen={isModalOpen} onClick={() => setIsModalOpen(false)}>
+        <ModalContent onClick={e => e.stopPropagation()}>
+          <CloseButton onClick={() => setIsModalOpen(false)}>X</CloseButton>
+          <h2>შესვლის ინსტრუქცია</h2>
+          <InstructionList>
+            <InstructionItem>
+             შეასრულეთ ტრანზაქცია: 5167460431565880
+            </InstructionItem>
+            <InstructionItem>
+              შეიყვანეთ ტრანზაქციის ავტორის სახელი და გვარი
+            </InstructionItem>
+            <InstructionItem>
+              დააჭირეთ გამოგზავნას
+            </InstructionItem>
+          </InstructionList>
+          <p>
+            ამ ყველაფრის შემდეგ ადმინისტრატორი დაგიდასტურებთ მოთხოვნას და 
+            გადამისამართდებით მთავარ გვერდზე
+          </p>
+          <ExpiryNote>
+            1 წლის განმავლობაში
+          </ExpiryNote>
+          <FacebookLink 
+            href="https://www.facebook.com/profile.php?id=61567812722184"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            დამატებითი ინფორმაციისთვის ეწვიეთ ჩვენს ფეისბუქ ჯგუფს
+          </FacebookLink>
+        </ModalContent>
+      </Modal>
       <ToastContainer position="top-center" />
     </Container>
   );

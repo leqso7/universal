@@ -180,19 +180,6 @@ serve(async (req) => {
           );
         }
       }
-
-      // ვინახავთ შემოწმების ისტორიას
-      await supabaseAdmin
-        .from('status_checks')
-        .insert([
-          { 
-            code,
-            is_active: isActive,
-            ip: req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for"),
-            user_agent: req.headers.get("user-agent")
-          }
-        ]);
-
       const { data: request } = await supabaseAdmin
         .from('access_requests')
         .select('status')
