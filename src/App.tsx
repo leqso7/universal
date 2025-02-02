@@ -3,7 +3,6 @@ import { createGlobalStyle } from 'styled-components'
 import RequestAccess from './pages/RequestAccess'
 import SearchList, { Student } from './components/SearchList'
 import InstallPWA from './components/InstallPWA'
-import FacebookLink from './components/FacebookLink'
 import styled from 'styled-components'
 import { useState, useEffect } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
@@ -115,6 +114,7 @@ function App() {
   const [className, setClassName] = useState('');
   const [classList, setClassList] = useState('');
   const [isClassFormVisible, setIsClassFormVisible] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => {
@@ -342,11 +342,26 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    const checkModals = () => {
+      const modals = document.querySelectorAll('[role="dialog"]');
+      setIsModalOpen(modals.length > 0);
+    };
+
+    const observer = new MutationObserver(checkModals);
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <>
       <GlobalStyle />
       <AppContainer>
-        <FacebookLink />
         <InstallContainer>
           <InstallPWA />
         </InstallContainer>
@@ -357,7 +372,11 @@ function App() {
             element={
               hasAccess ? (
                 <>
-                  <SearchList students={students} setStudents={setStudents} />
+                  <SearchList 
+                    students={students} 
+                    setStudents={setStudents}
+                    onModalStateChange={setIsModalOpen}
+                  />
                   <ClassForm $isVisible={isClassFormVisible}>
                     <h2>კლასის დამატება</h2>
                     <Input

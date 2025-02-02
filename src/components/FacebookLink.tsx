@@ -6,25 +6,34 @@ const pulse = keyframes`
   100% { box-shadow: 0 0 0 0 rgba(24, 119, 242, 0); }
 `;
 
-const FacebookContainer = styled.a`
+interface FacebookContainerProps {
+  $isBlurred?: boolean;
+}
+
+const FacebookContainer = styled.a<FacebookContainerProps>`
   position: fixed;
   bottom: 25px;
   left: 25px;
   display: flex;
   align-items: center;
   text-decoration: none;
-  z-index: 1000;
   gap: 12px;
   padding: 8px;
   border-radius: 30px;
   transition: all 0.3s ease;
+  pointer-events: ${props => props.$isBlurred ? 'none' : 'auto'};
+  z-index: 10;
+  filter: blur(${props => props.$isBlurred ? '8px' : '0px'});
+  opacity: ${props => props.$isBlurred ? '0' : '1'};
+  transform: translateY(${props => props.$isBlurred ? '20px' : '0'});
+  visibility: ${props => props.$isBlurred ? 'hidden' : 'visible'};
   
   &:hover {
     transform: translateY(-2px);
   }
 `;
 
-const FacebookIcon = styled.div`
+const FacebookIcon = styled.span`
   width: 45px;
   height: 45px;
   background: linear-gradient(45deg, #1877f2, #2196f3);
@@ -39,32 +48,7 @@ const FacebookIcon = styled.div`
   transition: all 0.3s ease;
   animation: ${pulse} 2s infinite;
   box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: 'f';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-45%, -50%);
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.1) 0%,
-      rgba(255, 255, 255, 0.05) 50%,
-      transparent 100%
-    );
-  }
-
+  
   ${FacebookContainer}:hover & {
     transform: scale(1.1) rotate(5deg);
     box-shadow: 0 6px 20px rgba(24, 119, 242, 0.4);
@@ -88,14 +72,19 @@ const FacebookText = styled.span`
   }
 `;
 
-const FacebookLink = () => {
+interface FacebookLinkProps {
+  isBlurred?: boolean;
+}
+
+const FacebookLink: React.FC<FacebookLinkProps> = ({ isBlurred = false }) => {
   return (
     <FacebookContainer 
       href="https://www.facebook.com/profile.php?id=61567812722184"
       target="_blank"
       rel="noopener noreferrer"
+      $isBlurred={isBlurred}
     >
-      <FacebookIcon />
+      <FacebookIcon>f</FacebookIcon>
       <FacebookText>Facebook</FacebookText>
     </FacebookContainer>
   );

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import FacebookLink from './FacebookLink';
 
 export interface Student {
   id: string;
@@ -31,6 +32,7 @@ interface AttendanceRecord {
 interface Props {
   students: Student[];
   setStudents: React.Dispatch<React.SetStateAction<Student[]>>;
+  onModalStateChange?: (isOpen: boolean) => void;
 }
 
 import { 
@@ -102,10 +104,11 @@ const StudentListContainer = styled.div`
   flex-direction: column;
   margin-top: 40px;
   border: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
 `;
 
 const SelectButton = styled.button`
-  padding: 10px 20px;
+  padding: 15px 20px;
   background: #4285f4;
   color: white;
   border: none;
@@ -114,6 +117,9 @@ const SelectButton = styled.button`
   cursor: pointer;
   transition: all 0.2s ease;
   margin-bottom: 15px;
+  width: 100%;
+  position: relative;
+  z-index: 10;
 
   &:hover {
     background: #3367d6;
@@ -123,6 +129,13 @@ const SelectButton = styled.button`
 
   &:active {
     transform: translateY(0);
+  }
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
 `;
 
@@ -452,6 +465,7 @@ const AddClassButton = styled.button`
     right: 0;
     width: 300px;
     padding: 15px;
+    margin-bottom: 10px;
     border-radius: 8px;
     background: rgba(0, 0, 0, 0.9);
     color: white;
@@ -1042,7 +1056,29 @@ const AttendanceHistoryStudent = styled.div<{ $present: boolean }>`
     }
   }
 `;
-const SearchList: React.FC<Props> = ({ students, setStudents }) => {
+
+const CopyButton = styled.button`
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 15px;
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 1000;
+  
+  &:hover {
+    background: #3367d6;
+  }
+`;
+
+const SearchList: React.FC<Props> = ({ 
+  students, 
+  setStudents,
+  onModalStateChange 
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [groups, setGroups] = useState<Group[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -1093,6 +1129,10 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
   useEffect(() => {
     localStorage.setItem('attendanceRecords', JSON.stringify(attendanceRecords));
   }, [attendanceRecords]);
+
+  useEffect(() => {
+    onModalStateChange?.(showModal);
+  }, [showModal, onModalStateChange]);
 
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -1310,27 +1350,61 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
       setCurrentSelected(null);
       setShowOverlay(false);
       setIsSelectionDisabled(true);
+      
+      // გავზარდოთ შეტყობინების ჩვენების დრო 5 წამამდე
       toast.info('ყველა მოსწავლე შერჩეულია! ვიწყებთ თავიდან.', {
-        autoClose: 3000,
+        position: "top-center",
+        autoClose: 5000,
         hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
       });
       
-      // 3 წამის შემდეგ ვრთავთ ღილაკს
+      // დავაყოვნოთ ახალი ციკლის დაწყება შეტყობინების გაქრობის შემდეგ
       setTimeout(() => {
         setIsSelectionDisabled(false);
-      }, 3000);
+        
+        // დამატებითი დაყოვნება ახალი მოსწავლის არჩევამდე
+        setTimeout(() => {
+          const randomStudent = students[Math.floor(Math.random() * students.length)];
+          setCurrentSelected(randomStudent.name);
+          setSelectedStudents([randomStudent.name]);
+          setShowOverlay(true);
+          
+          setTimeout(() => {
+            setShowOverlay(false);
+          }, 7000);
+        }, 1000); // 1 წამიანი დაყოვნება ახალი მოსწავლის არჩევამდე
+        
+      }, 5000); // ველოდებით შეტყობინების გაქრობას
+      
       return;
     }
 
     const randomIndex = Math.floor(Math.random() * availableStudents.length);
     const selectedStudent = availableStudents[randomIndex];
-    setCurrentSelected(selectedStudent.name);
-    setSelectedStudents([...selectedStudents, selectedStudent.name]);
-    setShowOverlay(true);
+    
+    // თუ უკვე არის overlay გამოჩენილი, ჯერ დავხუროთ
+    if (showOverlay) {
+      setShowOverlay(false);
+      setTimeout(() => {
+        setCurrentSelected(selectedStudent.name);
+        setSelectedStudents([...selectedStudents, selectedStudent.name]);
+        setShowOverlay(true);
+      }, 300); // მცირე დაყოვნება ანიმაციისთვის
+    } else {
+      setCurrentSelected(selectedStudent.name);
+      setSelectedStudents([...selectedStudents, selectedStudent.name]);
+      setShowOverlay(true);
+    }
 
-    setTimeout(() => {
+    // დავაყენოთ ტაიმერი overlay-ის დასახურად
+    const timer = setTimeout(() => {
       setShowOverlay(false);
     }, 7000);
+
+    // გავასუფთავოთ წინა ტაიმერი თუ ახალი არჩევა მოხდა
+    return () => clearTimeout(timer);
   };
 
   const handleExpandGroups = () => {
@@ -1506,10 +1580,24 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
     return attendanceRecords
       .filter(record => record.className === className)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  };
+  }
+
+
 
   return (
     <Container $showModal={showModal}>
+      <ToastContainer 
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <Overlay $show={showOverlay} />
       {showOverlay && <CloseButton onClick={handleCloseOverlay}>×</CloseButton>}
       {currentSelected && showOverlay && (
@@ -1518,6 +1606,7 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
         </SelectedStudent>
       )}
       <ContentWrapper>
+        <FacebookLink isBlurred={showModal || showAttendanceModal || currentSelected !== null} />
         <SearchBar>
           <SearchInput
             value={searchTerm}
@@ -1533,25 +1622,28 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
         </AddClassButton>
 
         {showModal && (
-          <ModalOverlay>
-            <ModalContent>
-              <ModalTitle>კლასის დამატება</ModalTitle>
-              <Input
-                value={className}
-                onChange={(e) => setClassName(e.target.value)}
-                placeholder="კლასის სახელი..."
-              />
-              <TextArea
-                value={studentsList}
-                onChange={(e) => setStudentsList(e.target.value)}
-                placeholder="ჩაწერეთ მოსწავლეების სია (თითო ხაზზე თითო მოსწავლე)..."
-              />
-              <ButtonGroup>
-                <Button onClick={() => setShowModal(false)}>გაუქმება</Button>
-                <Button $primary onClick={handleAddClass}>შენახვა</Button>
-              </ButtonGroup>
-            </ModalContent>
-          </ModalOverlay>
+          <>
+            <Overlay $show={true} />
+            <ModalOverlay>
+              <ModalContent>
+                <ModalTitle>კლასის დამატება</ModalTitle>
+                <Input
+                  value={className}
+                  onChange={(e) => setClassName(e.target.value)}
+                  placeholder="კლასის სახელი..."
+                />
+                <TextArea
+                  value={studentsList}
+                  onChange={(e) => setStudentsList(e.target.value)}
+                  placeholder="ჩაწერეთ მოსწავლეების სია (თითო ხაზზე თითო მოსწავლე)..."
+                />
+                <ButtonGroup>
+                  <Button onClick={() => setShowModal(false)}>გაუქმება</Button>
+                  <Button $primary onClick={handleAddClass}>შენახვა</Button>
+                </ButtonGroup>
+              </ModalContent>
+            </ModalOverlay>
+          </>
         )}
 
         <MainContent $isExpanded={isExpanded}>
@@ -1817,4 +1909,3 @@ const SearchList: React.FC<Props> = ({ students, setStudents }) => {
 }
 
 export default SearchList;
-
