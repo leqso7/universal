@@ -114,7 +114,7 @@ function App() {
   const [className, setClassName] = useState('');
   const [classList, setClassList] = useState('');
   const [isClassFormVisible, setIsClassFormVisible] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => {

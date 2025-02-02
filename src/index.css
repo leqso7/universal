@@ -13,6 +13,13 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+@media screen and (max-width: 1366px) {
+  html {
+    transform: scale(0.8);
+    transform-origin: 0 0;
+  }
+}
+
 a {
   font-weight: 500;
   color: #646cff;

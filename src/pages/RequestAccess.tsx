@@ -476,14 +476,14 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
           <Title>მოთხოვნის გაგზავნა</Title>
           <Input
             type="text"
-            placeholder="სახელი"
+            placeholder="ტრანზაქციის ავტორის სახელი"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
             required
           />
           <Input
             type="text"
-            placeholder="გვარი"
+            placeholder="ტრანზაქციის ავტორის გვარი"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
             required

@@ -1057,22 +1057,6 @@ const AttendanceHistoryStudent = styled.div<{ $present: boolean }>`
   }
 `;
 
-const CopyButton = styled.button`
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  padding: 10px 15px;
-  background: #4285f4;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 1000;
-  
-  &:hover {
-    background: #3367d6;
-  }
-`;
 
 const SearchList: React.FC<Props> = ({ 
   students, 
