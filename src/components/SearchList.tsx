@@ -143,7 +143,14 @@ const StudentListContent = styled.div`
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
-  height: calc(100% - 120px); // დავამატოთ ფიქსირებული სიმაღლე GroupSizeSelector-ის გამოკლებით
+  height: calc(100% - 120px);
+  
+  /* Hide scrollbars */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 const GroupSizeSelector = styled.div`
@@ -155,11 +162,11 @@ const GroupSizeSelector = styled.div`
 
 const GroupsContainer = styled.div<{ $show: boolean; $isFullscreen: boolean }>`
   flex: 1;
-  width: ${props => props.$isFullscreen ? '100vw' : '600px'};
-  min-width: ${props => props.$isFullscreen ? '100vw' : '600px'};
-  max-width: ${props => props.$isFullscreen ? '100vw' : '600px'};
+  width: ${props => props.$isFullscreen ? '100%' : '600px'};
+  min-width: ${props => props.$isFullscreen ? '100%' : '600px'};
+  max-width: ${props => props.$isFullscreen ? '100%' : '600px'};
   height: ${props => props.$isFullscreen ? '100vh' : '100%'};
-  background: white;
+  background: ${props => props.$isFullscreen ? '#f8f9fa' : 'white'};
   border-radius: ${props => props.$isFullscreen ? '0' : '12px'};
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   overflow: hidden;
@@ -178,22 +185,29 @@ const GroupsContainer = styled.div<{ $show: boolean; $isFullscreen: boolean }>`
   z-index: ${props => props.$isFullscreen ? '9999' : '1'};
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
+  /* Hide scrollbars */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
   @media (min-width: 1600px) {
-    width: ${props => props.$isFullscreen ? '100vw' : '700px'};
-    min-width: ${props => props.$isFullscreen ? '100vw' : '700px'};
-    max-width: ${props => props.$isFullscreen ? '100vw' : '700px'};
+    width: ${props => props.$isFullscreen ? '100%' : '700px'};
+    min-width: ${props => props.$isFullscreen ? '100%' : '700px'};
+    max-width: ${props => props.$isFullscreen ? '100%' : '700px'};
   }
 
   @media (max-width: 1300px) {
-    width: ${props => props.$isFullscreen ? '100vw' : '500px'};
-    min-width: ${props => props.$isFullscreen ? '100vw' : '500px'};
-    max-width: ${props => props.$isFullscreen ? '100vw' : '500px'};
+    width: ${props => props.$isFullscreen ? '100%' : '500px'};
+    min-width: ${props => props.$isFullscreen ? '100%' : '500px'};
+    max-width: ${props => props.$isFullscreen ? '100%' : '500px'};
   }
 
   @media (max-width: 1100px) {
-    width: ${props => props.$isFullscreen ? '100vw' : '450px'};
-    min-width: ${props => props.$isFullscreen ? '100vw' : '450px'};
-    max-width: ${props => props.$isFullscreen ? '100vw' : '450px'};
+    width: ${props => props.$isFullscreen ? '100%' : '450px'};
+    min-width: ${props => props.$isFullscreen ? '100%' : '450px'};
+    max-width: ${props => props.$isFullscreen ? '100%' : '450px'};
   }
 `;
 
@@ -297,10 +311,11 @@ const GroupsHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  height: 70px;
+  padding: 20px 30px;
+  height: 80px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 `;
 
 const GroupControls = styled.div`
@@ -331,7 +346,8 @@ const IconButton = styled.button`
 const GroupTitle = styled.h2<{ $isFullscreen?: boolean }>`
   margin: 0;
   font-size: ${props => props.$isFullscreen ? '32px' : '24px'};
-  color: #333;
+  color: #2c3e50;
+  font-weight: 600;
 
   @media (min-height: 1000px) {
     font-size: ${props => props.$isFullscreen ? '38px' : '28px'};
@@ -342,17 +358,38 @@ const GroupsContent = styled.div<{ $isFullscreen: boolean }>`
   flex: 1;
   overflow-y: auto;
   padding: ${props => props.$isFullscreen ? '30px' : '10px'};
-  height: calc(100% - 70px);
+  height: calc(100% - 80px);
   background: ${props => props.$isFullscreen ? '#f5f5f5' : 'white'};
+  
+  /* Hide scrollbars */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 const GroupGrid = styled.div<{ $isFullscreen: boolean }>`
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-auto-rows: minmax(min-content, 1fr);
-  gap: 15px;
-  padding: 10px;
-  height: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: ${props => props.$isFullscreen ? '20px' : '15px'};
+  padding: ${props => props.$isFullscreen ? '20px' : '10px'};
+  height: auto;
+  max-width: 100%;
+  margin: 0 auto;
+  
+  /* Hide scrollbars */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: ${props => props.$isFullscreen ? '15px' : '10px'};
+    padding: ${props => props.$isFullscreen ? '20px' : '5px'};
+  }
 `;
 
 const StudentList = styled.div`
@@ -361,30 +398,19 @@ const StudentList = styled.div`
   margin-top: 15px;
   margin-bottom: 15px;
   
+  /* Hide scrollbars */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   &::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-  }
-  
-  &::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    display: none;
   }
 `;
 
 const GroupCard = styled.div`
-  background: #f8f9fa;
-  border-radius: 6px;
-  padding: 15px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transform: scale(1);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -392,12 +418,12 @@ const GroupCard = styled.div`
   height: 100%;
 
   @media (min-height: 1000px) {
-    padding: 20px;
+    padding: 25px;
   }
 
   &:hover {
     transform: translateY(-2px) scale(1.01);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
   }
 `;
 
@@ -411,26 +437,38 @@ const GroupMemberList = styled.div`
 `;
 
 const GroupMember = styled.div`
-  padding: 8px;
+  padding: 12px 15px;
   margin: 4px 0;
-  background: white;
-  border-radius: 4px;
+  background: #f8f9fa;
+  border-radius: 8px;
   transform: scale(1);
   transition: all 0.2s ease;
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 16px;
+  font-weight: 500;
+  color: #2c3e50;
+  text-align: center;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  width: 100%;
+  min-height: 50px;
+  line-height: 1.4;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 
   @media (min-height: 1000px) {
-    padding: 12px;
+    padding: 14px 18px;
     margin: 6px 0;
-    font-size: 18px;
+    font-size: 20px;
+    min-height: 60px;
   }
 
   &:hover {
     transform: translateX(5px) scale(1.02);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: #edf2f7;
   }
 `;
 
@@ -1792,7 +1830,7 @@ const SearchList: React.FC<Props> = ({
 
           <GroupsContainer $show={isExpanded} $isFullscreen={isFullscreen}>
             <GroupsHeader>
-              <GroupTitle $isFullscreen={isFullscreen}>შექმნილი ჯგუფები</GroupTitle>
+              <GroupTitle $isFullscreen={isFullscreen}>შექმნილი ჯგუფებით</GroupTitle>
               <GroupControls>
                 {isFullscreen ? (
                   <IconButton onClick={handleCloseFullscreen} title="დახურვა">
