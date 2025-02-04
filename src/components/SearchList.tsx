@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import FacebookLink from './FacebookLink';
 
@@ -56,55 +56,151 @@ ChartJS.register(
 );
 
 const Container = styled.div<{ $showModal: boolean }>`
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 20px;
-  overflow: hidden;
-  position: fixed;
-  top: 0;
-  left: 0;
+  position: relative;
+  overflow-x: hidden;
 `;
 
 const ContentWrapper = styled.div`
   width: 100%;
   max-width: 1200px;
-  height: 100%;
+  min-height: 80vh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   position: relative;
   transition: all 0.3s ease-in-out;
+  padding: 20px;
 `;
 
 const MainContent = styled.div<{ $isExpanded: boolean }>`
   display: flex;
   gap: 15px;
   width: 100%;
-  height: calc(100vh - 350px);
+  height: 85vh;  // შევცვალეთ ფიქსირებული სიმაღლე პროცენტულზე
   justify-content: center;
   align-items: center;
-  margin-right: 50px;
-  margin-top: 10%;
   transition: all 0.3s ease-in-out;
+  padding: 20px;
+
+  @media (max-height: 800px) {
+    height: 80vh;
+  }
+
+  @media (max-height: 700px) {
+    height: 75vh;
+  }
+
+  @media (max-height: 600px) {
+    height: 70vh;
+  }
 `;
 
 const StudentListContainer = styled.div`
   flex: 1;
+  width: 700px;
   min-width: 700px;
   max-width: 700px;
-  height: 650px;
+  height: 100%;
   background: rgba(255, 255, 255, 0.98);
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
-  margin-top: 40px;
   border: 1px solid rgba(0, 0, 0, 0.05);
   position: relative;
+  overflow: hidden;
+
+  @media (min-height: 1000px) {
+    width: 800px;
+    min-width: 800px;
+    max-width: 800px;
+    padding: 30px;
+  }
+
+  @media (max-height: 800px) {
+    width: 600px;
+    min-width: 600px;
+    max-width: 600px;
+  }
+
+  @media (max-height: 700px) {
+    width: 500px;
+    min-width: 500px;
+    max-width: 500px;
+  }
+
+  @media (max-height: 600px) {
+    width: 400px;
+    min-width: 400px;
+    max-width: 400px;
+  }
+`;
+
+const StudentListContent = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: calc(100% - 120px); // დავამატოთ ფიქსირებული სიმაღლე GroupSizeSelector-ის გამოკლებით
+`;
+
+const GroupSizeSelector = styled.div`
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  text-align: center;
+  height: 120px; // დავამატოთ ფიქსირებული სიმაღლე
+`;
+
+const GroupsContainer = styled.div<{ $show: boolean; $isFullscreen: boolean }>`
+  flex: 1;
+  width: 700px;
+  min-width: 700px;
+  max-width: 700px;
+  height: 100%;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  opacity: ${props => (props.$show ? 1 : 0)};
+  transform: ${props => (props.$show ? 'translateX(0)' : 'translateX(20px)')};
+  display: ${props => (props.$show ? 'flex' : 'none')};
+  flex-direction: column;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+
+  @media (min-height: 1000px) {
+    width: 800px;
+    min-width: 800px;
+    max-width: 800px;
+    padding: 30px;
+  }
+
+  @media (max-height: 800px) {
+    width: 600px;
+    min-width: 600px;
+    max-width: 600px;
+  }
+
+  @media (max-height: 700px) {
+    width: 500px;
+    min-width: 500px;
+    max-width: 500px;
+  }
+
+  @media (max-height: 600px) {
+    width: 400px;
+    min-width: 400px;
+    max-width: 400px;
+  }
 `;
 
 const SelectButton = styled.button`
@@ -120,6 +216,12 @@ const SelectButton = styled.button`
   width: 100%;
   position: relative;
   z-index: 10;
+
+  @media (min-height: 1000px) {
+    padding: 20px 25px;
+    font-size: 18px;
+    border-radius: 12px;
+  }
 
   &:hover {
     background: #3367d6;
@@ -197,37 +299,12 @@ const Overlay = styled.div<{ $show: boolean }>`
   transition-property: background, backdrop-filter, opacity;
 `;
 
-const GroupsContainer = styled.div<{ $show: boolean; $isFullscreen: boolean }>`
-  flex: 1;
-  min-width: ${props => props.$isFullscreen ? '100vw' : '700px'};
-  max-width: ${props => props.$isFullscreen ? '100vw' : '700px'};
-  height: ${props => props.$isFullscreen ? '100vh' : '650px'};
-  background: rgba(255, 255, 255, 0.98);
-  padding: 20px;
-  border-radius: ${props => props.$isFullscreen ? '0' : '12px'};
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  display: ${props => (props.$show ? 'flex' : 'none')};
-  flex-direction: column;
-  position: ${props => props.$isFullscreen ? 'fixed' : 'relative'};
-  margin-top: ${props => props.$isFullscreen ? '0' : '40px'};
-  top: ${props => props.$isFullscreen ? '0' : 'auto'};
-  left: ${props => props.$isFullscreen ? '0' : 'auto'};
-  z-index: ${props => props.$isFullscreen ? '1000' : '1'};
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  opacity: ${props => props.$show ? 1 : 0};
-  transform: ${props => {
-    if (!props.$show) return 'translateX(50px) scale(0.95)';
-    if (props.$isFullscreen) return 'none';
-    return 'translateX(0) scale(1)';
-  }};
-`;
-
 const GroupsHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
+  padding: 15px 20px;
+  height: 70px; // ფიქსირებული სიმაღლე
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 `;
 
@@ -260,26 +337,33 @@ const GroupTitle = styled.h2<{ $isFullscreen?: boolean }>`
   margin: 0;
   font-size: ${props => props.$isFullscreen ? '32px' : '24px'};
   color: #333;
+
+  @media (min-height: 1000px) {
+    font-size: ${props => props.$isFullscreen ? '38px' : '28px'};
+  }
 `;
 
 const GroupsContent = styled.div<{ $isFullscreen: boolean }>`
   flex: 1;
   overflow-y: auto;
   padding: ${props => props.$isFullscreen ? '20px' : '10px'};
+  height: calc(100% - 70px); // Header-ის სიმაღლის გამოკლებით
 `;
 
 const GroupGrid = styled.div<{ $isFullscreen: boolean }>`
   display: grid;
-  grid-template-columns: ${props => props.$isFullscreen ? 'repeat(auto-fill, minmax(300px, 1fr))' : 'repeat(auto-fill, minmax(250px, 1fr))'};
-  gap: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: minmax(min-content, 1fr);
+  gap: 15px;
   padding: 10px;
+  height: 100%;
 `;
 
 const StudentList = styled.div`
-  margin-top: 15px;
-  max-height: 420px;
-  overflow-y: auto;
   flex: 1;
+  overflow-y: auto;
+  margin-top: 15px;
+  margin-bottom: 15px;
   
   &::-webkit-scrollbar {
     width: 8px;
@@ -307,6 +391,13 @@ const GroupCard = styled.div`
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transform: scale(1);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  @media (min-height: 1000px) {
+    padding: 20px;
+  }
 
   &:hover {
     transform: translateY(-2px) scale(1.01);
@@ -319,6 +410,8 @@ const GroupMemberList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex: 1;
+  justify-content: space-evenly;
 `;
 
 const GroupMember = styled.div`
@@ -328,6 +421,16 @@ const GroupMember = styled.div`
   border-radius: 4px;
   transform: scale(1);
   transition: all 0.2s ease;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (min-height: 1000px) {
+    padding: 12px;
+    margin: 6px 0;
+    font-size: 18px;
+  }
 
   &:hover {
     transform: translateX(5px) scale(1.02);
@@ -354,13 +457,20 @@ const StudentCard = styled.div<{ $isRemoving: boolean }>`
   background: white;
   padding: 12px;
   margin: 6px 0;
-  height: 42px;
+  min-height: 42px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   animation: ${props => props.$isRemoving ? 'slideOut' : 'slideIn'} 0.3s ease-in-out;
   
+  @media (min-height: 1000px) {
+    padding: 16px;
+    margin: 8px 0;
+    min-height: 52px;
+    font-size: 18px;
+  }
+
   @keyframes slideIn {
     from {
       opacity: 0;
@@ -390,13 +500,6 @@ const StudentCard = styled.div<{ $isRemoving: boolean }>`
   }
 `;
 
-const ButtonContainer = styled.div`
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-top: auto;
-  padding-top: 20px;
-`;
 
 const SearchBar = styled.div`
   display: flex;
@@ -459,7 +562,7 @@ const AddClassButton = styled.button`
   }
 
   &::after {
-    content: "კლასის დამატების ფუნქცია საშუალებას გაძლევთ შეინახოთ მთლიანი კლასის სია. ამის შემდეგ, საძიებო ველში მხოლოდ კლასის სახელის შეყვანით, ავტომატურად დაემატება ყველა მოსწავლე ეკრანზე. ეს დაგიზოგავთ დროს და აღარ მოგიწევთ მოსწავლეების სათითაოდ დამატება ყოველ გაკვეთილზე";
+    content: "ამ ღილაკზე დაჭერის შემდეგ: შეინახოთ მთლიანი კლასის სია. ამის შემდეგ, საძიებო ველში მხოლოდ კლასის სახელის შეყვანით, ავტომატურად დაემატება ყველა მოსწავლე ეკრანზე. ეს დაგიზოგავთ დროს და აღარ მოგიწევთ მოსწავლეების სათითაოდ დამატება ყოველ გაკვეთილზე";
     position: absolute;
     top: calc(100% + 20px);
     right: 0;
@@ -478,18 +581,18 @@ const AddClassButton = styled.button`
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
-    white-space: normal;
+    pointer-events: none;
     
     @media (max-width: 768px) {
       width: 250px;
       font-size: 13px;
-      right: -10px;
+      left: 50%;
+      transform: translateX(-50%);
     }
     
     @media (max-width: 480px) {
       width: 200px;
       font-size: 12px;
-      right: -20px;
     }
   }
 
@@ -579,8 +682,9 @@ const TextArea = styled.textarea`
 
 const ButtonGroup = styled.div`
   display: flex;
+  justify-content: center;
   gap: 10px;
-  justify-content: flex-end;
+  margin: 10px 0;
 `;
 
 const Button = styled.button<{ $primary?: boolean }>`
@@ -601,64 +705,68 @@ const Button = styled.button<{ $primary?: boolean }>`
 const NumberButton = styled.button<{ 
   $isValid: boolean;
   $studentsCount: number;
+  $isSelected: boolean
 }>`
-  position: relative;
-  padding: 8px 12px;
-  margin: 0 4px;
+  padding: 10px 15px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  background: ${props => props.$isValid ? '#e8f5e9' : '#ffebee'};
-  color: ${props => props.$isValid ? '#2e7d32' : '#c62828'};
-  transition: all 0.3s ease;
-  box-shadow: 0 0 8px ${props => props.$isValid ? 
-    'rgba(46, 125, 50, 0.3)' : 
-    'rgba(198, 40, 40, 0.3)'};
+  background-color: ${props => 
+    props.$isSelected ? '#4CAF50' :
+    props.$studentsCount === 0 ? '#f0f0f0' :
+    props.$isValid ? '#e8f5e9' : '#f0f0f0'
+  };
+  color: ${props => 
+    props.$isSelected ? 'white' :
+    props.$studentsCount === 0 ? '#666' :
+    props.$isValid ? '#2e7d32' : '#666'
+  };
+  transition: all 0.2s ease;
+  min-width: 45px;
+
+  @media (min-height: 1000px) {
+    padding: 15px 20px;
+    font-size: 18px;
+    min-width: 55px;
+  }
 
   &:hover {
-    background: ${props => props.$isValid ? '#81c784' : '#ef5350'};
-    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    background-color: ${props => 
+      props.$isSelected ? '#45a049' :
+      props.$studentsCount === 0 ? '#e0e0e0' :
+      props.$isValid ? '#81c784' : '#e0e0e0'
+    };
   }
 
-  &:hover::after {
-    content: "${props => 
-      `${props.children} კაციანი ჯგუფები - ${Math.ceil(props.$studentsCount / Number(props.children))} ჯგუფი`}";
-    position: absolute;
-    bottom: calc(100% + 10px);
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 8px 12px;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    border-radius: 4px;
-    font-size: 14px;
-    white-space: nowrap;
-    animation: tooltipFadeIn 0.2s ease-out;
-    z-index: 1000;
-  }
-
-  @keyframes tooltipFadeIn {
-    from {
-      opacity: 0;
-      transform: translate(-50%, 5px);
-    }
-    to {
-      opacity: 1;
-      transform: translate(-50%, 0);
-    }
+  &:active {
+    transform: translateY(0);
   }
 `;
 
-const GroupSizeIndicator = styled.div`
-  margin-top: 10px;
-  font-size: 14px;
+const GroupSizeText = styled.div`
   color: #666;
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
+
+  @media (min-height: 1000px) {
+    font-size: 16px;
+    margin-top: 15px;
+  }
 `;
+
 
 const StudentCount = styled.div`
   margin-top: 10px;
   font-size: 16px;
   color: #666;
+
+  @media (min-height: 1000px) {
+    font-size: 18px;
+    margin-top: 15px;
+  }
 `;
 
 const CloseButton = styled.button`
@@ -893,13 +1001,22 @@ const AttendancePercentage = styled.div`
 
 const CardsContainer = styled.div`
   flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  background: white;
-  border-radius: 16px;
-  padding: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 700px;
+  min-width: 300px;
+  height: auto;
+  min-height: 600px;
+  max-height: calc(100vh - 100px);
+  background: rgba(255, 255, 255, 0.98);
+  padding: 20px;
+  border-radius: 12px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 768px) {
+    min-width: 100%;
+  }
 `;
 
 const StatisticsTabs = styled.div`
@@ -1132,7 +1249,7 @@ const SearchList: React.FC<Props> = ({
 
   const handleGroupSize = (size: number) => {
     if (students.length < 4) {
-      toast.error('მინიმუმ 4 მოსწავლე ჯგუფების შესაქმნელად');
+      toast.error('მინიმუმ 4 მოსწავლე უნდა იყოს დამატებული (2 ჯგუფი მინიმუმ 2 მოსწავლით)');
       return;
     }
 
@@ -1145,6 +1262,12 @@ const SearchList: React.FC<Props> = ({
     const requestedGroups = Math.ceil(totalStudents / size); // მოთხოვნილი ჯგუფების რაოდენობა
     const numGroups = Math.min(maxGroups, requestedGroups);
 
+    // Ensure we have at least 2 groups
+    if (numGroups < 2) {
+      toast.error('მინიმუმ 2 ჯგუფის შექმნა უნდა იყოს შესაძლებელი');
+      return;
+    }
+
     // Calculate minimum students per group and extras
     const minStudentsPerGroup = Math.floor(totalStudents / numGroups);
     const extraStudents = totalStudents % numGroups;
@@ -1156,6 +1279,12 @@ const SearchList: React.FC<Props> = ({
     for (let i = 0; i < numGroups; i++) {
       // Add one extra student to early groups if we have remainder
       const groupSize = i < extraStudents ? minStudentsPerGroup + 1 : minStudentsPerGroup;
+      
+      // Ensure each group has at least 2 students
+      if (groupSize < 2) {
+        toast.error('ყველა ჯგუფში მინიმუმ 2 მოსწავლე უნდა იყოს');
+        return;
+      }
       
       newGroups.push({
         id: Date.now() + i,
@@ -1325,6 +1454,28 @@ const SearchList: React.FC<Props> = ({
       return;
     }
 
+    if (students.length === 0) {
+      toast.warning('გთხოვთ დაამატოთ მოსწავლეები', {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+      });
+      return;
+    }
+
+    if (students.length === 1) {
+      toast.warning('გთხოვთ დაამატოთ მინიმუმ 2 მოსწავლე', {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+      });
+      return;
+    }
+
     const availableStudents = students.filter(student => 
       !selectedStudents.includes(student.name)
     );
@@ -1335,7 +1486,6 @@ const SearchList: React.FC<Props> = ({
       setShowOverlay(false);
       setIsSelectionDisabled(true);
       
-      // გავზარდოთ შეტყობინების ჩვენების დრო 5 წამამდე
       toast.info('ყველა მოსწავლე შერჩეულია! ვიწყებთ თავიდან.', {
         position: "top-center",
         autoClose: 5000,
@@ -1344,11 +1494,9 @@ const SearchList: React.FC<Props> = ({
         pauseOnHover: true,
       });
       
-      // დავაყოვნოთ ახალი ციკლის დაწყება შეტყობინების გაქრობის შემდეგ
       setTimeout(() => {
         setIsSelectionDisabled(false);
         
-        // დამატებითი დაყოვნება ახალი მოსწავლის არჩევამდე
         setTimeout(() => {
           const randomStudent = students[Math.floor(Math.random() * students.length)];
           setCurrentSelected(randomStudent.name);
@@ -1358,9 +1506,9 @@ const SearchList: React.FC<Props> = ({
           setTimeout(() => {
             setShowOverlay(false);
           }, 7000);
-        }, 1000); // 1 წამიანი დაყოვნება ახალი მოსწავლის არჩევამდე
+        }, 1000);
         
-      }, 5000); // ველოდებით შეტყობინების გაქრობას
+      }, 5000);
       
       return;
     }
@@ -1368,27 +1516,22 @@ const SearchList: React.FC<Props> = ({
     const randomIndex = Math.floor(Math.random() * availableStudents.length);
     const selectedStudent = availableStudents[randomIndex];
     
-    // თუ უკვე არის overlay გამოჩენილი, ჯერ დავხუროთ
     if (showOverlay) {
       setShowOverlay(false);
       setTimeout(() => {
         setCurrentSelected(selectedStudent.name);
         setSelectedStudents([...selectedStudents, selectedStudent.name]);
         setShowOverlay(true);
-      }, 300); // მცირე დაყოვნება ანიმაციისთვის
+      }, 300);
     } else {
       setCurrentSelected(selectedStudent.name);
       setSelectedStudents([...selectedStudents, selectedStudent.name]);
       setShowOverlay(true);
     }
 
-    // დავაყენოთ ტაიმერი overlay-ის დასახურად
-    const timer = setTimeout(() => {
+    setTimeout(() => {
       setShowOverlay(false);
     }, 7000);
-
-    // გავასუფთავოთ წინა ტაიმერი თუ ახალი არჩევა მოხდა
-    return () => clearTimeout(timer);
   };
 
   const handleExpandGroups = () => {
@@ -1570,18 +1713,6 @@ const SearchList: React.FC<Props> = ({
 
   return (
     <Container $showModal={showModal}>
-      <ToastContainer 
-        position="top-center"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
       <Overlay $show={showOverlay} />
       {showOverlay && <CloseButton onClick={handleCloseOverlay}>×</CloseButton>}
       {currentSelected && showOverlay && (
@@ -1632,54 +1763,63 @@ const SearchList: React.FC<Props> = ({
 
         <MainContent $isExpanded={isExpanded}>
           <StudentListContainer>
-            <SelectButton 
-              onClick={handleRandomSelect}
-              disabled={isSelectionDisabled}
-              style={{ opacity: isSelectionDisabled ? 0.5 : 1 }}
-            >
-              მოსწავლის არჩევა
-            </SelectButton>
-            <StudentCount>
-              მოსწავლეების რაოდენობა: {students.length}
-            </StudentCount>
+            <StudentListContent>
+              <SelectButton 
+                onClick={handleRandomSelect}
+                disabled={isSelectionDisabled}
+                style={{ opacity: isSelectionDisabled ? 0.5 : 1 }}
+              >
+                მოსწავლის არჩევა
+              </SelectButton>
+              <StudentCount>
+                მოსწავლეების რაოდენობა: {students.length}
+              </StudentCount>
 
-            <StudentList>
-              {filteredStudents.map((student) => (
-                <StudentCard key={`${student.id}-${student.timestamp}`} $isRemoving={false}>
-                  <span>{student.name}</span>
-                  <DeleteButton 
-                    onClick={() => handleRemoveStudent(student.timestamp, student.classId)}
+              <StudentList>
+                {filteredStudents.map((student) => (
+                  <StudentCard key={`${student.id}-${student.timestamp}`} $isRemoving={false}>
+                    <span>{student.name}</span>
+                    <DeleteButton 
+                      onClick={() => handleRemoveStudent(student.timestamp, student.classId)}
+                    >
+                      ×
+                    </DeleteButton>
+                  </StudentCard>
+                ))}
+              </StudentList>
+
+              {showSaveButton && filteredStudents.length > 0 && (
+                <SaveAttendanceButton 
+                  className={currentClassName} 
+                  onClick={handleSaveAttendance}
+                />
+              )}
+            </StudentListContent>
+            
+            <GroupSizeSelector>
+              <div style={{ color: '#666', marginBottom: '10px' }}>
+                აირჩიეთ ჯგუფის ზომა:
+              </div>
+              <ButtonGroup>
+                {[2, 3, 4, 5, 6].map((size) => (
+                  <NumberButton
+                    key={size}
+                    onClick={() => handleGroupSize(size)}
+                    $isValid={filteredStudents.length % size === 0}
+                    $studentsCount={filteredStudents.length}
+                    $isSelected={selectedSize === size}
                   >
-                    ×
-                  </DeleteButton>
-                </StudentCard>
-              ))}
-            </StudentList>
-
-            {showSaveButton && filteredStudents.length > 0 && (
-              <SaveAttendanceButton 
-                className={currentClassName} 
-                onClick={handleSaveAttendance}
-              />
-            )}
-
-            <ButtonContainer>
-              {[2, 3, 4, 5, 6].map((number) => (
-                <NumberButton
-                  key={number}
-                  $isValid={filteredStudents.length % number === 0}
-                  $studentsCount={filteredStudents.length}
-                  onClick={() => handleGroupSize(number)}
-                >
-                  {number}
-                </NumberButton>
-              ))}
-              <GroupSizeIndicator>
+                    {size}
+                  </NumberButton>
+                ))}
+              </ButtonGroup>
+              <GroupSizeText>
                 {filteredStudents.length > 0 
                   ? `${selectedSize} კაციანი ჯგუფები - ${Math.ceil(filteredStudents.length / selectedSize)} ჯგუფი`
                   : 'აირჩიეთ ჯგუფის ზომა'}
-              </GroupSizeIndicator>
-            </ButtonContainer>
+              </GroupSizeText>
+            </GroupSizeSelector>
+
           </StudentListContainer>
 
           <GroupsContainer $show={isExpanded} $isFullscreen={isFullscreen}>
@@ -1724,13 +1864,13 @@ const SearchList: React.FC<Props> = ({
       </ContentWrapper>
       
       <AttendanceButton onClick={() => setShowAttendanceModal(true)} $showModal={showModal}>
-        დასწრების სტატისტიკა
+        დასწრება
       </AttendanceButton>
 
       {showAttendanceModal && (
         <StatisticsModal>
           <StatisticsHeader>
-            <StatisticsTitle>დასწრების სტატისტიკა</StatisticsTitle>
+            <StatisticsTitle>დასწრება</StatisticsTitle>
             <CloseStatisticsButton onClick={() => setShowAttendanceModal(false)}>
               ×
             </CloseStatisticsButton>
@@ -1891,5 +2031,4 @@ const SearchList: React.FC<Props> = ({
     </Container>
   );
 }
-
 export default SearchList;
