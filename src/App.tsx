@@ -395,12 +395,12 @@ function App() {
                   </ClassForm>
                 </>
               ) : (
-                <Navigate to="/request" replace />
+                <Navigate to="/request-access" replace />
               )
             }
           />
           <Route
-            path="/request"
+            path="/request-access"
             element={
               hasAccess ? (
                 <Navigate to="/" replace />

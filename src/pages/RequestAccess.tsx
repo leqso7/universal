@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -547,7 +547,6 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
           </FacebookLink>
         </ModalContent>
       </Modal>
-      <ToastContainer position="top-center" />
     </Container>
   );
 };
