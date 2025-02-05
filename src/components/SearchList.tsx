@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -269,6 +269,10 @@ const SelectedStudent = styled.div`
   word-wrap: break-word;
   overflow-wrap: break-word;
   hyphens: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
 
   @keyframes fadeIn {
     from {
@@ -289,6 +293,43 @@ const SelectedStudent = styled.div`
   @media (max-width: 480px) {
     font-size: 24px;
     padding: 20px;
+  }
+`;
+
+const ProgressBar = styled.div`
+  width: 300px;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+
+  @media (max-width: 768px) {
+    width: 250px;
+  }
+
+  @media (max-width: 480px) {
+    width: 200px;
+  }
+`;
+
+const Progress = styled.div<{ $duration: number; $key: number }>`
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #1a73e8;
+  width: 100%;
+  transform-origin: left;
+  animation: progress-${props => props.$key} ${props => props.$duration}ms linear;
+
+  @keyframes progress-${props => props.$key} {
+    from {
+      transform: scaleX(1);
+    }
+    to {
+      transform: scaleX(0);
+    }
   }
 `;
 
@@ -1184,6 +1225,64 @@ const AttendanceHistoryStudent = styled.div<{ $present: boolean }>`
   }
 `;
 
+const ActiveClassesContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+`;
+
+const ActiveClassBadge = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #2c3e50;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background: #edf2f7;
+  }
+`;
+
+const ClassRemoveButton = styled.button`
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  
+  &:hover {
+    color: #ff4444;
+  }
+`;
+
+const ClassOptionsModal = styled(ModalContent)`
+  max-width: 400px;
+  text-align: center;
+`;
+
+const OptionButton = styled(Button)`
+  width: 100%;
+  margin: 5px 0;
+  padding: 15px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+`;
 
 const SearchList: React.FC<Props> = ({ 
   students, 
@@ -1212,13 +1311,30 @@ const SearchList: React.FC<Props> = ({
   const [showOverlay, setShowOverlay] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isSelectionDisabled, setIsSelectionDisabled] = useState(false);
-  const [showSaveButton, setShowSaveButton] = useState(false);
-  const [currentClassId, setCurrentClassId] = useState<string>('');
-  const [currentClassName, setCurrentClassName] = useState<string>('');
+  const [showSaveButton, setShowSaveButton] = useState<boolean>(() => {
+    const saved = localStorage.getItem('showSaveButton');
+    return saved ? JSON.parse(saved) : false;
+  });
+  const [currentClassId, setCurrentClassId] = useState<string>(() => {
+    const saved = localStorage.getItem('currentClassId');
+    return saved || '';
+  });
+  const [currentClassName, setCurrentClassName] = useState<string>(() => {
+    const saved = localStorage.getItem('currentClassName');
+    return saved || '';
+  });
   const [viewMode, setViewMode] = useState<'cards' | 'chart'>('cards');
   const [nameFilter, setNameFilter] = useState('');
   const [showAttendanceHistory, setShowAttendanceHistory] = useState(false);
   const [selectedClassForHistory, setSelectedClassForHistory] = useState<string>('');
+  const [progressKey, setProgressKey] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout>();
+  const [activeClasses, setActiveClasses] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('activeClasses');
+    return new Set(saved ? JSON.parse(saved) : []);
+  });
+  const [showClassOptionsModal, setShowClassOptionsModal] = useState(false);
+  const [existingClass, setExistingClass] = useState<Class | null>(null);
 
   useEffect(() => {
     const savedClasses = localStorage.getItem('classes');
@@ -1244,6 +1360,37 @@ const SearchList: React.FC<Props> = ({
   useEffect(() => {
     onModalStateChange?.(showModal);
   }, [showModal, onModalStateChange]);
+
+  useEffect(() => {
+    localStorage.setItem('showSaveButton', JSON.stringify(showSaveButton));
+    localStorage.setItem('currentClassId', currentClassId);
+    localStorage.setItem('currentClassName', currentClassName);
+  }, [showSaveButton, currentClassId, currentClassName]);
+
+  useEffect(() => {
+    const savedClassId = localStorage.getItem('currentClassId');
+    const savedClassName = localStorage.getItem('currentClassName');
+    
+    if (savedClassId && savedClassName && students.length === 0) {
+      const savedClasses: Class[] = JSON.parse(localStorage.getItem('classes') || '[]');
+      const foundClass = savedClasses.find(c => c.id === savedClassId);
+      
+      if (foundClass) {
+        const newStudents: Student[] = foundClass.students.map(student => ({
+          id: student.id,
+          name: student.name,
+          timestamp: Date.now() + Math.random(),
+          classId: foundClass.id
+        }));
+        
+        setStudents(newStudents);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('activeClasses', JSON.stringify(Array.from(activeClasses)));
+  }, [activeClasses]);
 
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -1309,12 +1456,68 @@ const SearchList: React.FC<Props> = ({
     setIsExpanded(true);
   };
 
+  const handleClassNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newClassName = e.target.value;
+    setClassName(newClassName);
+  };
+
+  const handleDeleteClass = () => {
+    if (!existingClass) return;
+
+    // Replace old class with new one
+    const newClass: Class = {
+      id: Date.now().toString(),
+      name: existingClass.name,
+      students: studentsList
+        .split('\n')
+        .map(name => name.trim())
+        .filter(name => name)
+        .map(name => ({
+          id: crypto.randomUUID(),
+          name,
+          timestamp: Date.now(),
+          classId: Date.now().toString()
+        }))
+    };
+
+    // Remove old class and add new one
+    setClasses(prev => [...prev.filter(c => c.id !== existingClass.id), newClass]);
+    
+    // Remove from active classes if present
+    setActiveClasses(prev => {
+      const newClasses = new Set(prev);
+      newClasses.delete(existingClass.name);
+      return newClasses;
+    });
+
+    // Remove old students from current view
+    setStudents(prev => 
+      prev.filter(student => student.classId !== existingClass.id)
+    );
+
+    toast.success('კლასი წარმატებით განახლდა!');
+    setShowClassOptionsModal(false);
+    setClassName('');
+    setStudentsList('');
+    setExistingClass(null);
+    setShowModal(false);
+  };
+
   const handleAddClass = () => {
     if (!className.trim()) {
-      toast.error('გთხოვთ შეიყვანოთ კლასის სახელი', {
-        autoClose: 2000,
-        hideProgressBar: false,
-      });
+      toast.error('გთხოვთ შეიყვანოთ კლასის სახელი');
+      return;
+    }
+
+    // Check if class already exists
+    const existing = classes.find(c => 
+      c.name.toLowerCase() === className.toLowerCase()
+    );
+
+    if (existing) {
+      setExistingClass(existing);
+      setShowClassOptionsModal(true);
+      setShowModal(false);
       return;
     }
 
@@ -1331,10 +1534,7 @@ const SearchList: React.FC<Props> = ({
     );
 
     if (duplicateNames.length > 0) {
-      toast.error(`გთხოვთ წაშალოთ დუბლიკატი სახელები: ${duplicateNames.join(', ')}`, {
-        autoClose: 3000,
-        hideProgressBar: false,
-      });
+      toast.error(`გთხოვთ წაშალოთ დუბლიკატი სახელები: ${duplicateNames.join(', ')}`);
       return;
     }
 
@@ -1347,56 +1547,25 @@ const SearchList: React.FC<Props> = ({
       }));
 
     if (newStudents.length === 0) {
-      toast.error('გთხოვთ შეიყვანოთ მინიმუმ ერთი მოსწავლე', {
-        autoClose: 2000,
-        hideProgressBar: false,
-      });
+      toast.error('გთხოვთ შეიყვანოთ მინიმუმ ერთი მოსწავლე');
       return;
     }
 
-    const existingClassIndex = classes.findIndex(c => 
-      c.name.toLowerCase() === className.toLowerCase()
-    );
+    // Create new class
+    const newClass: Class = {
+      id: classId,
+      name: className.trim(),
+      students: newStudents
+    };
 
-    if (existingClassIndex !== -1) {
-      const updatedClasses = [...classes];
-      const existingClass = updatedClasses[existingClassIndex];
-      
-      // Create a new class with the same ID as the existing class
-      updatedClasses[existingClassIndex] = {
-        id: existingClass.id, // Keep the same ID to preserve history
-        name: className,
-        students: newStudents.map(student => ({
-          ...student,
-          classId: existingClass.id // Use existing class ID for new students
-        }))
-      };
-      
-      setClasses(updatedClasses);
-      localStorage.setItem('classes', JSON.stringify(updatedClasses));
-      toast.success('კლასი წარმატებით განახლდა!', {
-        autoClose: 2000,
-        hideProgressBar: false,
-      });
-    } else {
-      const newClass: Class = {
-        id: classId,
-        name: className.trim(),
-        students: newStudents
-      };
-
-      const updatedClasses = [...classes, newClass];
-      setClasses(updatedClasses);
-      localStorage.setItem('classes', JSON.stringify(updatedClasses));
-      toast.success('კლასი წარმატებით დაემატა!', {
-        autoClose: 2000,
-        hideProgressBar: false,
-      });
-    }
+    setClasses(prev => [...prev, newClass]);
+    toast.success('ახალი კლასი წარმატებით დაემატა!');
     
     setClassName('');
     setStudentsList('');
     setShowModal(false);
+    setShowClassOptionsModal(false);
+    setExistingClass(null);
   };
 
   const handleSearch = () => {
@@ -1413,21 +1582,28 @@ const SearchList: React.FC<Props> = ({
       );
 
       if (foundClass && Array.isArray(foundClass.students)) {
-        // ჯერ გავასუფთავოთ წინა სია
-        setStudents([]);
-        setShowSaveButton(false);
+        // Check if class is already active
+        if (activeClasses.has(foundClass.name)) {
+          toast.error('ეს კლასი უკვე დამატებულია!');
+          setSearchTerm('');
+          return;
+        }
+
+        setActiveClasses(prev => new Set(prev).add(foundClass.name));
         
         const newStudents: Student[] = foundClass.students.map(student => ({
           id: student.id,
           name: student.name,
-          timestamp: Date.now() + Math.random(), // უნიკალური timestamp-ის უზრუნველსაყოფად
+          timestamp: Date.now() + Math.random(),
           classId: foundClass.id
         }));
 
         setCurrentClassId(foundClass.id);
         setCurrentClassName(foundClass.name);
         setShowSaveButton(true);
-        setStudents(newStudents);
+        
+        // Append new students instead of clearing
+        setStudents(prev => [...prev, ...newStudents]);
         toast.success(`დაემატა ${newStudents.length} მოსწავლე`);
       } else {
         const existingStudent = students.find(
@@ -1456,6 +1632,9 @@ const SearchList: React.FC<Props> = ({
   };
 
   const handleCloseOverlay = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
     setShowOverlay(false);
   };
 
@@ -1486,6 +1665,11 @@ const SearchList: React.FC<Props> = ({
       return;
     }
 
+    // Clear any existing timer
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
     const availableStudents = students.filter(student => 
       !selectedStudents.includes(student.name)
     );
@@ -1512,8 +1696,9 @@ const SearchList: React.FC<Props> = ({
           setCurrentSelected(randomStudent.name);
           setSelectedStudents([randomStudent.name]);
           setShowOverlay(true);
+          setProgressKey(prev => prev + 1);
           
-          setTimeout(() => {
+          timerRef.current = setTimeout(() => {
             setShowOverlay(false);
           }, 7000);
         }, 1000);
@@ -1532,17 +1717,32 @@ const SearchList: React.FC<Props> = ({
         setCurrentSelected(selectedStudent.name);
         setSelectedStudents([...selectedStudents, selectedStudent.name]);
         setShowOverlay(true);
+        setProgressKey(prev => prev + 1);
+        
+        timerRef.current = setTimeout(() => {
+          setShowOverlay(false);
+        }, 7000);
       }, 300);
     } else {
       setCurrentSelected(selectedStudent.name);
       setSelectedStudents([...selectedStudents, selectedStudent.name]);
       setShowOverlay(true);
+      setProgressKey(prev => prev + 1);
+      
+      timerRef.current = setTimeout(() => {
+        setShowOverlay(false);
+      }, 7000);
     }
-
-    setTimeout(() => {
-      setShowOverlay(false);
-    }, 7000);
   };
+
+  // Clean up timer on component unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
 
   const handleExpandGroups = () => {
     setIsFullscreen(true);
@@ -1554,24 +1754,33 @@ const SearchList: React.FC<Props> = ({
 
   const handleSaveAttendance = () => {
     const currentDate = new Date().toISOString().split('T')[0];
-    const presentStudents = filteredStudents.map(student => student.name);
     
-    if (!currentClassId || !currentClassName) {
-      toast.error('კლასის ინფორმაცია ვერ მოიძებნა');
-      return;
-    }
+    // შევაგროვოთ ყველა აქტიური კლასის მოსწავლეები
+    Array.from(activeClasses).forEach(className => {
+      const classData = classes.find(c => c.name === className);
+      if (!classData) return;
 
-    const newRecord: AttendanceRecord = {
-      date: currentDate,
-      presentStudents,
-      classId: currentClassId,
-      className: currentClassName
-    };
+      const presentStudents = filteredStudents
+        .filter(student => {
+          const studentClass = classes.find(c => c.id === student.classId);
+          return studentClass?.name === className;
+        })
+        .map(student => student.name);
 
-    setAttendanceRecords(prev => [...prev, newRecord]);
+      const newRecord: AttendanceRecord = {
+        date: currentDate,
+        presentStudents,
+        classId: classData.id,
+        className: classData.name
+      };
+
+      setAttendanceRecords(prev => [...prev, newRecord]);
+    });
+
     setShowSaveButton(false);
-    setStudents([]);
-    toast.success('დასწრება შენახულია!');
+    localStorage.removeItem('showSaveButton');
+    
+    toast.success(`${activeClasses.size} კლასის დასწრება შენახულია!`);
   };
 
   const calculateAttendance = (className: string) => {
@@ -1719,7 +1928,89 @@ const SearchList: React.FC<Props> = ({
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 
+  const handleRemoveClass = (className: string) => {
+    setActiveClasses(prev => {
+      const newClasses = new Set(prev);
+      newClasses.delete(className);
+      return newClasses;
+    });
+    
+    setStudents(prev => prev.filter(student => {
+      const studentClass = classes.find(c => c.id === student.classId);
+      return studentClass?.name !== className;
+    }));
 
+    // თუ წავშალეთ მიმდინარე კლასი, მაგრამ სხვა კლასებიც არის აქტიური
+    if (currentClassName === className) {
+      // ვიპოვოთ სხვა აქტიური კლასი
+      const remainingClasses = Array.from(activeClasses).filter(c => c !== className);
+      if (remainingClasses.length > 0) {
+        // თუ არის სხვა აქტიური კლასი, განვაახლოთ მიმდინარე კლასის ინფორმაცია
+        const nextClass = classes.find(c => c.name === remainingClasses[0]);
+        if (nextClass) {
+          setCurrentClassId(nextClass.id);
+          setCurrentClassName(nextClass.name);
+          // შენახვის ღილაკი დარჩება ჩართული
+          return;
+        }
+      }
+      // თუ სხვა აქტიური კლასი არ არის, მხოლოდ მაშინ გავთიშოთ შენახვის ღილაკი
+      setShowSaveButton(false);
+      setCurrentClassId('');
+      setCurrentClassName('');
+    }
+  };
+
+  const handleAddStudentsToExistingClass = () => {
+    if (!existingClass) return;
+
+    const studentNames = studentsList
+      .split('\n')
+      .map(name => name.trim())
+      .filter(name => name);
+
+    const duplicateNames = studentNames.filter(
+      (name, index) => studentNames.indexOf(name) !== index
+    );
+
+    if (duplicateNames.length > 0) {
+      toast.error(`გთხოვთ წაშალოთ დუბლიკატი სახელები: ${duplicateNames.join(', ')}`);
+      return;
+    }
+
+    const newStudents = studentNames
+      .map((name, index) => ({
+        id: crypto.randomUUID(),
+        name,
+        timestamp: Date.now() + index,
+        classId: existingClass.id
+      }));
+
+    if (newStudents.length === 0) {
+      toast.error('გთხოვთ შეიყვანოთ მინიმუმ ერთი მოსწავლე');
+      return;
+    }
+
+    // Add new students to existing class
+    const updatedClasses = classes.map(c => {
+      if (c.id === existingClass.id) {
+        return {
+          ...c,
+          students: [...c.students, ...newStudents]
+        };
+      }
+      return c;
+    });
+    
+    setClasses(updatedClasses);
+    toast.success('მოსწავლეები წარმატებით დაემატა არსებულ კლასს!');
+    
+    setClassName('');
+    setStudentsList('');
+    setShowModal(false);
+    setShowClassOptionsModal(false);
+    setExistingClass(null);
+  };
 
   return (
     <Container $showModal={showModal}>
@@ -1728,6 +2019,9 @@ const SearchList: React.FC<Props> = ({
       {currentSelected && showOverlay && (
         <SelectedStudent>
           {currentSelected}
+          <ProgressBar>
+            <Progress $duration={7000} $key={progressKey} />
+          </ProgressBar>
         </SelectedStudent>
       )}
       <ContentWrapper>
@@ -1751,11 +2045,12 @@ const SearchList: React.FC<Props> = ({
             <Overlay $show={true} />
             <ModalOverlay>
               <ModalContent>
-                <ModalTitle>კლასის დამატება</ModalTitle>
+                <ModalTitle>{existingClass ? 'მოსწავლეების დამატება' : 'კლასის დამატება'}</ModalTitle>
                 <Input
                   value={className}
-                  onChange={(e) => setClassName(e.target.value)}
+                  onChange={handleClassNameChange}
                   placeholder="კლასის სახელი..."
+                  disabled={!!existingClass}
                 />
                 <TextArea
                   value={studentsList}
@@ -1763,10 +2058,49 @@ const SearchList: React.FC<Props> = ({
                   placeholder="ჩაწერეთ მოსწავლეების სია (თითო ხაზზე თითო მოსწავლე)..."
                 />
                 <ButtonGroup>
-                  <Button onClick={() => setShowModal(false)}>გაუქმება</Button>
-                  <Button $primary onClick={handleAddClass}>შენახვა</Button>
+                  <Button onClick={() => {
+                    setShowModal(false);
+                    setExistingClass(null);
+                    setClassName('');
+                    setStudentsList('');
+                  }}>გაუქმება</Button>
+                  <Button $primary onClick={existingClass ? handleAddStudentsToExistingClass : handleAddClass}>
+                    შენახვა
+                  </Button>
                 </ButtonGroup>
               </ModalContent>
+            </ModalOverlay>
+          </>
+        )}
+
+        {showClassOptionsModal && existingClass && (
+          <>
+            <Overlay $show={true} />
+            <ModalOverlay>
+              <ClassOptionsModal>
+                <ModalTitle>კლასი უკვე არსებობს</ModalTitle>
+                <p style={{ marginBottom: '20px', color: '#666' }}>
+                  კლასი "{existingClass.name}" უკვე არსებობს. გთხოვთ აირჩიოთ მოქმედება გსურთ ძველი სიის ახლით ჩანაცვლება თუ მოსწავლეების დამატება ახლანდელ სიაში:
+                </p>
+                <OptionButton onClick={handleDeleteClass} style={{ background: '#ff4444', color: 'white' }}>
+                  <span>🔄</span> კლასის ჩანაცვლება
+                </OptionButton>
+                <OptionButton $primary onClick={() => {
+                  setShowClassOptionsModal(false);
+                  setShowModal(true);
+                  setClassName(existingClass.name);
+                }}>
+                  <span>➕</span> მოსწავლეების დამატება
+                </OptionButton>
+                <OptionButton onClick={() => {
+                  setShowClassOptionsModal(false);
+                  setShowModal(true);
+                  setClassName('');
+                  setExistingClass(null);
+                }}>
+                  გაუქმება
+                </OptionButton>
+              </ClassOptionsModal>
             </ModalOverlay>
           </>
         )}
@@ -1784,6 +2118,19 @@ const SearchList: React.FC<Props> = ({
               <StudentCount>
                 მოსწავლეების რაოდენობა: {students.length}
               </StudentCount>
+
+              {activeClasses.size > 0 && (
+                <ActiveClassesContainer>
+                  {Array.from(activeClasses).map(className => (
+                    <ActiveClassBadge key={className}>
+                      {className}
+                      <ClassRemoveButton onClick={() => handleRemoveClass(className)}>
+                        ×
+                      </ClassRemoveButton>
+                    </ActiveClassBadge>
+                  ))}
+                </ActiveClassesContainer>
+              )}
 
               <StudentList>
                 {filteredStudents.map((student) => (
