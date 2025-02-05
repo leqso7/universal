@@ -1582,13 +1582,6 @@ const SearchList: React.FC<Props> = ({
       );
 
       if (foundClass && Array.isArray(foundClass.students)) {
-        // Check if class is already active
-        if (activeClasses.has(foundClass.name)) {
-          toast.error('ეს კლასი უკვე დამატებულია!');
-          setSearchTerm('');
-          return;
-        }
-
         setActiveClasses(prev => new Set(prev).add(foundClass.name));
         
         const newStudents: Student[] = foundClass.students.map(student => ({
@@ -1908,18 +1901,22 @@ const SearchList: React.FC<Props> = ({
       return 'არასწორი თარიღის ფორმატი';
     }
 
+    const georgianDays = [
+      'კვირა', 'ორშაბათი', 'სამშაბათი', 'ოთხშაბათი', 
+      'ხუთშაბათი', 'პარასკევი', 'შაბათი'
+    ];
+
     const georgianMonths = [
       'იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი',
       'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'
     ];
     
+    const dayOfWeek = georgianDays[d.getDay()];
     const day = d.getDate();
     const month = georgianMonths[d.getMonth()];
     const year = d.getFullYear();
-    const hours = d.getHours().toString().padStart(2, '0');
-    const minutes = d.getMinutes().toString().padStart(2, '0');
 
-    return `${day} ${month}, ${year} - ${hours}:${minutes}`;
+    return `${dayOfWeek}, ${day} ${month}, ${year}`;
   };
 
   const getClassAttendanceHistory = (className: string) => {
