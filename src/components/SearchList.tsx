@@ -264,7 +264,7 @@ const SelectedStudent = styled.div`
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   z-index: 1001;
   text-transform: uppercase;
-  animation: fadeIn 0.3s ease;
+  animation: fadeInCenter 0.3s ease;
   max-width: 90vw;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -274,14 +274,14 @@ const SelectedStudent = styled.div`
   align-items: center;
   gap: 20px;
 
-  @keyframes fadeIn {
+  @keyframes fadeInCenter {
     from {
       opacity: 0;
-      transform: translate(-50%, -40%);
+      transform: translate(-50%, -50%) scale(0.9);
     }
     to {
       opacity: 1;
-      transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%) scale(1);
     }
   }
 
