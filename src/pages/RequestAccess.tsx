@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
@@ -11,13 +11,55 @@ interface RequestAccessProps {
   onAccessGranted: () => void;
 }
 
+const gradientBG = keyframes`
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+`;
+
+const fadeIn = keyframes`
+  from { 
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
 const Container = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(-45deg, 
+    rgba(100, 204, 240, 1), 
+    rgba(128, 208, 199, 1), 
+    rgba(86, 188, 189, 1), 
+    rgba(82, 182, 154, 1)
+  );
+  background-size: 400% 400%;
+  animation: ${gradientBG} 15s ease infinite;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
   padding: 20px;
+  z-index: 1;
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
 `;
 
 const OfflineIndicator = styled.div<{ isOffline: boolean }>`
@@ -71,58 +113,84 @@ const LoadingText = styled.div`
 `;
 
 const Form = styled.form`
-  background: rgba(255, 255, 255, 0.9);
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-  backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
+  width: 100%;
+  max-width: 400px;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  animation: ${fadeIn} 0.5s ease-out;
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
 `;
 
 const Title = styled.h1`
-  font-size: 24px;
-  color: #333;
-  margin-bottom: 20px;
+  font-size: 2rem;
+  color: white;
   text-align: center;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 `;
 
 const Input = styled.input`
-  width: 100%;
   padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.9);
   font-size: 16px;
-  outline: none;
-  transition: border-color 0.2s;
+  color: #333;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 
   &:focus {
-    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
   }
 `;
 
 const Button = styled.button`
-  width: 100%;
   padding: 12px;
-  background: #3498db;
-  color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 10px;
+  background: #4CAF50;
+  color: white;
   font-size: 16px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    background: #2980b9;
+    background: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 
   &:disabled {
-    background: #bdc3c7;
+    background: #cccccc;
     cursor: not-allowed;
+    transform: none;
   }
+`;
+
+const Message = styled.div`
+  padding: 12px;
+  border-radius: 10px;
+  background: ${props => props.type === 'error' ? 'rgba(255, 87, 34, 0.9)' : 'rgba(76, 175, 80, 0.9)'};
+  color: white;
+  text-align: center;
+  animation: ${fadeIn} 0.3s ease-out;
+  backdrop-filter: blur(5px);
 `;
 
 const CodeDisplay = styled.div`
@@ -391,9 +459,7 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
       }
     };
     
-    // მხოლოდ ერთხელ შევამოწმოთ სტატუსი კომპონენტის ჩატვირთვისას
     checkStatus();
-    
   }, [requestCode, onAccessGranted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -480,6 +546,8 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
             required
+            id="firstName"
+            name="firstName"
           />
           <Input
             type="text"
@@ -487,6 +555,8 @@ const RequestAccess: React.FC<RequestAccessProps> = ({ onAccessGranted }) => {
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
             required
+            id="lastName"
+            name="lastName"
           />
           <Button type="submit" disabled={loading}>
             {loading ? 'იგზავნება...' : 'გაგზავნა'}

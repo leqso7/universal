@@ -3,10 +3,11 @@ import { createGlobalStyle } from 'styled-components'
 import RequestAccess from './pages/RequestAccess'
 import SearchList, { Student } from './components/SearchList'
 import InstallPWA from './components/InstallPWA'
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 import { useState, useEffect } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import NewHomePage from './newmaincontent/App.jsx';
 
 interface ClassData {
   name: string;
@@ -26,24 +27,63 @@ const GlobalStyle = createGlobalStyle`
   html, body, #root {
     height: 100vh;
     width: 100vw;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
   }
 
   body {
     margin: 0;
     padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+`;
+
+const gradientBG = keyframes`
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
   }
 `;
 
 const AppContainer = styled.div`
-  min-height: 100vh;
-  background: linear-gradient(120deg, #ffeb3b 0%, #8bc34a 100%);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(-45deg, 
+    rgba(100, 204, 240, 1), 
+    rgba(128, 208, 199, 1), 
+    rgba(86, 188, 189, 1), 
+    rgba(82, 182, 154, 1)
+  );
+  background-size: 400% 400%;
+  animation: ${gradientBG} 15s ease infinite;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 20px;
   margin: 0;
-  width: 100%;
-  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+  -webkit-transform: translate3d(0,0,0);
+  -webkit-backface-visibility: hidden;
+  -webkit-perspective: 1000;
 `;
 
 const InstallContainer = styled.div`
@@ -107,9 +147,59 @@ const SaveButton = styled.button`
   }
 `;
 
+const LoadingScreen = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(-45deg, 
+    rgba(100, 204, 240, 1), 
+    rgba(128, 208, 199, 1), 
+    rgba(86, 188, 189, 1), 
+    rgba(82, 182, 154, 1)
+  );
+  background-size: 400% 400%;
+  animation: ${gradientBG} 15s ease infinite;
+  z-index: 9998;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+  -webkit-transform: translate3d(0,0,0);
+  -webkit-backface-visibility: hidden;
+  -webkit-perspective: 1000;
+`;
+
+const LoadingText = styled.div`
+  font-size: 24px;
+  color: white;
+  text-align: center;
+  transform: translateZ(0);
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+`;
+
+const LoadingScreenComponent = () => (
+  <LoadingScreen>
+    <LoadingText>
+      იტვირთება...
+    </LoadingText>
+  </LoadingScreen>
+);
+
 function App() {
   const navigate = useNavigate();
-  const [hasAccess, setHasAccess] = useState(false); 
+  const [hasAccess, setHasAccess] = useState(() => {
+    const approvalStatus = localStorage.getItem('approvalStatus');
+    return approvalStatus === 'approved';
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
   const [className, setClassName] = useState('');
   const [classList, setClassList] = useState('');
@@ -171,18 +261,26 @@ function App() {
   };
 
   const checkUserStatus = async (isImportantAction = false) => {
+    if (isCheckingStatus) return false;
+    
+    setIsCheckingStatus(true);
     const maxRetries = isImportantAction ? 3 : 1;
     let retryCount = 0;
 
     const attemptCheck = async (): Promise<boolean> => {
       try {
         if (checkOfflineStatus()) {
+          setHasAccess(true);
+          setIsLoading(false);
+          setIsCheckingStatus(false);
           return true;
         }
 
         const accessCode = localStorage.getItem('accessCode');
         if (!accessCode) {
           setHasAccess(false);
+          setIsLoading(false);
+          setIsCheckingStatus(false);
           return false;
         }
 
@@ -221,26 +319,34 @@ function App() {
         if (data.status === 'expired') {
           localStorage.removeItem('approvalStatus');
           setHasAccess(false);
+          setIsLoading(false);
+          setIsCheckingStatus(false);
           return false;
         }
         
         if (data.status === 'approved') {
           localStorage.setItem('approvalStatus', 'approved');
           setHasAccess(true);
+          setIsLoading(false);
+          setIsCheckingStatus(false);
           return true;
         } else {
           localStorage.removeItem('approvalStatus');
           setHasAccess(false);
+          setIsLoading(false);
+          setIsCheckingStatus(false);
           return false;
         }
       } catch (error) {
+        console.error('Failed to check user status:', error);
         if (retryCount < maxRetries - 1) {
           retryCount++;
           await new Promise(resolve => setTimeout(resolve, 1000));
           return attemptCheck();
         }
-        console.error('Failed to check user status:', error);
-        return false;
+        setIsLoading(false);
+        setIsCheckingStatus(false);
+        return checkOfflineStatus();
       }
     }
 
@@ -248,48 +354,46 @@ function App() {
   };
 
   useEffect(() => {
-    // თავდაპირველი შემოწმება
     const initialCheck = async () => {
+      const lastCheck = localStorage.getItem('lastAccessCheck');
+      const now = Date.now();
+      const approvalStatus = localStorage.getItem('approvalStatus');
+      
+      if (lastCheck && approvalStatus === 'approved' && now - parseInt(lastCheck) < 3600000) {
+        setHasAccess(true);
+        setIsLoading(false);
+        return;
+      }
+
       const status = await checkUserStatus();
       if (status) {
-        // თუ წვდომა გვაქვს, ვინახავთ ლოკალურად
-        localStorage.setItem('lastAccessCheck', Date.now().toString());
+        localStorage.setItem('lastAccessCheck', now.toString());
       }
     };
 
-    const lastCheck = localStorage.getItem('lastAccessCheck');
-    const now = Date.now();
-    
-    // თუ ბოლო შემოწმებიდან 1 საათზე ნაკლები გავიდა, აღარ ვამოწმებთ
-    if (!lastCheck || now - parseInt(lastCheck) > 3600000) {
-      initialCheck();
-    }
-
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        const lastCheck = localStorage.getItem('lastAccessCheck');
-        const now = Date.now();
-        
-        // მხოლოდ მაშინ ვამოწმებთ თუ ბოლო შემოწმებიდან 1 საათზე მეტი გავიდა
-        if (!lastCheck || now - parseInt(lastCheck) > 3600000) {
-          checkUserStatus().then(status => {
-            if (status) {
-              localStorage.setItem('lastAccessCheck', now.toString());
-            }
-          });
-        }
-      }
+    const preloadMainContent = () => {
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = '/newmaincontent';
+      document.head.appendChild(link);
     };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
+    initialCheck();
+    preloadMainContent();
   }, []);
+
+  useEffect(() => {
+    if (!isLoading && hasAccess && !isNavigating) {
+      setIsNavigating(true);
+      requestAnimationFrame(() => {
+        navigate('/newmaincontent', { replace: true });
+      });
+    }
+  }, [isLoading, hasAccess, navigate]);
 
   const handleAccessGranted = () => {
     setHasAccess(true);
+    setIsLoading(false);
     navigate('/', { replace: true });
   };
 
@@ -362,7 +466,8 @@ function App() {
     <>
       <GlobalStyle />
       <AppContainer>
-        <InstallContainer>
+        {isLoading && <LoadingScreenComponent />}
+        <InstallContainer style={{ opacity: isLoading ? 0 : 1, transition: 'opacity 0.3s ease' }}>
           <InstallPWA />
         </InstallContainer>
         <ToastContainer position="bottom-right" />
@@ -370,7 +475,33 @@ function App() {
           <Route
             path="/"
             element={
-              hasAccess ? (
+              isLoading ? (
+                <LoadingScreenComponent />
+              ) : hasAccess ? (
+                <Navigate to="/newmaincontent" replace />
+              ) : (
+                <Navigate to="/request-access" replace />
+              )
+            }
+          />
+          <Route
+            path="/newmaincontent/*"
+            element={
+              isLoading ? (
+                <LoadingScreenComponent />
+              ) : hasAccess ? (
+                <NewHomePage />
+              ) : (
+                <Navigate to="/request-access" replace />
+              )
+            }
+          />
+          <Route
+            path="/search-list"
+            element={
+              isLoading ? (
+                <LoadingScreenComponent />
+              ) : hasAccess ? (
                 <>
                   <SearchList 
                     students={students} 
@@ -384,11 +515,15 @@ function App() {
                       placeholder="კლასის სახელი"
                       value={className}
                       onChange={(e) => setClassName(e.target.value)}
+                      id="className"
+                      name="className"
                     />
                     <TextArea
                       placeholder="მოსწავლეების სია (თითო მოსწავლე ახალ ხაზზე)"
                       value={classList}
                       onChange={(e) => setClassList(e.target.value)}
+                      id="classList"
+                      name="classList"
                     />
                     <SaveButton onClick={handleSaveClass}>შენახვა</SaveButton>
                     <SaveButton onClick={() => setIsClassFormVisible(false)}>დახურვა</SaveButton>
@@ -402,8 +537,10 @@ function App() {
           <Route
             path="/request-access"
             element={
-              hasAccess ? (
-                <Navigate to="/" replace />
+              isLoading ? (
+                <LoadingScreenComponent />
+              ) : hasAccess ? (
+                <Navigate to="/newmaincontent" replace />
               ) : (
                 <RequestAccess onAccessGranted={handleAccessGranted} />
               )
