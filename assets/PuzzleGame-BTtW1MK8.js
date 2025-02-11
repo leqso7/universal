@@ -1,4 +1,4 @@
-import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-DLJnbg7W.js";import"./NameModal-Bk_jhAzc.js";const re=s.div`
+import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-CFRR7WS_.js";import"./NameModal-DXxQqpL5.js";const re=s.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
