@@ -1,4 +1,4 @@
-import{d as o,r as s,j as t}from"./index-DLCZSHJr.js";const d=o.div`
+import{d as o,r as s,j as t}from"./index-BoalC8Z5.js";const d=o.div`
   position: fixed;
   top: 0;
   left: 0;
