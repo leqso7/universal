@@ -423,63 +423,65 @@ const RiddlesGame = () => {
     return praises[Math.floor(Math.random() * praises.length)];
   };
 
-  const handleOptionSelect = (option) => {
-    if (selectedOption !== null || !currentPlayer || isTransitioning) return;
+      // ... existing code ...
+const handleOptionSelect = (option) => {
+  if (selectedOption !== null || !currentPlayer || isTransitioning) return;
+  
+  setSelectedOption(option);
+  const correct = option === riddles[currentRiddleIndex].correctAnswer;
+  setIsCorrect(correct);
+
+  if (correct) {
+    setIsTransitioning(true);
+    setPraiseMessage(getRandomPraise());
+    const solvedRiddles = getPlayerSolvedRiddles(currentPlayer.id);
+    const newSolvedRiddles = new Set(solvedRiddles);
+    newSolvedRiddles.add(currentRiddleIndex);
+    setSolvedCount(newSolvedRiddles.size);
+
+    const timestamp = Date.now();
+    const progress = {
+      solvedRiddles: Array.from(newSolvedRiddles),
+      score: newSolvedRiddles.size,
+      totalAttempts: 1
+    };
     
-    setSelectedOption(option);
-    const correct = option === riddles[currentRiddleIndex].correctAnswer;
-    setIsCorrect(correct);
+    updateGameProgress('riddles', timestamp, progress);
 
-    if (correct) {
-      setIsTransitioning(true);
-      setPraiseMessage(getRandomPraise());
-      const solvedRiddles = getPlayerSolvedRiddles(currentPlayer.id);
-      const newSolvedRiddles = new Set(solvedRiddles);
-      newSolvedRiddles.add(currentRiddleIndex);
-      setSolvedCount(newSolvedRiddles.size);
-
-      const timestamp = Date.now();
-      const progress = {
-        solvedRiddles: Array.from(newSolvedRiddles),
-        score: newSolvedRiddles.size,
-        totalAttempts: 1
-      };
+    setTimeout(() => {
+      let nextIndex = (currentRiddleIndex + 1) % riddles.length;
       
-      updateGameProgress('riddles', timestamp, progress);
+      while (newSolvedRiddles.has(nextIndex) && newSolvedRiddles.size < riddles.length) {
+        nextIndex = (nextIndex + 1) % riddles.length;
+      }
+      
+      setCurrentRiddleIndex(nextIndex);
+      setSelectedOption(null);
+      setIsCorrect(null);
+      setPraiseMessage('');
+      setIsTransitioning(false);
 
-      setTimeout(() => {
-        let nextIndex = (currentRiddleIndex + 1) % riddles.length;
-        
-        while (newSolvedRiddles.has(nextIndex) && newSolvedRiddles.size < riddles.length) {
-          nextIndex = (nextIndex + 1) % riddles.length;
-        }
-        
-        setCurrentRiddleIndex(nextIndex);
-        setSelectedOption(null);
-        setIsCorrect(null);
-        setPraiseMessage('');
-        setIsTransitioning(false);
-
-        const options = [...riddles[nextIndex].options];
-        for (let i = options.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [options[i], options[j]] = [options[j], options[i]];
-        }
-        setShuffledOptions(options);
-      }, 5000);
-    } else {
-      setTimeout(() => {
-        setSelectedOption(null);
-        setIsCorrect(null);
-      }, 1500);
-    }
-  };
+      const options = [...riddles[nextIndex].options];
+      for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+      }
+      setShuffledOptions(options);
+    }, 5000); // შეცვალეთ დრო 5000 მილიწამზე
+  } else {
+    setTimeout(() => {
+      setSelectedOption(null);
+      setIsCorrect(null);
+    }, 1500);
+  }
+};
+// ... existing code ...
 
   return (
     <GameContainer>
       <HomeButton />
       {!currentPlayer ? (
-        <Message>თამაშის დასაწყებად გთხოვთ აირჩიოთ მოთამაშე მთავარ გვერდზე</Message>
+        <Message>თამაშის დასაწყებად გთხოვთ დაამატოთ მოსწავლე (მარჯვენა ზედა კუთხეში 3 დახრილ ხაზზე დაჭერით)</Message>
       ) : (
         <GameArea>
           <Score>გამოცნობილი გამოცანები: {solvedCount}</Score>
