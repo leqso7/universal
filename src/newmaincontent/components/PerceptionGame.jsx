@@ -165,6 +165,25 @@ const shuffleArray = (array) => {
   return shuffled;
 };
 
+const shakeAnimation = keyframes`
+  0% { transform: translateX(0); background-color: rgba(255, 0, 0, 0.3); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); background-color: transparent; }
+`;
+
+const ImageContainer = styled.div`
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 8px;
+  aspect-ratio: 1;
+  &.wrong {
+    animation: ${shakeAnimation} 0.5s ease-in-out;
+  }
+`;
+
 const PerceptionGame = () => {
   const [topImages, setTopImages] = useState([]);
   const [bottomImages, setBottomImages] = useState([]);
@@ -177,6 +196,7 @@ const PerceptionGame = () => {
   const [scale, setScale] = useState(1);
   const [isShapesMode, setIsShapesMode] = useState(false);
   const [showPlayerModal, setShowPlayerModal] = useState(false);
+  const [wrongPair, setWrongPair] = useState(null);
   const { currentPlayer, updateGameProgress } = usePlayer();
 
   const loadNewRound = () => {
@@ -251,35 +271,36 @@ const PerceptionGame = () => {
   };
 
   const handleBottomImageClick = (index) => {
-    if (selectedTopIndex === null) return;
-    
+    if (selectedTopIndex === null || hiddenBottomIndices.includes(index)) return;
+
     setSelectedBottomIndex(index);
     setTotalAttempts(prev => prev + 1);
 
-    const isCorrect = bottomImages[index].id === topImages[selectedTopIndex].id;
-    
-    if (isCorrect) {
-      const newScore = score + 1;
-      setScore(newScore);
+    const isMatch = isShapesMode
+      ? bottomImages[index].id === topImages[selectedTopIndex].id
+      : bottomImages[index].id === topImages[selectedTopIndex].id;
+
+    if (isMatch) {
       setMatchedPairs(prev => [...prev, selectedTopIndex]);
       setHiddenBottomIndices(prev => [...prev, index]);
-      
-      // სტატისტიკის განახლება
-      updateGameProgress('perception', Date.now(), {
-        score: newScore,
-        totalAttempts: totalAttempts + 1,
-        mode: isShapesMode ? 'shapes' : 'animals'
-      });
-    }
-
-    setTimeout(() => {
+      setScore(prev => prev + 1);
       setSelectedTopIndex(null);
       setSelectedBottomIndex(null);
 
-      if (matchedPairs.length + (isCorrect ? 1 : 0) === topImages.length) {
-        setTimeout(loadNewRound, 1000);
+      if (matchedPairs.length + 1 === topImages.length) {
+        setTimeout(() => {
+          updateGameProgress('perception', score + 1, totalAttempts + 1);
+          loadNewRound();
+        }, 1000);
       }
-    }, 1000);
+    } else {
+      setWrongPair({ top: selectedTopIndex, bottom: index });
+      setTimeout(() => {
+        setSelectedTopIndex(null);
+        setSelectedBottomIndex(null);
+        setWrongPair(null);
+      }, 1000);
+    }
   };
 
   const handleZoomIn = () => {
@@ -300,9 +321,6 @@ const PerceptionGame = () => {
       <HomeButton />
       <>
         <Title>აღქმის განსავითარებელი სავარჯიშოები</Title>
-        <PlayerInfo>
-          მოსწავლე: {currentPlayer?.name || 'უცნობი'}
-        </PlayerInfo>
         <div>
           <ModeButton 
             onClick={() => {
@@ -323,7 +341,6 @@ const PerceptionGame = () => {
             ფიგურები
           </ModeButton>
         </div>
-        <Score>ნაპოვნია: {score} / 50</Score>
         <GameArea scale={scale}>
           <TopArea>
             <TopImages>
@@ -333,8 +350,11 @@ const PerceptionGame = () => {
                   isClickable={!matchedPairs.includes(index)}
                   onClick={() => handleTopImageClick(index)}
                   isMatched={matchedPairs.includes(index)}
+                  className={wrongPair?.top === index ? 'wrong' : ''}
                   style={{ 
-                    border: selectedTopIndex === index ? '3px solid #4CAF50' : 'none'
+                    border: selectedTopIndex === index ? '3px solid #4CAF50' : 'none',
+                    padding: '5px',
+                    opacity: selectedTopIndex === index ? 0.7 : 1
                   }}
                 >
                   {isShapesMode ? (
@@ -365,8 +385,11 @@ const PerceptionGame = () => {
                   isClickable={selectedTopIndex !== null}
                   onClick={() => handleBottomImageClick(index)}
                   isHidden={hiddenBottomIndices.includes(index)}
+                  className={wrongPair?.bottom === index ? 'wrong' : ''}
                   style={{
-                    border: selectedBottomIndex === index ? '3px solid #4CAF50' : 'none'
+                    border: selectedBottomIndex === index ? '3px solid #4CAF50' : 'none',
+                    padding: '5px',
+                    opacity: hiddenBottomIndices.includes(index) ? 0 : 1
                   }}
                 >
                   {isShapesMode ? (
@@ -484,23 +507,6 @@ const BottomImages = styled.div`
   width: 100%;
 `;
 
-const ImageContainer = styled.div`
-  position: relative;
-  cursor: ${props => props.isClickable ? 'pointer' : 'default'};
-  transition: all 0.3s ease;
-  overflow: hidden;
-  aspect-ratio: 1;
-  height: 140px;
-  border-radius: 10px;
-  box-shadow: ${props => props.isSelected ? '0 0 0 3px #4CAF50' : 'none'};
-  opacity: ${props => props.isHidden ? '0' : '1'};
-  visibility: ${props => props.isHidden ? 'hidden' : 'visible'};
-
-  &:hover {
-    transform: ${props => props.isClickable ? 'scale(1.05)' : 'none'};
-  }
-`;
-
 const Image = styled.img`
   width: 100%;
   height: 200%;
@@ -513,6 +519,7 @@ const Image = styled.img`
   ${props => props.isMatched && `
     clip-path: none;
     height: 100%;
+    transform: none;
     object-position: center;
   `}
 `;
@@ -525,16 +532,15 @@ const ShapeText = styled.div`
   justify-content: center;
   font-size: 8rem;
   clip-path: ${props => props.isBottom ? 'inset(50% 0 0 0)' : 'inset(0 0 50% 0)'};
-  transform: ${props => props.isBottom ? 'translateY(-100%)' : 'none'};
+  transform: ${props => props.isBottom ? 'translateY(-50%)' : 'none'};
   transition: all 0.3s ease;
   position: absolute;
-  top: ${props => props.isBottom ? '100%' : '0'};
+  top: 0;
   ${props => props.isMatched && `
     clip-path: none;
     height: 100%;
     position: relative;
     transform: none;
-    top: 0;
   `}
 `;
 
