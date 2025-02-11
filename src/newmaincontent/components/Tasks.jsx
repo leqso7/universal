@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import { tasks } from '../data/tasks';
 import { createGlobalStyle } from 'styled-components';
@@ -29,7 +29,7 @@ const Container = styled.div`
 `;
 
 const TaskCard = styled.div`
-  background: rgba(255, 255, 255, 0.8);
+  background: ${props => props.isWrong ? 'rgba(244, 67, 54, 0.1)' : 'rgba(255, 255, 255, 0.8)'};
   backdrop-filter: blur(10px);
   border-radius: clamp(0.5rem, 3vw, 1rem);
   padding: clamp(0.8rem, 2vw, 1.5rem);
@@ -39,7 +39,7 @@ const TaskCard = styled.div`
   margin-top: clamp(4rem, 8vh, 6rem);
   transform: scale(${props => props.scale});
   transform-origin: center top;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
 
   @media (max-width: 480px) {
     width: 98%;
@@ -381,19 +381,30 @@ const showCelebration = (stickers) => {
 
 const Toast = styled.div`
   position: fixed;
-  top: clamp(10px, 3vw, 20px);
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.95);
+  transform: translate(-50%, -50%);
+  background: ${props => props.type === 'error' ? 'rgba(244, 67, 54, 0.95)' : 'rgba(76, 175, 80, 0.95)'};
+  color: white;
   padding: clamp(0.75rem, 2vw, 1rem) clamp(1.5rem, 3vw, 2rem);
   border-radius: clamp(0.5rem, 2vw, 1rem);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
   z-index: 1000;
   animation: slideIn 0.3s ease-out forwards;
   font-size: clamp(1.1rem, 3.5vw, 1.4rem);
-  color: #2196F3;
   min-width: min(300px, 90vw);
   text-align: center;
+
+  @keyframes slideIn {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -40%);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+  }
 `;
 
 const ProgressIndicator = styled.div`
@@ -547,6 +558,9 @@ const Tasks = () => {
   const [completedTasksCount, setCompletedTasksCount] = useState(0);
   const [scale, setScale] = useState(1);
   const navigate = useNavigate();
+  const [isToastVisible, setIsToastVisible] = useState(false);
+  const toastTimeoutRef = useRef(null);
+  const [isWrongAnswer, setIsWrongAnswer] = useState(false);
 
   const stats = getGameStats('task');
   const completedTasks = stats.completedTasks;
@@ -568,9 +582,28 @@ const Tasks = () => {
     setCurrentTaskIndex(nextUncompleted);
   }, [findFirstUncompletedTask]);
 
-  const showToast = (message) => {
-    setToast({ show: true, message });
-    setTimeout(() => setToast({ show: false, message: '' }), 2000);
+  const showToast = (message, type = 'success') => {
+    // თუ წინა ტაიმაუთი არსებობს, გავასუფთაოთ
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    
+    // თუ წინა შეტყობინება ჯერ კიდევ ნაჩვენებია, დავიცადოთ მისი გაქრობა
+    if (isToastVisible) {
+      setTimeout(() => {
+        setToast({ show: true, message, type });
+      }, 300); // დავიცადოთ წინა ანიმაციის დასრულება
+    } else {
+      setToast({ show: true, message, type });
+    }
+    
+    setIsToastVisible(true);
+    
+    // ახალი ტაიმაუთის დაყენება
+    toastTimeoutRef.current = setTimeout(() => {
+      setToast({ show: false, message: '' });
+      setIsToastVisible(false);
+    }, 2000);
   };
 
   // ვამოწმებთ არის თუ არა ყველა დავალება შესრულებული
@@ -661,13 +694,8 @@ const Tasks = () => {
 
     const isCorrect = Number(selectedAnswer) === Number(currentTask.answer);
     
-    setFeedback({
-      show: true,
-      message: isCorrect ? 'სწორია! 🎉' : 'სცადე თავიდან! 🤔',
-      type: isCorrect ? 'success' : 'error'
-    });
-
     if (isCorrect) {
+      showToast('სწორია! 🎉', 'success');
       // განვაახლოთ პროგრესი მხოლოდ თუ ეს დავალება ჯერ არ არის დასრულებული
       if (!completedTasks.has(currentTaskIndex)) {
         const timestamp = Date.now();
@@ -680,15 +708,16 @@ const Tasks = () => {
       showCelebration(currentTask.stickers || ['🌟']);
 
       setTimeout(() => {
-        setFeedback({ show: false });
         // გადავდივართ შემდეგ შეუსრულებელ დავალებაზე
         const nextUncompleted = findFirstUncompletedTask();
         setCurrentTaskIndex(nextUncompleted);
       }, 1500);
     } else {
+      // არასწორი პასუხის შემთხვევაში
+      setIsWrongAnswer(true);
       setTimeout(() => {
-        setFeedback({ show: false });
-      }, 1500);
+        setIsWrongAnswer(false);
+      }, 2000);
     }
   }, [currentTask, currentTaskIndex, updateGameProgress, completedTasks, findFirstUncompletedTask]);
 
@@ -744,9 +773,6 @@ const Tasks = () => {
         } else {
           showToast(praise);
         }
-      } else {
-        // Wrong match
-        showToast(currentTask.hint);
       }
       
       setSelectedNumbers([]);
@@ -837,11 +863,11 @@ const Tasks = () => {
     <Container>
       <GlobalStyle />
       <HomeButton />
-      {toast.show && <Toast>{toast.message}</Toast>}
+      {toast.show && <Toast type={toast.type}>{toast.message}</Toast>}
       <ProgressIndicator>
         შესრულებულია: {completedTasksCount} / {tasks.length}
       </ProgressIndicator>
-      <TaskCard scale={scale}>
+      <TaskCard scale={scale} isWrong={isWrongAnswer}>
         <Title>
           <span>სახალისო ამოცანები</span>
         </Title>
