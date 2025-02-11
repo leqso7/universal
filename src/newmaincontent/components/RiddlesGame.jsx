@@ -384,11 +384,32 @@ const RiddlesGame = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!currentPlayer) {
-      navigate('/');
-      return;
+    if (currentPlayer) {
+      const solved = getPlayerSolvedRiddles(currentPlayer.id);
+      setSolvedCount(solved.size);
+      
+      let newIndex = currentRiddleIndex;
+      
+      if (solved.size === riddles.length) {
+        newIndex = 0;
+      } else {
+        while (solved.has(newIndex)) {
+          newIndex = (newIndex + 1) % riddles.length;
+        }
+      }
+      
+      setCurrentRiddleIndex(newIndex);
+      setSelectedOption(null);
+      setIsCorrect(null);
+      
+      const options = [...riddles[newIndex].options];
+      for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+      }
+      setShuffledOptions(options);
     }
-  }, [currentPlayer, navigate]);
+  }, [currentPlayer, getPlayerSolvedRiddles]);
 
   const getRandomPraise = () => {
     const praises = [
@@ -400,48 +421,6 @@ const RiddlesGame = () => {
     ];
     return praises[Math.floor(Math.random() * praises.length)];
   };
-
-  useEffect(() => {
-    if (currentPlayer) {
-      const solved = getPlayerSolvedRiddles(currentPlayer.id);
-      setSolvedCount(solved.size);
-      
-      // მოვძებნოთ გამოუცნობი გამოცანა
-      let newIndex = currentRiddleIndex;
-      
-      // თუ ყველა გამოცანა გამოცნობილია, დავიწყოთ თავიდან
-      if (solved.size === riddles.length) {
-        newIndex = 0;
-      } else {
-        // ვიპოვოთ პირველი გამოუცნობი გამოცანა
-        while (solved.has(newIndex)) {
-          newIndex = (newIndex + 1) % riddles.length;
-        }
-      }
-      
-      setCurrentRiddleIndex(newIndex);
-      setSelectedOption(null);
-      setIsCorrect(null);
-      
-      // პასუხების არევა
-      const options = [...riddles[newIndex].options];
-      for (let i = options.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [options[i], options[j]] = [options[j], options[i]];
-      }
-      setShuffledOptions(options);
-    }
-  }, [currentPlayer, getPlayerSolvedRiddles]);
-
-  useEffect(() => {
-    // პასუხების არევა ახალი გამოცანისთვის
-    const options = [...riddles[currentRiddleIndex].options];
-    for (let i = options.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [options[i], options[j]] = [options[j], options[i]];
-    }
-    setShuffledOptions(options);
-  }, [currentRiddleIndex]);
 
   const handleOptionSelect = (option) => {
     if (selectedOption !== null || !currentPlayer) return;
@@ -492,11 +471,11 @@ const RiddlesGame = () => {
 
   return (
     <GameContainer>
+      <HomeButton />
       {!currentPlayer ? (
-        <Message>გთხოვთ აირჩიოთ მოთამაშე მთავარ გვერდზე</Message>
+        <Message>თამაშის დასაწყებად გთხოვთ აირჩიოთ მოთამაშე მთავარ გვერდზე</Message>
       ) : (
         <GameArea>
-          <HomeButton />
           <Score>გამოცნობილი გამოცანები: {solvedCount}</Score>
           {praiseMessage && <Message>{praiseMessage}</Message>}
           <Question>{riddles[currentRiddleIndex].question}</Question>
