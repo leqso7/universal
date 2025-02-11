@@ -380,6 +380,7 @@ const RiddlesGame = () => {
   const [shuffledOptions, setShuffledOptions] = useState([]);
   const [solvedCount, setSolvedCount] = useState(0);
   const [praiseMessage, setPraiseMessage] = useState('');
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const { currentPlayer, updateGameProgress, getPlayerSolvedRiddles } = usePlayer();
   const navigate = useNavigate();
 
@@ -423,13 +424,14 @@ const RiddlesGame = () => {
   };
 
   const handleOptionSelect = (option) => {
-    if (selectedOption !== null || !currentPlayer) return;
+    if (selectedOption !== null || !currentPlayer || isTransitioning) return;
     
     setSelectedOption(option);
     const correct = option === riddles[currentRiddleIndex].correctAnswer;
     setIsCorrect(correct);
 
     if (correct) {
+      setIsTransitioning(true);
       setPraiseMessage(getRandomPraise());
       const solvedRiddles = getPlayerSolvedRiddles(currentPlayer.id);
       const newSolvedRiddles = new Set(solvedRiddles);
@@ -456,8 +458,8 @@ const RiddlesGame = () => {
         setSelectedOption(null);
         setIsCorrect(null);
         setPraiseMessage('');
+        setIsTransitioning(false);
 
-        // ახალი ოფციების შერევა
         const options = [...riddles[nextIndex].options];
         for (let i = options.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
@@ -488,7 +490,7 @@ const RiddlesGame = () => {
               <Option
                 key={index}
                 onClick={() => handleOptionSelect(option)}
-                disabled={isCorrect !== null}
+                disabled={isCorrect !== null || isTransitioning}
                 $isSelected={selectedOption === option}
                 $isAnswered={isCorrect !== null}
                 $isCorrect={isCorrect && selectedOption === option}
