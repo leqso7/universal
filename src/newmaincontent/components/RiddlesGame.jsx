@@ -283,6 +283,17 @@ const GameContainer = styled.div`
   }
 `;
 
+const Message = styled.div`
+  color: white;
+  font-size: 1.5rem;
+  text-align: center;
+  margin: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  backdrop-filter: blur(5px);
+`;
+
 const GameArea = styled.div`
   width: 100%;
   max-width: 800px;
@@ -371,6 +382,13 @@ const RiddlesGame = () => {
   const [praiseMessage, setPraiseMessage] = useState('');
   const { currentPlayer, updateGameProgress, getPlayerSolvedRiddles } = usePlayer();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!currentPlayer) {
+      navigate('/');
+      return;
+    }
+  }, [currentPlayer, navigate]);
 
   const getRandomPraise = () => {
     const praises = [
@@ -472,42 +490,32 @@ const RiddlesGame = () => {
     }
   };
 
-  if (!currentPlayer) {
-    return (
-      <GameContainer>
-        <HomeButton />
-        <Message>გთხოვთ აირჩიოთ მოთამაშე მენიუდან</Message>
-      </GameContainer>
-    );
-  }
-
   return (
     <GameContainer>
-      <HomeButton />
-      <GameArea>
-        <Score>შესრულებულია: {solvedCount} / {riddles.length}</Score>
-        {praiseMessage && (
-          <PraiseMessage>
-            {praiseMessage}
-          </PraiseMessage>
-        )}
-        <Question>{riddles[currentRiddleIndex].question}</Question>
-        <OptionsContainer>
-          {shuffledOptions.map((option, index) => (
-            <Option
-              key={index}
-              onClick={() => handleOptionSelect(option)}
-              disabled={selectedOption !== null}
-              $isSelected={selectedOption === option}
-              $isAnswered={selectedOption !== null}
-              $isCorrect={option === riddles[currentRiddleIndex].correctAnswer && selectedOption === option}
-              $isWrong={selectedOption === option && option !== riddles[currentRiddleIndex].correctAnswer}
-            >
-              {option}
-            </Option>
-          ))}
-        </OptionsContainer>
-      </GameArea>
+      {!currentPlayer ? (
+        <Message>გთხოვთ აირჩიოთ მოთამაშე მთავარ გვერდზე</Message>
+      ) : (
+        <GameArea>
+          <HomeButton />
+          <Score>გამოცნობილი გამოცანები: {solvedCount}</Score>
+          {praiseMessage && <Message>{praiseMessage}</Message>}
+          <Question>{riddles[currentRiddleIndex].question}</Question>
+          <OptionsContainer>
+            {shuffledOptions.map((option, index) => (
+              <Option
+                key={index}
+                onClick={() => handleOptionSelect(option)}
+                disabled={isCorrect !== null}
+                $isSelected={selectedOption === option}
+                $isAnswered={isCorrect !== null}
+                $isCorrect={isCorrect && selectedOption === option}
+              >
+                {option}
+              </Option>
+            ))}
+          </OptionsContainer>
+        </GameArea>
+      )}
     </GameContainer>
   );
 };
