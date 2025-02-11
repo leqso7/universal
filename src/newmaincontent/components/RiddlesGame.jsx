@@ -436,7 +436,6 @@ const RiddlesGame = () => {
       newSolvedRiddles.add(currentRiddleIndex);
       setSolvedCount(newSolvedRiddles.size);
 
-      // შევინახოთ სწორი პასუხი მოთამაშისთვის
       const timestamp = Date.now();
       const progress = {
         solvedRiddles: Array.from(newSolvedRiddles),
@@ -446,11 +445,9 @@ const RiddlesGame = () => {
       
       updateGameProgress('riddles', timestamp, progress);
 
-      // გადავიდეთ შემდეგ გამოცანაზე 5 წამიანი დაყოვნების შემდეგ
       setTimeout(() => {
         let nextIndex = (currentRiddleIndex + 1) % riddles.length;
         
-        // ვიპოვოთ შემდეგი გამოუცნობი გამოცანა
         while (newSolvedRiddles.has(nextIndex) && newSolvedRiddles.size < riddles.length) {
           nextIndex = (nextIndex + 1) % riddles.length;
         }
@@ -459,9 +456,16 @@ const RiddlesGame = () => {
         setSelectedOption(null);
         setIsCorrect(null);
         setPraiseMessage('');
+
+        // ახალი ოფციების შერევა
+        const options = [...riddles[nextIndex].options];
+        for (let i = options.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [options[i], options[j]] = [options[j], options[i]];
+        }
+        setShuffledOptions(options);
       }, 5000);
     } else {
-      // არასწორი პასუხის შემთხვევაში მხოლოდ ვაჩვენოთ შედეგი
       setTimeout(() => {
         setSelectedOption(null);
         setIsCorrect(null);
