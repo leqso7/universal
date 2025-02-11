@@ -1,10 +1,8 @@
 import React, { lazy, Suspense, useState, useEffect } from 'react';
 import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import { Routes, Route } from 'react-router-dom';
-import HamburgerMenu from './components/HamburgerMenu.jsx';
 import { PlayerProvider, usePlayer } from './context/PlayerContext.jsx';
 import RiddlesGame from './components/RiddlesGame';
-import PlayerNameModal from './components/PlayerNameModal';
 
 // ლეიზი ჩატვირთვა ყველა კომპონენტისთვის
 const HomePage = lazy(() => import(/* webpackChunkName: "home" */ './components/HomePage.jsx'));
@@ -131,14 +129,8 @@ const Dot = styled.div`
 `;
 
 const AppContent = () => {
-  const { showNameModal, setShowNameModal } = usePlayer();
-
   return (
     <AppContainer>
-      <HamburgerMenu />
-      {showNameModal && (
-        <PlayerNameModal onSelect={() => setShowNameModal(false)} />
-      )}
       <ContentContainer>
         <Suspense fallback={
           <LoadingFallback isVisible={true}>

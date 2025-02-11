@@ -21,7 +21,10 @@ export const PlayerProvider = ({ children }) => {
     return savedCurrentPlayer ? JSON.parse(savedCurrentPlayer) : null;
   });
 
-  const [showNameModal, setShowNameModal] = useState(false);
+  const [gameProgress, setGameProgress] = useState(() => {
+    const savedProgress = localStorage.getItem('gameProgress');
+    return savedProgress ? JSON.parse(savedProgress) : {};
+  });
 
   useEffect(() => {
     localStorage.setItem('players', JSON.stringify(players));
@@ -31,30 +34,53 @@ export const PlayerProvider = ({ children }) => {
     localStorage.setItem('currentPlayer', JSON.stringify(currentPlayer));
   }, [currentPlayer]);
 
+  useEffect(() => {
+    localStorage.setItem('gameProgress', JSON.stringify(gameProgress));
+  }, [gameProgress]);
+
   const addPlayer = (newPlayer) => {
     setPlayers(prev => [...prev, newPlayer]);
   };
 
   const updateGameProgress = (gameType, timestamp, progress) => {
-    if (!currentPlayer) return;
-
-    const updatedPlayer = {
-      ...currentPlayer,
-      gameProgress: {
-        ...currentPlayer.gameProgress,
+    if (progress.reset) {
+      setGameProgress(prev => ({
+        ...prev,
+        [gameType]: {}
+      }));
+    } else {
+      setGameProgress(prev => ({
+        ...prev,
         [gameType]: {
-          ...(currentPlayer.gameProgress[gameType] || {}),
+          ...(prev[gameType] || {}),
           [timestamp]: progress
         }
-      }
-    };
+      }));
+    }
+  };
 
-    setCurrentPlayer(updatedPlayer);
-    setPlayers(prev =>
-      prev.map(p =>
-        p.id === currentPlayer.id ? updatedPlayer : p
-      )
-    );
+  const getGameStats = (gameType) => {
+    if (!gameProgress[gameType]) {
+      return {
+        totalGames: 0,
+        completedTasks: new Set()
+      };
+    }
+
+    const gameStats = gameProgress[gameType];
+    const attempts = Object.values(gameStats);
+    const completedTasks = new Set();
+    
+    attempts.forEach(attempt => {
+      if (attempt && typeof attempt.taskIndex !== 'undefined') {
+        completedTasks.add(attempt.taskIndex);
+      }
+    });
+
+    return {
+      totalGames: attempts.length,
+      completedTasks
+    };
   };
 
   const getPlayerStats = (playerId, gameType) => {
@@ -108,11 +134,10 @@ export const PlayerProvider = ({ children }) => {
     setCurrentPlayer,
     addPlayer,
     updateGameProgress,
+    getGameStats,
     getPlayerStats,
     getPlayerSolvedRiddles,
-    getAllPlayersSolvedRiddles,
-    showNameModal,
-    setShowNameModal
+    getAllPlayersSolvedRiddles
   };
 
   return (

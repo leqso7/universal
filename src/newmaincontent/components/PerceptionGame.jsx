@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import HomeButton from './HomeButton';
-import { usePlayer } from '../context/PlayerContext';
-import PlayerNameModal from './PlayerNameModal';
+import { usePlayer } from '../context/PlayerContext.jsx';
 import zebraImg from '../../assets/images/ზებრა.webp';
 import spiloImg from '../../assets/images/სპილო.webp';
 import lomiImg from '../../assets/images/ლომი.webp';
@@ -195,9 +194,12 @@ const PerceptionGame = () => {
   const [totalAttempts, setTotalAttempts] = useState(0);
   const [scale, setScale] = useState(1);
   const [isShapesMode, setIsShapesMode] = useState(false);
-  const [showPlayerModal, setShowPlayerModal] = useState(false);
   const [wrongPair, setWrongPair] = useState(null);
-  const { currentPlayer, updateGameProgress } = usePlayer();
+  const { updateGameProgress } = usePlayer();
+
+  useEffect(() => {
+    loadNewRound();
+  }, []);
 
   const loadNewRound = () => {
     if (isShapesMode) {
@@ -259,10 +261,6 @@ const PerceptionGame = () => {
 
   useEffect(() => {
     loadNewRound();
-  }, []);
-
-  useEffect(() => {
-    loadNewRound();
   }, [isShapesMode]);
 
   const handleTopImageClick = (index) => {
@@ -309,11 +307,6 @@ const PerceptionGame = () => {
 
   const handleZoomOut = () => {
     setScale(prev => Math.max(prev - 0.1, 0.5));
-  };
-
-  const handlePlayerSelect = () => {
-    setShowPlayerModal(false);
-    loadNewRound();
   };
 
   return (

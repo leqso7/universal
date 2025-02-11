@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import styled from 'styled-components';
-import { tasks } from '../data/tasks.js';
+import { tasks } from '../data/tasks';
 import { createGlobalStyle } from 'styled-components';
 import NameModal from './NameModal';
 import { usePlayer } from '../context/PlayerContext.jsx';
@@ -529,9 +529,8 @@ const ZoomButton = styled.button`
 `;
 
 const Tasks = () => {
-  const { playerName, showNameModal, gameProgress, updateGameProgress, updatePlayerName } = usePlayer();
+  const { gameProgress, updateGameProgress, getGameStats } = usePlayer();
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
-  const [progress, setProgress] = useState(0);
   const [selectedItems, setSelectedItems] = useState({});
   const [matchedPairs, setMatchedPairs] = useState([]);
   const [answer, setAnswer] = useState('');
@@ -549,35 +548,93 @@ const Tasks = () => {
   const [scale, setScale] = useState(1);
   const navigate = useNavigate();
 
-  console.log('Tasks array:', tasks);
-  console.log('Current task index:', currentTaskIndex);
-  console.log('Current task:', tasks[currentTaskIndex]);
-  console.log('Tasks array length:', tasks.length);
-
+  const stats = getGameStats('task');
+  const completedTasks = stats.completedTasks;
+  const totalTasks = tasks.length;
   const currentTask = tasks[currentTaskIndex];
 
-  const totalTasks = tasks.length;
-  const completedTasks = gameProgress?.completedTasks || [];
-
-  useEffect(() => {
-    console.log('Tasks array:', tasks);
-    console.log('Current task index:', currentTaskIndex);
-    console.log('Current task:', currentTask);
-    console.log('Tasks array length:', tasks.length);
-
-    if (gameProgress?.completedTasks) {
-      // ვითვლით მხოლოდ უნიკალურ დასრულებულ დავალებებს
-      const uniqueCompletedTasks = new Set(gameProgress.completedTasks);
-      setCompletedTasksCount(uniqueCompletedTasks.size);
+  // ვპოულობთ პირველ შეუსრულებელ დავალებას
+  const findFirstUncompletedTask = useCallback(() => {
+    for (let i = 0; i < tasks.length; i++) {
+      if (!completedTasks.has(i)) {
+        return i;
+      }
     }
-  }, [gameProgress?.completedTasks, tasks, currentTaskIndex, currentTask]);
+    return 0; // თუ ყველა შესრულებულია, ვბრუნდებით თავიდან
+  }, [completedTasks]);
+
+  const handleNextTask = useCallback(() => {
+    const nextUncompleted = findFirstUncompletedTask();
+    setCurrentTaskIndex(nextUncompleted);
+  }, [findFirstUncompletedTask]);
+
+  const showToast = (message) => {
+    setToast({ show: true, message });
+    setTimeout(() => setToast({ show: false, message: '' }), 2000);
+  };
+
+  // ვამოწმებთ არის თუ არა ყველა დავალება შესრულებული
+  useEffect(() => {
+    if (completedTasks.size === totalTasks) {
+      showCelebration(['🎉', '🌟', '🏆', '👏']);
+      setTimeout(() => {
+        // ვასუფთავებთ პროგრესს
+        updateGameProgress('task', Date.now(), { reset: true });
+        // ვანულებთ მდგომარეობას
+        setCurrentTaskIndex(0);
+        setSelectedNumbers([]);
+        setSelectedColors([]);
+        setAnswers({});
+        setFeedback({});
+        setCompletedTasksCount(0);
+        // ვაჩვენებთ შეტყობინებას
+        showToast('ყოჩაღ! ყველა დავალება შეასრულე! ვიწყებთ თავიდან! 🎉');
+      }, 2000);
+    }
+  }, [completedTasks.size, totalTasks, updateGameProgress]);
+
+  // ვაყენებთ მიმდინარე დავალების ინდექსს პირველ შეუსრულებელ დავალებაზე
+  useEffect(() => {
+    const firstUncompleted = findFirstUncompletedTask();
+    setCurrentTaskIndex(firstUncompleted);
+  }, [findFirstUncompletedTask]);
+
+  // ვითვლით შესრულებული დავალებების რაოდენობას
+  useEffect(() => {
+    setCompletedTasksCount(completedTasks.size);
+  }, [completedTasks]);
+
+  // ვაინიციალიზებთ დავალების მონაცემებს
+  useEffect(() => {
+    if (currentTask?.type === 'matching') {
+      // ვარევთ items მასივს
+      const items = [...currentTask.items];
+      for (let i = items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [items[i], items[j]] = [items[j], items[i]];
+      }
+      setShuffledItems(items);
+
+      // ვარევთ colorOptions მასივს
+      const colors = [...currentTask.colorOptions];
+      for (let i = colors.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [colors[i], colors[j]] = [colors[j], colors[i]];
+      }
+      setShuffledColors(colors);
+    }
+  }, [currentTask]);
 
   const handleSuccess = useCallback(() => {
     const currentTask = tasks[currentTaskIndex];
     
     // ვანახლებთ პროგრესს მხოლოდ თუ დავალება ჯერ არ არის დასრულებული
-    if (!gameProgress?.completedTasks?.includes(currentTaskIndex)) {
-      updateGameProgress('task', currentTaskIndex);
+    if (!completedTasks.has(currentTaskIndex)) {
+      const timestamp = Date.now();
+      updateGameProgress('task', timestamp, { 
+        taskIndex: currentTaskIndex,
+        type: currentTask.type
+      });
     }
 
     setFeedback({
@@ -588,57 +645,13 @@ const Tasks = () => {
 
     showCelebration(currentTask.stickers || ['🌟']);
 
-    // გადავდივართ შემდეგ დავალებაზე
     setTimeout(() => {
       setFeedback({ show: false });
-      if (currentTaskIndex < tasks.length - 1) {
-        setCurrentTaskIndex(prev => prev + 1);
-      }
+      // გადავდივართ შემდეგ შეუსრულებელ დავალებაზე
+      const nextUncompleted = findFirstUncompletedTask();
+      setCurrentTaskIndex(nextUncompleted);
     }, 1500);
-  }, [currentTaskIndex, tasks, updateGameProgress, gameProgress?.completedTasks, showCelebration]);
-
-  const handleNumberClick = useCallback((number) => {
-    setSelectedNumbers(prev => {
-      const newSelection = [...prev];
-      const index = newSelection.indexOf(number);
-      if (index === -1) {
-        newSelection.push(number);
-      } else {
-        newSelection.splice(index, 1);
-      }
-      return newSelection;
-    });
-  }, []);
-
-  const findNextUncompletedTask = useCallback((currentIndex, direction = 1) => {
-    let nextIndex = currentIndex;
-    const totalTasks = tasks.length;
-    const completedTasks = gameProgress?.completedTasks || [];
-    
-    do {
-      nextIndex = (nextIndex + direction + totalTasks) % totalTasks;
-      if (!completedTasks.includes(nextIndex)) {
-        return nextIndex;
-      }
-    } while (nextIndex !== currentIndex);
-    
-    return currentIndex;
-  }, [gameProgress?.completedTasks]);
-
-  const handleNextTask = useCallback(() => {
-    setIsVisible(false);
-    setTimeout(() => {
-      const nextIndex = findNextUncompletedTask(currentTaskIndex);
-      setCurrentTaskIndex(nextIndex);
-      setIsVisible(true);
-    }, 300);
-  }, [currentTaskIndex, findNextUncompletedTask]);
-
-  const handlePrevTask = () => {
-    if (currentTaskIndex > 0) {
-      setCurrentTaskIndex(currentTaskIndex - 1);
-    }
-  };
+  }, [currentTaskIndex, tasks, updateGameProgress, completedTasks, findFirstUncompletedTask]);
 
   const handleAnswerSubmit = useCallback((selectedAnswer) => {
     if (!currentTask?.answer) {
@@ -656,30 +669,40 @@ const Tasks = () => {
 
     if (isCorrect) {
       // განვაახლოთ პროგრესი მხოლოდ თუ ეს დავალება ჯერ არ არის დასრულებული
-      if (!gameProgress?.completedTasks?.includes(currentTaskIndex)) {
-        updateGameProgress('task', currentTaskIndex);
+      if (!completedTasks.has(currentTaskIndex)) {
+        const timestamp = Date.now();
+        updateGameProgress('task', timestamp, { 
+          taskIndex: currentTaskIndex,
+          type: currentTask.type
+        });
       }
 
       showCelebration(currentTask.stickers || ['🌟']);
 
       setTimeout(() => {
         setFeedback({ show: false });
-        if (currentTaskIndex < tasks.length - 1) {
-          setCurrentTaskIndex(prev => prev + 1);
-        }
+        // გადავდივართ შემდეგ შეუსრულებელ დავალებაზე
+        const nextUncompleted = findFirstUncompletedTask();
+        setCurrentTaskIndex(nextUncompleted);
       }, 1500);
     } else {
       setTimeout(() => {
         setFeedback({ show: false });
       }, 1500);
     }
-  }, [currentTask, currentTaskIndex, updateGameProgress, showCelebration, gameProgress?.completedTasks]);
+  }, [currentTask, currentTaskIndex, updateGameProgress, completedTasks, findFirstUncompletedTask]);
 
-  const showToast = useCallback((message) => {
-    setToast({ show: true, message });
-    setTimeout(() => {
-      setToast({ show: false, message: '' });
-    }, 2000);
+  const handleNumberClick = useCallback((number) => {
+    setSelectedNumbers(prev => {
+      const newSelection = [...prev];
+      const index = newSelection.indexOf(number);
+      if (index === -1) {
+        newSelection.push(number);
+      } else {
+        newSelection.splice(index, 1);
+      }
+      return newSelection;
+    });
   }, []);
 
   const handleColorClick = useCallback((index) => {
@@ -714,7 +737,10 @@ const Tasks = () => {
         if (allMatched) {
           handleSuccess();
           showCelebration(currentTask.stickers);
-          setTimeout(handleNextTask, 1500);
+          setTimeout(() => {
+            const nextUncompleted = findFirstUncompletedTask();
+            setCurrentTaskIndex(nextUncompleted);
+          }, 1500);
         } else {
           showToast(praise);
         }
@@ -726,7 +752,7 @@ const Tasks = () => {
       setSelectedNumbers([]);
       return [];
     });
-  }, [currentTask, selectedNumbers, shuffledItems, shuffledColors, handleNextTask, showToast, handleSuccess]);
+  }, [currentTask, selectedNumbers, shuffledItems, shuffledColors, findFirstUncompletedTask, handleSuccess]);
 
   const renderMatchingGame = useCallback((task) => {
     if (!task?.items || !task?.colorOptions) {
@@ -799,39 +825,6 @@ const Tasks = () => {
     );
   }, [handleAnswerSubmit]);
 
-  const handleRestart = useCallback(() => {
-    const shouldRestart = window.confirm('ნამდვილად გსურთ თავიდან დაწყება? პროგრესი განულდება.');
-    if (shouldRestart) {
-      updateGameProgress(-1, 0); // ეს გაასუფთავებს პროგრესს PlayerContext-ში
-      setCurrentTaskIndex(0);
-      setSelectedNumbers([]);
-      setSelectedColors([]);
-      setAnswers({});
-      setFeedback({});
-      window.location.reload(); // გვერდის გადატვირთვა პროგრესის განულების შემდეგ
-    }
-  }, [updateGameProgress]);
-
-  useEffect(() => {
-    if (currentTask?.type === 'matching') {
-      const shuffleArray = (array) => {
-        const newArray = [...array];
-        for (let i = newArray.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-        }
-        return newArray;
-      };
-
-      if (currentTask.colorOptions) {
-        setShuffledColors(shuffleArray(currentTask.colorOptions));
-      }
-      if (currentTask.items) {
-        setShuffledItems(shuffleArray(currentTask.items));
-      }
-    }
-  }, [currentTask]);
-
   const handleZoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, 1.5));
   };
@@ -839,10 +832,6 @@ const Tasks = () => {
   const handleZoomOut = () => {
     setScale(prev => Math.max(prev - 0.1, 0.5));
   };
-
-  if (showNameModal) {
-    return <NameModal onSubmit={updatePlayerName} />;
-  }
 
   return (
     <Container>
@@ -855,41 +844,34 @@ const Tasks = () => {
       <TaskCard scale={scale}>
         <Title>
           <span>სახალისო ამოცანები</span>
-          {gameProgress?.taskScores?.[currentTaskIndex] && (
-            <span>{'⭐'.repeat(gameProgress.taskScores[currentTaskIndex])}</span>
-          )}
         </Title>
         <Subtitle>{currentTask?.description || 'Loading...'}</Subtitle>
 
         {isVisible && (
           <div style={{ position: 'relative' }}>
-            {completedTasksCount === totalTasks ? (
-              <CompletionMessage>
-                <div className="celebration">🎉</div>
-                <div>ყოჩაღ! ყველა დავალება შეასრულე!</div>
-                <RestartButton onClick={handleRestart}>
-                  თავიდან დაწყება 🔄
-                </RestartButton>
-              </CompletionMessage>
-            ) : (
-              <>
-                {currentTask?.type === 'matching' && renderMatchingGame(currentTask)}
-                {currentTask?.type === 'math' && renderMathGame(currentTask)}
-              </>
-            )}
+            <>
+              {currentTask?.type === 'matching' && renderMatchingGame(currentTask)}
+              {currentTask?.type === 'math' && renderMathGame(currentTask)}
+            </>
           </div>
         )}
 
         <NavigationButtons>
           <Button 
-            onClick={handlePrevTask}
-            disabled={currentTaskIndex === 0}
+            onClick={() => {
+              const prevUncompleted = findFirstUncompletedTask();
+              setCurrentTaskIndex(prevUncompleted);
+            }}
+            disabled={true}
           >
             წინა
           </Button>
           <Button 
-            onClick={handleNextTask}
-            disabled={currentTaskIndex === tasks.length - 1}
+            onClick={() => {
+              const nextUncompleted = findFirstUncompletedTask();
+              setCurrentTaskIndex(nextUncompleted);
+            }}
+            disabled={true}
           >
             შემდეგი
           </Button>
