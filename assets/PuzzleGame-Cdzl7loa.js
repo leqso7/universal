@@ -1,30 +1,30 @@
-import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.js";import"./NameModal-rsudDaw5.js";const re=s.div`
+import{d as r,m as j,r as s,R as oe,j as t,u as ae,a as ie,H as le}from"./index-D1eI-1v1.js";import"./NameModal-Dzre6Ma9.js";const de=r.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
   width: 100%;
   max-height: calc(100vh - 200px);
-`,se=s.div`
+`,ce=r.div`
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 1rem;
   margin-bottom: 1rem;
-`,ne=s.div`
+`,pe=r.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
   height: 100%;
-`;s.div`
+`;r.div`
   display: flex;
   justify-content: center;
-`;const G=s.div`
+`;const X=r.div`
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   border-radius: 1rem;
   padding: 1rem;
   height: fit-content;
-`,W=s.h3`
+`,G=r.h3`
   font-size: 1rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
@@ -32,11 +32,11 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   align-items: center;
   gap: 0.5rem;
   color: #2196F3;
-`,oe=s(G)`
+`,ge=r(X)`
   flex: 1;
   display: flex;
   flex-direction: column;
-`,ae=s.div`
+`,me=r.div`
   position: relative;
   width: calc((100% - ${e=>(e.size-1)*2}px) / ${e=>e.size});
   aspect-ratio: 1;
@@ -57,7 +57,7 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
     border: none;
     border-radius: 0;
   `}
-`,ie=s.div`
+`,ue=r.div`
   width: 100%;
   height: 100%;
   background-image: url(${e=>e.image});
@@ -65,7 +65,7 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   background-position: center;
   background-repeat: no-repeat;
   transition: all 0.3s ease;
-`,V=s.div`
+`,J=r.div`
   display: grid;
   grid-template-columns: repeat(${e=>e.size}, 1fr);
   gap: 2px;
@@ -74,7 +74,7 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   border-radius: 0.5rem;
   border: 2px dashed ${e=>e.isTarget?"rgba(33, 150, 243, 0.2)":"transparent"};
   aspect-ratio: 1;
-`,q=s.div`
+`,K=r.div`
   width: 100%;
   height: 100%;
   background-image: ${e=>e.image?`url(${e.image})`:"none"};
@@ -98,12 +98,12 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
     z-index: 1;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
-`,le=s.div`
+`,xe=r.div`
   display: flex;
   gap: 0.5rem;
   margin-top: 1rem;
   justify-content: center;
-`,J=s.button`
+`,Q=r.button`
   background-color: ${e=>e.variant==="primary"?"#2196F3":"#4CAF50"};
   color: white;
   padding: 0.5rem 1rem;
@@ -125,11 +125,11 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   &:active {
     transform: translateY(0);
   }
-`,de=s.div`
+`,fe=r.div`
   color: #666;
   font-size: 14px;
   text-align: center;
-`,ce=s.div`
+`,be=r.div`
   position: absolute;
   top: 50%;
   left: 50%;
@@ -141,7 +141,7 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   font-size: 14px;
   pointer-events: none;
   z-index: 2;
-`,ge=s.div`
+`,he=r.div`
   position: fixed;
   pointer-events: none;
   z-index: 1000;
@@ -150,13 +150,19 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   background-image: url(${e=>e.image});
   background-size: ${e=>e.size*100}% ${e=>e.size*100}%;
   background-position: ${e=>e.bgPosition};
-  transform: translate(-50%, -50%);
+  transform: translate3d(-50%, -50%, 0);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   border-radius: 8px;
   opacity: 0.9;
   border: 2px solid rgba(255, 255, 255, 0.9);
   background-color: rgba(255, 255, 255, 0.8);
-`;s.div`
+  transition: none;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+`;r.div`
   width: 100%;
   height: 100%;
   background: rgba(255, 255, 255, 0.8);
@@ -167,7 +173,7 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   align-items: center;
   position: relative;
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
-`;s.div`
+`;r.div`
   width: 100%;
   max-width: 600px;
   aspect-ratio: 1;
@@ -180,18 +186,18 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
   margin: 0 auto;
-`;const pe=v`
+`;const we=j`
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-`,K=s.div`
+`,Z=r.div`
   width: 40px;
   height: 40px;
   border: 4px solid #f3f3f3;
   border-top: 4px solid #2196F3;
   border-radius: 50%;
-  animation: ${pe} 1s linear infinite;
+  animation: ${we} 1s linear infinite;
   margin: 0 auto;
-`,Q=s.div`
+`,_=r.div`
   position: absolute;
   top: 0;
   left: 0;
@@ -202,13 +208,13 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   align-items: center;
   justify-content: center;
   z-index: 10;
-`,me=v`
+`,ve=j`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
-`,ue=v`
+`,ye=j`
   from { opacity: 1; transform: translateY(0); }
   to { opacity: 0; transform: translateY(-20px); }
-`;s.div`
+`;r.div`
   position: fixed;
   bottom: 2rem;
   left: 50%;
@@ -222,9 +228,9 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   align-items: center;
   gap: 0.5rem;
   z-index: 1000;
-  animation: ${e=>e.isClosing?ue:me} 0.5s ease forwards;
+  animation: ${e=>e.isClosing?ye:ve} 0.5s ease forwards;
   backdrop-filter: blur(10px);
-`;const xe=({image:e,difficulty:o,onProgress:y,onComplete:E,onBackToMenu:X,onImageChange:Y,onError:j})=>{const[g,O]=n.useState([]),[R,$]=n.useState(null),[u,D]=n.useState([]),[f,F]=n.useState(new Set),[x,z]=n.useState(!1),[S,k]=n.useState(new Set),[P,U]=n.useState(0),[d,h]=n.useState(null),[I,H]=n.useState({x:0,y:0}),[A,m]=n.useState(!1),[C,T]=n.useState(!1);n.useState(!1),n.useState(!1);const L=n.useMemo(()=>{const r=[];for(let i=0;i<o;i++)for(let l=0;l<o;l++)r.push({id:i*o+l,bgPosition:`${l*(100/(o-1))}% ${i*(100/(o-1))}%`,correctIndex:i*o+l});return r},[o]);n.useEffect(()=>{(async()=>{m(!0);try{const i=o*o;if(!o||o<=0){console.error("Invalid difficulty value:",o);return}await new Promise(b=>setTimeout(b,500));const l=[...L].sort(()=>Math.random()-.5).map((b,B)=>({...b,currentPos:B})),c=Array(i).fill(null);O(l),D(c),F(new Set),$(null),k(new Set),h(null)}catch(i){console.error("Error initializing puzzle pieces:",i)}finally{m(!1)}})()},[e,o,L]),n.useEffect(()=>{z(!1)},[o]),n.useEffect(()=>{const r=i=>{d!==null&&H({x:i.clientX,y:i.clientY})};return document.addEventListener("mousemove",r),()=>document.removeEventListener("mousemove",r)},[d]);const M=async r=>{var i;r.preventDefault(),m(!0);try{const l=(i=r.clipboardData)==null?void 0:i.items;if(!l)return;for(let c=0;c<l.length;c++)if(l[c].type.indexOf("image")!==-1){const b=l[c].getAsFile(),B=new FileReader;B.onload=Z=>{Y(Z.target.result),m(!1)},B.readAsDataURL(b);return}m(!1)}catch(l){console.error("Error handling paste:",l),m(!1)}},N=r=>{if(r<0||r>=g.length||!g[r]){console.error("Invalid piece index:",r);return}d===r?h(null):(h(r),k(new Set)),$(r)},a=r=>{if(d===null||r<0||r>=u.length||u[r]!==null)return;const i=g[d];if(!i){console.error("Selected piece data is invalid");return}if(parseInt(i.id)===r){const l=[...u];l[r]=i,D(l);const c=[...g];c[d]=null,O(c);const b=new Set(f);b.add(r),F(b)}else{const l=new Set(S);l.add(r),k(l),U(c=>c+1),j()}h(null),$(null)},p=()=>{z(!x)},w=()=>{T(!C)};return n.useEffect(()=>{const r=f.size/(o*o)*100;y(Math.round(r)),f.size===o*o&&E(P)},[f,o,E,P,y]),n.useEffect(()=>(window.addEventListener("paste",M),()=>window.removeEventListener("paste",M)),[]),t.jsxs(re,{children:[t.jsxs(se,{children:[t.jsxs(G,{children:[t.jsxs(W,{children:[t.jsx("span",{children:"🎮"}),"აქ ააწყვე პაზლი"]}),t.jsxs("div",{style:{position:"relative"},children:[A&&t.jsx(Q,{children:t.jsx(K,{})}),t.jsx(V,{size:o,isTarget:!0,children:u.map((r,i)=>t.jsx(q,{image:r?e:null,size:o,bgPosition:r?r.bgPosition:"",isTarget:!r,isPlaced:r!==null,isWrongAttempt:S.has(i),onClick:()=>a(i),children:!r&&x&&t.jsx(de,{children:i+1})},i))})]})]}),t.jsxs(ne,{children:[t.jsxs(G,{children:[t.jsxs(W,{children:[t.jsx("span",{children:"🧩"}),"პაზლის ნაწილები"]}),t.jsxs("div",{style:{position:"relative"},children:[A&&t.jsx(Q,{children:t.jsx(K,{})}),t.jsx(V,{size:o,isTarget:!1,children:g.map((r,i)=>r&&t.jsx(q,{image:e,size:o,bgPosition:r.bgPosition,onClick:()=>N(i),isDragging:d===i,children:x&&t.jsx(ce,{children:parseInt(r.id)+1})},r.id))})]})]}),t.jsxs(oe,{children:[t.jsxs(W,{children:[t.jsx("span",{children:"🖼️"}),"ორიგინალი სურათი",t.jsx("span",{style:{marginLeft:"auto",fontSize:"0.8em",opacity:.7},children:"(დააჭირე გასადიდებლად)"})]}),t.jsx(ae,{size:o,isExpanded:C,onClick:w,children:t.jsx(ie,{image:e,size:o,isExpanded:C})}),t.jsxs(le,{children:[t.jsx(J,{variant:"primary",onClick:p,children:x?"🔍 დამალე მინიშნებები":"💡 მაჩვენე მინიშნებები"}),t.jsx(J,{onClick:X,children:"🏠 მთავარ მენიუში დაბრუნება"})]})]})]})]}),d!==null&&g[d]&&t.jsx(ge,{image:e,size:o,bgPosition:g[d].bgPosition,style:{left:I.x,top:I.y}})]})};s.div`
+`;const je=({image:e,difficulty:i,onProgress:$,onComplete:D,onBackToMenu:q,onImageChange:U,onError:z})=>{const[g,H]=s.useState([]),[N,k]=s.useState(null),[u,I]=s.useState([]),[h,M]=s.useState(new Set),[x,S]=s.useState(!1),[P,C]=s.useState(new Set),[T,W]=s.useState(0),[c,w]=s.useState(null),[v,L]=s.useState({x:0,y:0}),[B,m]=s.useState(!1),[E,F]=s.useState(!1);s.useState(!1),s.useState(!1);const[Y,R]=s.useState({x:0,y:0}),[A,a]=s.useState({x:0,y:0}),d=oe.useRef(),b=s.useMemo(()=>{const n=[];for(let o=0;o<i;o++)for(let l=0;l<i;l++)n.push({id:o*i+l,bgPosition:`${l*(100/(i-1))}% ${o*(100/(i-1))}%`,correctIndex:o*i+l});return n},[i]);s.useEffect(()=>{(async()=>{m(!0);try{const o=i*i;if(!i||i<=0){console.error("Invalid difficulty value:",i);return}await new Promise(f=>setTimeout(f,500));const l=[...b].sort(()=>Math.random()-.5).map((f,O)=>({...f,currentPos:O})),p=Array(o).fill(null);H(l),I(p),M(new Set),k(null),C(new Set),w(null)}catch(o){console.error("Error initializing puzzle pieces:",o)}finally{m(!1)}})()},[e,i,b]),s.useEffect(()=>{S(!1)},[i]);const y=()=>{c!==null&&(L(A),R(A),d.current=requestAnimationFrame(y))};s.useEffect(()=>{const n=o=>{c!==null&&(a({x:o.clientX,y:o.clientY}),d.current||(d.current=requestAnimationFrame(y)))};return document.addEventListener("mousemove",n),()=>{document.removeEventListener("mousemove",n),d.current&&(cancelAnimationFrame(d.current),d.current=null)}},[c,A]);const V=async n=>{var o;n.preventDefault(),m(!0);try{const l=(o=n.clipboardData)==null?void 0:o.items;if(!l)return;for(let p=0;p<l.length;p++)if(l[p].type.indexOf("image")!==-1){const f=l[p].getAsFile(),O=new FileReader;O.onload=se=>{U(se.target.result),m(!1)},O.readAsDataURL(f);return}m(!1)}catch(l){console.error("Error handling paste:",l),m(!1)}},ee=n=>{if(n<0||n>=g.length||!g[n]){console.error("Invalid piece index:",n);return}if(c===n)w(null),d.current&&(cancelAnimationFrame(d.current),d.current=null);else{const o={x:Y.x||v.x,y:Y.y||v.y};w(n),L(o),R(o),a(o),C(new Set)}k(n)},te=n=>{if(c===null||n<0||n>=u.length||u[n]!==null)return;const o=g[c];if(!o){console.error("Selected piece data is invalid");return}if(parseInt(o.id)===n){const l=[...u];l[n]=o,I(l);const p=[...g];p[c]=null,H(p);const f=new Set(h);f.add(n),M(f)}else{const l=new Set(P);l.add(n),C(l),W(p=>p+1),z()}w(null),k(null)},re=()=>{S(!x)},ne=()=>{F(!E)};return s.useEffect(()=>{const n=h.size/(i*i)*100;$(Math.round(n)),h.size===i*i&&D(T)},[h,i,D,T,$]),s.useEffect(()=>(window.addEventListener("paste",V),()=>window.removeEventListener("paste",V)),[]),t.jsxs(de,{children:[t.jsxs(ce,{children:[t.jsxs(X,{children:[t.jsxs(G,{children:[t.jsx("span",{children:"🎮"}),"აქ ააწყვე პაზლი"]}),t.jsxs("div",{style:{position:"relative"},children:[B&&t.jsx(_,{children:t.jsx(Z,{})}),t.jsx(J,{size:i,isTarget:!0,children:u.map((n,o)=>t.jsx(K,{image:n?e:null,size:i,bgPosition:n?n.bgPosition:"",isTarget:!n,isPlaced:n!==null,isWrongAttempt:P.has(o),onClick:()=>te(o),children:!n&&x&&t.jsx(fe,{children:o+1})},o))})]})]}),t.jsxs(pe,{children:[t.jsxs(X,{children:[t.jsxs(G,{children:[t.jsx("span",{children:"🧩"}),"პაზლის ნაწილები"]}),t.jsxs("div",{style:{position:"relative"},children:[B&&t.jsx(_,{children:t.jsx(Z,{})}),t.jsx(J,{size:i,isTarget:!1,children:g.map((n,o)=>n&&t.jsx(K,{image:e,size:i,bgPosition:n.bgPosition,onClick:()=>ee(o),isDragging:c===o,children:x&&t.jsx(be,{children:parseInt(n.id)+1})},n.id))})]})]}),t.jsxs(ge,{children:[t.jsxs(G,{children:[t.jsx("span",{children:"🖼️"}),"ორიგინალი სურათი",t.jsx("span",{style:{marginLeft:"auto",fontSize:"0.8em",opacity:.7},children:"(დააჭირე გასადიდებლად)"})]}),t.jsx(me,{size:i,isExpanded:E,onClick:ne,children:t.jsx(ue,{image:e,size:i,isExpanded:E})}),t.jsxs(xe,{children:[t.jsx(Q,{variant:"primary",onClick:re,children:x?"🔍 დამალე მინიშნებები":"💡 მაჩვენე მინიშნებები"}),t.jsx(Q,{onClick:q,children:"🏠 მთავარ მენიუში დაბრუნება"})]})]})]})]}),c!==null&&g[c]&&t.jsx(he,{image:e,size:i,bgPosition:g[c].bgPosition,style:{left:`${v.x}px`,top:`${v.y}px`,transform:"translate(-50%, -50%)"}})]})};r.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -233,15 +239,15 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-`;s.h2`
+`;r.h2`
   color: #2196F3;
   margin-bottom: 15px;
-`;s.div`
+`;r.div`
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
-`;s.button`
+`;r.button`
   background-color: ${e=>e.active?"#2196F3":"#4CAF50"};
   padding: 10px 20px;
   border-radius: 8px;
@@ -253,7 +259,7 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   &:hover {
     transform: scale(1.05);
   }
-`;const be=s.div`
+`;const $e=r.div`
   position: fixed;
   top: 0;
   left: 0;
@@ -274,7 +280,7 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   * {
     box-sizing: border-box;
   }
-`,fe=s.header`
+`,ze=r.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -284,11 +290,11 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   margin-right: auto;
   padding: 0 1rem;
   gap: 1rem;
-`,he=s.div`
+`,ke=r.div`
   display: flex;
   gap: 1rem;
   align-items: center;
-`,we=s.h1`
+`,Se=r.h1`
   font-size: 1.5rem;
   font-weight: bold;
   color: #2196F3;
@@ -299,13 +305,13 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   @media (min-width: 640px) {
     font-size: 1.875rem;
   }
-`,ve=s.span`
+`,Pe=r.span`
   font-size: 1.5rem;
   
   @media (min-width: 640px) {
     font-size: 2rem;
   }
-`,ye=s.main`
+`,Ce=r.main`
   max-width: 64rem;
   margin: 0 auto;
   display: flex;
@@ -313,24 +319,24 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   gap: 1rem;
   padding: 0 1rem;
   padding-bottom: 2rem;
-`,je=s.div`
+`,Te=r.div`
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   border-radius: 1rem;
   padding: 1rem;
-`,$e=s(je)`
+`,Ee=r(Te)`
   text-align: center;
-`,ze=s.h2`
+`,Fe=r.h2`
   font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-`,Se=s.div`
+`,Ae=r.div`
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.5rem;
-`,ke=s.button`
+`,De=r.button`
   height: 2.5rem;
   width: 4rem;
   font-size: 1rem;
@@ -351,7 +357,7 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
     border-color: ${e=>e.isSelected?"transparent":"#90CAF9"};
     color: ${e=>e.isSelected?"white":"#90CAF9"};
   }
-`,Pe=s.label`
+`,Ie=r.label`
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -376,7 +382,7 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   input {
     display: none;
   }
-`,Ce=s.button`
+`,Me=r.button`
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -397,18 +403,18 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   &:active {
     transform: translateY(0);
   }
-`,Te=v`
+`,Le=j`
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-`,Ee=s.div`
+`,Be=r.div`
   width: 40px;
   height: 40px;
   border: 4px solid #f3f3f3;
   border-top: 4px solid #2196F3;
   border-radius: 50%;
-  animation: ${Te} 1s linear infinite;
+  animation: ${Le} 1s linear infinite;
   margin: 0 auto;
-`,De=s.div`
+`,Ye=r.div`
   position: absolute;
   top: 0;
   left: 0;
@@ -419,13 +425,13 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   align-items: center;
   justify-content: center;
   z-index: 10;
-`,Fe=v`
+`,Re=j`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
-`,Ie=v`
+`,Oe=j`
   from { opacity: 1; transform: translateY(0); }
   to { opacity: 0; transform: translateY(-20px); }
-`,Ae=s.div`
+`,Ue=r.div`
   position: fixed;
   bottom: 2rem;
   left: 50%;
@@ -439,9 +445,9 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
   align-items: center;
   gap: 0.5rem;
   z-index: 1000;
-  animation: ${e=>e.isClosing?Ie:Fe} 0.5s ease forwards;
+  animation: ${e=>e.isClosing?Oe:Re} 0.5s ease forwards;
   backdrop-filter: blur(10px);
-`,Le=s.div`
+`,He=r.div`
   position: fixed;
   top: 50%;
   left: 50%;
@@ -466,4 +472,4 @@ import{d as s,m as v,r as n,j as t,u as _,a as ee,H as te}from"./index-BK-MlLex.
       opacity: 1;
     }
   }
-`,Ye=()=>{const{playerName:e}=_(),o=ee(),[y,E]=n.useState(3),[X,Y]=n.useState(0),[j,g]=n.useState(null),[O,R]=n.useState(0),[$,u]=n.useState(!1),[D,f]=n.useState(""),[F,x]=n.useState(!1),[z,S]=n.useState(!1),[k,P]=n.useState(!1),[U,d]=n.useState(""),h=()=>{const a=[`ყოჩაღ ${e}! შენ ეს შეძელი! 🎉`,`საოცარი ხარ ${e}! გააგრძელე ასე! 🌟`,`ბრავო ${e}! შესანიშნავად გაართვი თავი! 👏`,`არაჩვეულებრივია ${e}! შენ ნამდვილი გენიოსი ხარ! 🎯`,`გილოცავ ${e}! კიდევ ერთი ამოცანა გადალახე! 🏆`,`${e}, შენ მართლაც ნიჭიერი ხარ! 🌈`,`დიდებულია ${e}! ასე განაგრძე! ⭐`,`${e}, შენ ნამდვილი გმირი ხარ! 🦸‍♂️`];return a[Math.floor(Math.random()*a.length)]},I=a=>{f(a),u(!0),setTimeout(()=>{x(!0),setTimeout(()=>{u(!1),x(!1)},500)},3e3)},H=a=>{new Date().toISOString(),I(`გილოცავთ ${e||"მოთამაშე"}! თქვენ წარმატებით დაასრულეთ პაზლი ${a||0} შეცდომით! 🎉`),setTimeout(()=>{u(!1),x(!1),o("/")},3500)},A=()=>{R(a=>a+1)},m=a=>{g(a),R(0)},C=()=>{o("/")},T=async()=>{try{const a=await navigator.clipboard.read();for(const p of a)if(p.types.includes("image/png")){const w=await p.getType("image/png"),r=URL.createObjectURL(w);m(r);break}}catch(a){console.error("Error handling pasted image:",a)}},L=async a=>{S(!0),await new Promise(p=>setTimeout(p,500)),E(a),S(!1)},M=a=>{const p=a.target.files[0];if(p){const w=new FileReader;w.onload=r=>{g(r.target.result)},w.readAsDataURL(p)}},N=()=>{P(!0),d(h()),setTimeout(()=>{P(!1)},3e3)};return n.useEffect(()=>(window.addEventListener("paste",T),()=>window.removeEventListener("paste",T)),[]),t.jsxs(be,{children:[t.jsx(te,{}),$&&t.jsx(Ae,{isClosing:F,children:D}),k&&t.jsx(Le,{children:U}),t.jsxs(fe,{children:[t.jsxs(we,{children:[t.jsx(ve,{children:"🎮"}),"გამარჯობა, ",e,"! 👋"]}),t.jsxs(he,{children:[t.jsxs(Ce,{onClick:T,children:[t.jsx("span",{children:"📋"}),"ჩასმა (Ctrl+V)"]}),t.jsxs(Pe,{children:[t.jsx("span",{children:"📤"}),"სურათის ატვირთვა",t.jsx("input",{type:"file",accept:"image/*",onChange:M,id:"imageUpload",name:"imageUpload"})]})]})]}),t.jsxs(ye,{children:[t.jsxs($e,{children:[t.jsx(ze,{children:"აირჩიე სირთულის დონე"}),t.jsx(Se,{children:[3,4,5].map(a=>t.jsxs(ke,{isSelected:y===a,onClick:()=>L(a),disabled:z,children:[a,"x",a]},a))})]}),t.jsxs("div",{style:{position:"relative"},children:[z&&t.jsx(De,{children:t.jsx(Ee,{})}),j&&t.jsx(xe,{image:j,difficulty:y,onProgress:Y,onComplete:a=>H(a),onBackToMenu:C,onImageChange:m,onError:A,onCorrectAnswer:N})]})]})]})};export{Ye as default};
+`,Ge=()=>{const{playerName:e}=ae(),i=ie(),[$,D]=s.useState(3),[q,U]=s.useState(0),[z,g]=s.useState(null),[H,N]=s.useState(0),[k,u]=s.useState(!1),[I,h]=s.useState(""),[M,x]=s.useState(!1),[S,P]=s.useState(!1),[C,T]=s.useState(!1),[W,c]=s.useState(""),w=()=>{const a=[`ყოჩაღ ${e}! შენ ეს შეძელი! 🎉`,`საოცარი ხარ ${e}! გააგრძელე ასე! 🌟`,`ბრავო ${e}! შესანიშნავად გაართვი თავი! 👏`,`არაჩვეულებრივია ${e}! შენ ნამდვილი გენიოსი ხარ! 🎯`,`გილოცავ ${e}! კიდევ ერთი ამოცანა გადალახე! 🏆`,`${e}, შენ მართლაც ნიჭიერი ხარ! 🌈`,`დიდებულია ${e}! ასე განაგრძე! ⭐`,`${e}, შენ ნამდვილი გმირი ხარ! 🦸‍♂️`];return a[Math.floor(Math.random()*a.length)]},v=a=>{h(a),u(!0),setTimeout(()=>{x(!0),setTimeout(()=>{u(!1),x(!1)},500)},3e3)},L=a=>{new Date().toISOString(),v(`გილოცავთ ${e||"მოთამაშე"}! თქვენ წარმატებით დაასრულეთ პაზლი ${a||0} შეცდომით! 🎉`),setTimeout(()=>{u(!1),x(!1),i("/")},3500)},B=()=>{N(a=>a+1)},m=a=>{g(a),N(0)},E=()=>{i("/")},F=async()=>{try{const a=await navigator.clipboard.read();for(const d of a)if(d.types.includes("image/png")){const b=await d.getType("image/png"),y=URL.createObjectURL(b);m(y);break}}catch(a){console.error("Error handling pasted image:",a)}},Y=async a=>{P(!0),await new Promise(d=>setTimeout(d,500)),D(a),P(!1)},R=a=>{const d=a.target.files[0];if(d){const b=new FileReader;b.onload=y=>{g(y.target.result)},b.readAsDataURL(d)}},A=()=>{T(!0),c(w()),setTimeout(()=>{T(!1)},3e3)};return s.useEffect(()=>(window.addEventListener("paste",F),()=>window.removeEventListener("paste",F)),[]),t.jsxs($e,{children:[t.jsx(le,{}),k&&t.jsx(Ue,{isClosing:M,children:I}),C&&t.jsx(He,{children:W}),t.jsxs(ze,{children:[t.jsxs(Se,{children:[t.jsx(Pe,{children:"🎮"}),"გამარჯობა, ",e,"! 👋"]}),t.jsxs(ke,{children:[t.jsxs(Me,{onClick:F,children:[t.jsx("span",{children:"📋"}),"ჩასმა (Ctrl+V)"]}),t.jsxs(Ie,{children:[t.jsx("span",{children:"📤"}),"სურათის ატვირთვა",t.jsx("input",{type:"file",accept:"image/*",onChange:R,id:"imageUpload",name:"imageUpload"})]})]})]}),t.jsxs(Ce,{children:[t.jsxs(Ee,{children:[t.jsx(Fe,{children:"აირჩიე სირთულის დონე"}),t.jsx(Ae,{children:[3,4,5].map(a=>t.jsxs(De,{isSelected:$===a,onClick:()=>Y(a),disabled:S,children:[a,"x",a]},a))})]}),t.jsxs("div",{style:{position:"relative"},children:[S&&t.jsx(Ye,{children:t.jsx(Be,{})}),z&&t.jsx(je,{image:z,difficulty:$,onProgress:U,onComplete:a=>L(a),onBackToMenu:E,onImageChange:m,onError:B,onCorrectAnswer:A})]})]})]})};export{Ge as default};
