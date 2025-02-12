@@ -186,12 +186,18 @@ const DraggedPiece = styled.div`
   background-image: url(${props => props.image});
   background-size: ${props => props.size * 100}% ${props => props.size * 100}%;
   background-position: ${props => props.bgPosition};
-  transform: translate(-50%, -50%);
+  transform: translate3d(-50%, -50%, 0);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   border-radius: 8px;
   opacity: 0.9;
   border: 2px solid rgba(255, 255, 255, 0.9);
   background-color: rgba(255, 255, 255, 0.8);
+  transition: none;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
 `;
 
 const PuzzleCell = styled.div`
@@ -292,6 +298,9 @@ const PuzzleBoard = ({ image, difficulty, onProgress, onComplete, onBackToMenu, 
   const [isImageExpanded, setIsImageExpanded] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [isToastClosing, setIsToastClosing] = useState(false);
+  const [lastMousePosition, setLastMousePosition] = useState({ x: 0, y: 0 });
+  const [currentMousePosition, setCurrentMousePosition] = useState({ x: 0, y: 0 });
+  const animationRef = React.useRef();
 
   // Memoize the initial pieces calculation
   const initialPieces = useMemo(() => {
@@ -356,16 +365,33 @@ const PuzzleBoard = ({ image, difficulty, onProgress, onComplete, onBackToMenu, 
     setShowHints(false);
   }, [difficulty]);
 
+  const updatePosition = () => {
+    if (draggedPiece !== null) {
+      setMousePosition(currentMousePosition);
+      setLastMousePosition(currentMousePosition);
+      animationRef.current = requestAnimationFrame(updatePosition);
+    }
+  };
+
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (draggedPiece !== null) {
-        setMousePosition({ x: e.clientX, y: e.clientY });
+        setCurrentMousePosition({ x: e.clientX, y: e.clientY });
+        if (!animationRef.current) {
+          animationRef.current = requestAnimationFrame(updatePosition);
+        }
       }
     };
 
     document.addEventListener('mousemove', handleMouseMove);
-    return () => document.removeEventListener('mousemove', handleMouseMove);
-  }, [draggedPiece]);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+    };
+  }, [draggedPiece, currentMousePosition]);
 
   const handlePaste = async (e) => {
     e.preventDefault();
@@ -405,8 +431,16 @@ const PuzzleBoard = ({ image, difficulty, onProgress, onComplete, onBackToMenu, 
 
     if (draggedPiece === index) {
       setDraggedPiece(null);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
     } else {
+      const mousePos = { x: lastMousePosition.x || mousePosition.x, y: lastMousePosition.y || mousePosition.y };
       setDraggedPiece(index);
+      setMousePosition(mousePos);
+      setLastMousePosition(mousePos);
+      setCurrentMousePosition(mousePos);
       setWrongAttempts(new Set());
     }
     setSelectedPiece(index);
@@ -600,8 +634,9 @@ const PuzzleBoard = ({ image, difficulty, onProgress, onComplete, onBackToMenu, 
           size={difficulty}
           bgPosition={pieces[draggedPiece].bgPosition}
           style={{
-            left: mousePosition.x,
-            top: mousePosition.y
+            left: `${mousePosition.x}px`,
+            top: `${mousePosition.y}px`,
+            transform: 'translate(-50%, -50%)'
           }}
         />
       )}
