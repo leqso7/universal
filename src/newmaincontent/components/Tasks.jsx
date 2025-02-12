@@ -133,14 +133,20 @@ const ItemsContainer = styled.div`
 `;
 
 const Item = styled.button`
-  background: ${props => props.color || '#4CAF50'};
-  color: white;
+  background: ${props => {
+    if (props.wrongMatch) return '#ff0000';
+    return props.color || '#4CAF50';
+  }};
+  color: ${props => {
+    if (props.wrongMatch) return 'transparent';
+    return props.$isSelected ? 'white' : '#2c3e50';
+  }};
   border: none;
   padding: clamp(0.3rem, 1vw, 0.5rem);
   font-size: clamp(0.8rem, 2.5vw, 1rem);
   border-radius: clamp(0.5rem, 2vw, 1rem);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   width: clamp(120px, 35vw, 160px);
   height: clamp(40px, 12vw, 55px);
   display: flex;
@@ -154,6 +160,13 @@ const Item = styled.button`
   overflow-wrap: break-word;
   opacity: ${props => (props.disabled ? 0.5 : 1)};
   pointer-events: ${props => (props.disabled ? 'none' : 'auto')};
+  animation: ${props => props.wrongMatch ? 'shake 0.5s ease-in-out' : 'none'};
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-8px) rotate(-2deg); }
+    20%, 40%, 60%, 80% { transform: translateX(8px) rotate(2deg); }
+  }
 
   &:hover {
     transform: translateY(-2px);
@@ -182,6 +195,18 @@ const Item = styled.button`
     height: 40px;
     font-size: clamp(0.65rem, 2.8vw, 0.8rem);
     padding: 0.25rem;
+  }
+
+  img {
+    width: 100%;
+    height: auto;
+    opacity: ${props => props.wrongMatch ? '0' : '1'};
+    transition: opacity 0.3s ease;
+  }
+
+  span {
+    opacity: ${props => props.wrongMatch ? '0' : '1'};
+    transition: opacity 0.3s ease;
   }
 `;
 
@@ -376,7 +401,7 @@ const showCelebration = (stickers) => {
 
   setTimeout(() => {
     document.body.removeChild(container);
-  }, 3000);
+  }, 4000);
 };
 
 const Toast = styled.div`
@@ -539,6 +564,47 @@ const ZoomButton = styled.button`
   }
 `;
 
+const CentralPraise = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: clamp(2rem, 5vw, 3rem);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(31, 38, 135, 0.2);
+  z-index: 1000;
+  text-align: center;
+  max-width: 90vw;
+  animation: centralPopIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  .praise-text {
+    color: #2c3e50;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    margin-bottom: 1rem;
+    font-weight: bold;
+  }
+
+  .praise-emoji {
+    font-size: clamp(3rem, 8vw, 4rem);
+    margin: 1rem 0;
+    display: block;
+    animation: bounce 1s infinite;
+  }
+
+  @keyframes centralPopIn {
+    0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+    50% { transform: translate(-50%, -50%) scale(1.1); }
+    70% { transform: translate(-50%, -50%) scale(0.9); }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+`;
+
 const Tasks = () => {
   const { gameProgress, updateGameProgress, getGameStats } = usePlayer();
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
@@ -561,6 +627,9 @@ const Tasks = () => {
   const [isToastVisible, setIsToastVisible] = useState(false);
   const toastTimeoutRef = useRef(null);
   const [isWrongAnswer, setIsWrongAnswer] = useState(false);
+  const [showCentralPraise, setShowCentralPraise] = useState(false);
+  const [wrongMatch, setWrongMatch] = useState(null);
+  const [wrongMatchColor, setWrongMatchColor] = useState(null);
 
   const stats = getGameStats('task');
   const completedTasks = stats.completedTasks;
@@ -606,12 +675,13 @@ const Tasks = () => {
     }, 2000);
   };
 
-  // ვამოწმებთ არის თუ არა ყველა დავალება შესრულებული
+  // ვამატებთ ეფექტს completedTasks-ის ცვლილებაზე
   useEffect(() => {
     if (completedTasks.size === totalTasks) {
-      showCelebration(['🎉', '🌟', '🏆', '👏']);
+      setShowCentralPraise(true);
       setTimeout(() => {
-        // ვასუფთავებთ პროგრესს
+        setShowCentralPraise(false);
+        // ვასუფთავებთ პროგრესი
         updateGameProgress('task', Date.now(), { reset: true });
         // ვანულებთ მდგომარეობას
         setCurrentTaskIndex(0);
@@ -620,9 +690,7 @@ const Tasks = () => {
         setAnswers({});
         setFeedback({});
         setCompletedTasksCount(0);
-        // ვაჩვენებთ შეტყობინებას
-        showToast('ყოჩაღ! ყველა დავალება შეასრულე! ვიწყებთ თავიდან! 🎉');
-      }, 2000);
+      }, 4000);
     }
   }, [completedTasks.size, totalTasks, updateGameProgress]);
 
@@ -658,10 +726,14 @@ const Tasks = () => {
     }
   }, [currentTask]);
 
-  const handleSuccess = useCallback(() => {
-    const currentTask = tasks[currentTaskIndex];
+  const handleSuccess = () => {
+    const praise = currentTask.praise[Math.floor(Math.random() * currentTask.praise.length)];
+    showToast(praise);
     
-    // ვანახლებთ პროგრესს მხოლოდ თუ დავალება ჯერ არ არის დასრულებული
+    // ვაჩვენებთ შექებას
+    showCelebration(currentTask.stickers || ['🌟']);
+    
+    // ვანიშნავთ დავალებას შესრულებულად
     if (!completedTasks.has(currentTaskIndex)) {
       const timestamp = Date.now();
       updateGameProgress('task', timestamp, { 
@@ -669,22 +741,18 @@ const Tasks = () => {
         type: currentTask.type
       });
     }
-
-    setFeedback({
-      show: true,
-      message: 'სწორია! 🎉',
-      type: 'success'
-    });
-
-    showCelebration(currentTask.stickers || ['🌟']);
-
+    
+    // ვასუფთავებთ მიმდინარე მდგომარეობას
+    setSelectedNumbers([]);
+    setSelectedColors([]);
+    setShuffledItems(prev => prev.map(item => ({ ...item, matched: false })));
+    
+    // ვიცდით 3.5 წამს და შემდეგ გადავდივართ შემდეგ დავალებაზე
     setTimeout(() => {
-      setFeedback({ show: false });
-      // გადავდივართ შემდეგ შეუსრულებელ დავალებაზე
       const nextUncompleted = findFirstUncompletedTask();
       setCurrentTaskIndex(nextUncompleted);
-    }, 1500);
-  }, [currentTaskIndex, tasks, updateGameProgress, completedTasks, findFirstUncompletedTask]);
+    }, 3500);
+  };
 
   const handleAnswerSubmit = useCallback((selectedAnswer) => {
     if (!currentTask?.answer) {
@@ -696,7 +764,6 @@ const Tasks = () => {
     
     if (isCorrect) {
       showToast('სწორია! 🎉', 'success');
-      // განვაახლოთ პროგრესი მხოლოდ თუ ეს დავალება ჯერ არ არის დასრულებული
       if (!completedTasks.has(currentTaskIndex)) {
         const timestamp = Date.now();
         updateGameProgress('task', timestamp, { 
@@ -706,14 +773,10 @@ const Tasks = () => {
       }
 
       showCelebration(currentTask.stickers || ['🌟']);
-
-      setTimeout(() => {
-        // გადავდივართ შემდეგ შეუსრულებელ დავალებაზე
-        const nextUncompleted = findFirstUncompletedTask();
-        setCurrentTaskIndex(nextUncompleted);
-      }, 1500);
+      // დაუყოვნებლივ გადავდივართ შემდეგ დავალებაზე
+      const nextUncompleted = findFirstUncompletedTask();
+      setCurrentTaskIndex(nextUncompleted);
     } else {
-      // არასწორი პასუხის შემთხვევაში
       setIsWrongAnswer(true);
       setTimeout(() => {
         setIsWrongAnswer(false);
@@ -746,14 +809,9 @@ const Tasks = () => {
       const selectedItem = shuffledItems[numberIndex];
       const selectedOption = shuffledColors[index];
       
-      // Check if this is a correct match based only on colorName
       const isCorrectMatch = selectedItem.colorName === selectedOption.name && !selectedItem.matched;
       
       if (isCorrectMatch) {
-        // Correct match
-        const praise = currentTask.praise[Math.floor(Math.random() * currentTask.praise.length)];
-        
-        // Update shuffledItems immutably
         const newShuffledItems = shuffledItems.map((item, idx) => {
           if (idx === numberIndex) {
             return { ...item, matched: true };
@@ -764,21 +822,28 @@ const Tasks = () => {
         
         const allMatched = newShuffledItems.every((item) => item.matched);
         if (allMatched) {
-          handleSuccess();
-          showCelebration(currentTask.stickers);
-          setTimeout(() => {
-            const nextUncompleted = findFirstUncompletedTask();
-            setCurrentTaskIndex(nextUncompleted);
-          }, 1500);
-        } else {
-          showToast(praise);
+          if (!completedTasks.has(currentTaskIndex)) {
+            handleSuccess();
+          }
         }
+      } else {
+        // არასწორი შესაბამისობის შემთხვევაში ორივე მხარეს ვაწითლებთ და ვამატებთ ანიმაციას
+        setWrongMatch(numberIndex);
+        setWrongMatchColor(index);
+        
+        // ვაჩვენებთ შეტყობინებას არასწორი პასუხის შესახებ
+        showToast('არასწორი პასუხი! სცადე თავიდან', 'error');
+        
+        setTimeout(() => {
+          setWrongMatch(null);
+          setWrongMatchColor(null);
+        }, 2000);
       }
       
       setSelectedNumbers([]);
       return [];
     });
-  }, [currentTask, selectedNumbers, shuffledItems, shuffledColors, findFirstUncompletedTask, handleSuccess]);
+  }, [currentTask, selectedNumbers, shuffledItems, shuffledColors, findFirstUncompletedTask, handleSuccess, completedTasks, currentTaskIndex, showToast]);
 
   const renderMatchingGame = useCallback((task) => {
     if (!task?.items || !task?.colorOptions) {
@@ -796,6 +861,8 @@ const Tasks = () => {
               onClick={() => handleNumberClick(index)}
               disabled={item.matched}
               fontSize={item.fontSize}
+              wrongMatch={wrongMatch === index}
+              $isSelected={selectedNumbers.includes(index)}
             >
               {item.image && (
                 <img 
@@ -813,10 +880,12 @@ const Tasks = () => {
           {shuffledColors.map((option, index) => (
             <Item
               key={index}
-              style={{ background: option.color }}
+              color={option.color}
               selected={selectedColors.includes(index)}
               onClick={() => handleColorClick(index)}
               disabled={shuffledItems.find(item => item.colorName === option.name)?.matched}
+              wrongMatch={wrongMatchColor === index}
+              $isSelected={selectedColors.includes(index)}
             >
               {option.name}
             </Item>
@@ -824,7 +893,7 @@ const Tasks = () => {
         </ItemsContainer>
       </MatchingGame>
     );
-  }, [handleColorClick, handleNumberClick, selectedColors, selectedNumbers, shuffledItems, shuffledColors]);
+  }, [handleColorClick, handleNumberClick, selectedColors, selectedNumbers, shuffledItems, shuffledColors, wrongMatch, wrongMatchColor]);
 
   const renderMathGame = useCallback((task) => {
     if (!task?.options) {
@@ -867,6 +936,18 @@ const Tasks = () => {
       <ProgressIndicator>
         შესრულებულია: {completedTasksCount} / {tasks.length}
       </ProgressIndicator>
+      
+      {showCentralPraise && (
+        <CentralPraise>
+          <div className="praise-text">
+            გილოცავ! შენ წარმატებით დაასრულე ყველა დავალება!
+          </div>
+          <span className="praise-emoji">🎉</span>
+          <span className="praise-emoji">🏆</span>
+          <span className="praise-emoji">⭐</span>
+        </CentralPraise>
+      )}
+
       <TaskCard scale={scale} isWrong={isWrongAnswer}>
         <Title>
           <span>სახალისო ამოცანები</span>
@@ -882,26 +963,7 @@ const Tasks = () => {
           </div>
         )}
 
-        <NavigationButtons>
-          <Button 
-            onClick={() => {
-              const prevUncompleted = findFirstUncompletedTask();
-              setCurrentTaskIndex(prevUncompleted);
-            }}
-            disabled={true}
-          >
-            წინა
-          </Button>
-          <Button 
-            onClick={() => {
-              const nextUncompleted = findFirstUncompletedTask();
-              setCurrentTaskIndex(nextUncompleted);
-            }}
-            disabled={true}
-          >
-            შემდეგი
-          </Button>
-        </NavigationButtons>
+      
       </TaskCard>
       <ZoomControls>
         <ZoomButton onClick={handleZoomOut}>-</ZoomButton>
