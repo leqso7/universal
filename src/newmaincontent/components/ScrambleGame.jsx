@@ -6,44 +6,58 @@ import NameModal from './NameModal';
 import HomeButton from './HomeButton';
 
 // სურათების იმპორტი
-import zebraImg from '../../assets/images/ზებრა.webp';
-import spiloImg from '../../assets/images/სპილო.webp';
-import lomiImg from '../../assets/images/ლომი.webp';
-import datviImg from '../../assets/images/დათვი.webp';
-import mgeliImg from '../../assets/images/მგელო.webp';
-import iremiImg from '../../assets/images/ირემი.webp';
-import txaImg from '../../assets/images/თხა (2).webp';
-import kurdgeliImg from '../../assets/images/კურდღელი.webp';
-import flamingoImg from '../../assets/images/ფლამინგო.webp';
-import selapiImg from '../../assets/images/სელაპი.webp';
-import ciyviImg from '../../assets/images/ციყვი.webp';
-import enotiImg from '../../assets/images/ენოტი.webp';
-import zarmacaImg from '../../assets/images/ზარმაცა.webp';
-import zgarbiImg from '../../assets/images/ზღარბი.webp';
-import qamelioniImg from '../../assets/images/ქამელეონი.webp';
-import oposumiImg from '../../assets/images/ოპოსუმი.webp';
-import rvafexaImg from '../../assets/images/რვაფეხა.webp';
-import taxviImg from '../../assets/images/თახვი.webp';
-import begemotiImg from '../../assets/images/ბეგემოტი.webp';
-import lamaImg from '../../assets/images/ლამა.webp';
-import jirafiImg from '../../assets/images/ჟირაფი.webp';
-import kenguruImg from '../../assets/images/კენგურუ.webp';
-import buImg from '../../assets/images/ბუ.webp';
-import pandaImg from '../../assets/images/პანდა.webp';
-import meliaImg from '../../assets/images/მელია.webp';
-import delfiniImg from '../../assets/images/დელფინი.webp';
-import koalaImg from '../../assets/images/კოალა.webp';
-import pingviniImg from '../../assets/images/პნგვინი.webp';
-import kiborchxalaImg from '../../assets/images/კიბორჩხალა.webp';
-import obobaImg from '../../assets/images/ობობა.webp';
-import gveliImg from '../../assets/images/გველი.webp';
-import xvlikiImg from '../../assets/images/ხვლიკი.webp';
-import zvigeniImg from '../../assets/images/ზვიგენი.webp';
-import farshevangiImg from '../../assets/images/ფარშევანგი.webp';
-import kodalaImg from '../../assets/images/კოდალა.webp';
-import aqlemiImg from '../../assets/images/აქლემი.webp';
-import pepelaImg from '../../assets/images/პეპელა.webp';
-import arwiviImg from '../../assets/images/არწივი.webp';
+import zebraImg from '../../../public/newmaincontent/photos/ზებრა.webp';
+import spiloImg from '../../../public/newmaincontent/photos/სპილო.webp';
+import lomiImg from '../../../public/newmaincontent/photos/ლომი.webp';
+import datviImg from '../../../public/newmaincontent/photos/დათვი.webp';
+import mgeliImg from '../../../public/newmaincontent/photos/მგელო.webp';
+import iremiImg from '../../../public/newmaincontent/photos/ირემი.webp';
+import txaImg from '../../../public/newmaincontent/photos/თხა (2).webp';
+import kurdgeliImg from '../../../public/newmaincontent/photos/კურდღელი.webp';
+import flamingoImg from '../../../public/newmaincontent/photos/ფლამინგო.webp';
+import selapiImg from '../../../public/newmaincontent/photos/სელაპი.webp';
+import ciyviImg from '../../../public/newmaincontent/photos/ციყვი.webp';
+import enotiImg from '../../../public/newmaincontent/photos/ენოტი.webp';
+import zarmacaImg from '../../../public/newmaincontent/photos/ზარმაცა.webp';
+import zgarbiImg from '../../../public/newmaincontent/photos/ზღარბი.webp';
+import qamelioniImg from '../../../public/newmaincontent/photos/ქამელეონი.webp';
+import oposumiImg from '../../../public/newmaincontent/photos/ოპოსუმი.webp';
+import rvafexaImg from '../../../public/newmaincontent/photos/რვაფეხა.webp';
+import taxviImg from '../../../public/newmaincontent/photos/თახვი.webp';
+import begemotiImg from '../../../public/newmaincontent/photos/ბეგემოტი.webp';
+import lamaImg from '../../../public/newmaincontent/photos/ლამა.webp';
+import jirafiImg from '../../../public/newmaincontent/photos/ჟირაფი.webp';
+import kenguruImg from '../../../public/newmaincontent/photos/კენგურუ.webp';
+import buImg from '../../../public/newmaincontent/photos/ბუ.webp';
+import pandaImg from '../../../public/newmaincontent/photos/პანდა.webp';
+import meliaImg from '../../../public/newmaincontent/photos/მელია.webp';
+import delfiniImg from '../../../public/newmaincontent/photos/დელფინი.webp';
+import koalaImg from '../../../public/newmaincontent/photos/კოალა.webp';
+import pingviniImg from '../../../public/newmaincontent/photos/პნგვინი.webp';
+import kiborchxalaImg from '../../../public/newmaincontent/photos/კიბორჩხალა.webp';
+import obobaImg from '../../../public/newmaincontent/photos/ობობა.webp';
+import gveliImg from '../../../public/newmaincontent/photos/გველი.webp';
+import xvlikiImg from '../../../public/newmaincontent/photos/ხვლიკი.webp';
+import zvigeniImg from '../../../public/newmaincontent/photos/ზვიგენი.webp';
+import farshevangiImg from '../../../public/newmaincontent/photos/ფარშევანგი.webp';
+import kodalaImg from '../../../public/newmaincontent/photos/კოდალა.webp';
+import aqlemiImg from '../../../public/newmaincontent/photos/აქლემი.webp';
+import pepelaImg from '../../../public/newmaincontent/photos/პეპელა.webp';
+import arwiviImg from '../../../public/newmaincontent/photos/არწივი.webp';
+// ახალი სურათების იმპორტი
+import titaImg from '../../../public/newmaincontent/photos/ტიტა.webp';
+import tiripiImg from '../../../public/newmaincontent/photos/ტირიფი.webp';
+import simindiImg from '../../../public/newmaincontent/photos/სიმინდი.webp';
+import sakuraImg from '../../../public/newmaincontent/photos/საკურა.webp';
+import rkoImg from '../../../public/newmaincontent/photos/რკო.webp';
+import muxaImg from '../../../public/newmaincontent/photos/მუხა.webp';
+import mzesumziraImg from '../../../public/newmaincontent/photos/მზესუმზირა.webp';
+import kaqtusiImg from '../../../public/newmaincontent/photos/კაქტუსი.webp';
+import vashliImg from '../../../public/newmaincontent/photos/ვაშლი.webp';
+import bambukiImg from '../../../public/newmaincontent/photos/ბამბუკი.webp';
+// ახალი სურათების იმპორტი
+import changaliImg from '../../../public/newmaincontent/photos/ჩანგალი.webp';
+import kovziImg from '../../../public/newmaincontent/photos/კოვზი.webp';
 
 const animals = [
   { name: 'ზებრა', image: zebraImg },
@@ -83,7 +97,21 @@ const animals = [
   { name: 'კოდალა', image: kodalaImg },
   { name: 'აქლემი', image: aqlemiImg },
   { name: 'პეპელა', image: pepelaImg },
-  { name: 'არწივი', image: arwiviImg }
+  { name: 'არწივი', image: arwiviImg },
+  // ახალი მცენარეები
+  { name: 'ტიტა', image: titaImg },
+  { name: 'ტირიფი', image: tiripiImg },
+  { name: 'სიმინდი', image: simindiImg },
+  { name: 'საკურა', image: sakuraImg },
+  { name: 'რკო', image: rkoImg },
+  { name: 'მუხა', image: muxaImg },
+  { name: 'მზესუმზირა', image: mzesumziraImg },
+  { name: 'კაქტუსი', image: kaqtusiImg },
+  { name: 'ვაშლი', image: vashliImg },
+  { name: 'ბამბუკი', image: bambukiImg },
+  // ახალი ნივთები
+  { name: 'ჩანგალი', image: changaliImg },
+  { name: 'კოვზი', image: kovziImg }
 ];
 
 const fadeIn = keyframes`
@@ -460,9 +488,16 @@ const scrambleWord = (word) => {
 
 const ScrambleGame = () => {
   const { playerName, showNameModal, gameProgress, updateGameProgress, updatePlayerName } = usePlayer();
+  
+  // ლოკალური მეხსიერებიდან შესრულებული დავალებების წამოღება
+  const [localCompletedTasks, setLocalCompletedTasks] = useState(() => {
+    const saved = localStorage.getItem('scrambleCompletedTasks');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [currentAnimal, setCurrentAnimal] = useState(() => {
     const availableAnimals = animals.filter(animal => 
-      !gameProgress?.completedScrambleTasks?.includes(animal.name)
+      !localCompletedTasks.includes(animal.name)
     );
     return availableAnimals.length > 0 
       ? availableAnimals[Math.floor(Math.random() * availableAnimals.length)]
@@ -489,11 +524,13 @@ const ScrambleGame = () => {
 
   const selectRandomAnimal = () => {
     const availableAnimals = animals.filter(animal => 
-      !gameProgress?.completedScrambleTasks?.includes(animal.name)
+      !localCompletedTasks.includes(animal.name)
     );
     
     if (availableAnimals.length === 0) {
       showNotification('გილოცავთ! თქვენ ყველა ამოცანა შეასრულეთ! 🎉');
+      setLocalCompletedTasks([]);
+      localStorage.removeItem('scrambleCompletedTasks');
       updateGameProgress('scramble', [], {});
       const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
       initializeAnimal(randomAnimal);
@@ -521,11 +558,26 @@ const ScrambleGame = () => {
       letter: letter,
       index: index
     });
-    e.target.classList.add('dragging');
+
+    // მხოლოდ გადათრეული ასოს გამოჩენა
+    e.dataTransfer.setDragImage(e.target, 10, 10);
+    e.target.style.opacity = '0.5';
+  };
+
+  const handleDragEnd = (e) => {
+    if (e.target) {
+      e.target.style.opacity = '1';
+    }
   };
 
   const handleDragOver = (e) => {
     e.preventDefault();
+    e.target.style.backgroundColor = 'rgba(135, 206, 235, 0.2)';
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.target.style.backgroundColor = '';
   };
 
   const getRandomPraise = () => {
@@ -541,6 +593,7 @@ const ScrambleGame = () => {
 
   const handleDrop = (e, targetIndex) => {
     e.preventDefault();
+    e.target.style.backgroundColor = '';
     if (!draggedLetter) return;
 
     if (draggedLetter.letter.content !== currentAnimal.name[targetIndex]) {
@@ -570,9 +623,12 @@ const ScrambleGame = () => {
     setCorrectPositions(newCorrectPositions);
 
     if (newCorrectPositions.length === currentAnimal.name.length) {
-      const newCompletedTasks = [...gameProgress.completedScrambleTasks, currentAnimal.name];
-      updateGameProgress('scramble', newCompletedTasks, {
-        ...gameProgress.scrambleScores,
+      const newLocalCompletedTasks = [...localCompletedTasks, currentAnimal.name];
+      setLocalCompletedTasks(newLocalCompletedTasks);
+      localStorage.setItem('scrambleCompletedTasks', JSON.stringify(newLocalCompletedTasks));
+
+      updateGameProgress('scramble', newLocalCompletedTasks, {
+        ...(gameProgress?.scrambleScores || {}),
         [currentAnimal.name]: 3
       });
       
@@ -580,25 +636,33 @@ const ScrambleGame = () => {
       setPraiseMessage(praise);
       setShowPraise(true);
       
+      // შემდეგი დავალების არჩევა
+      const nextAnimal = selectNextAnimal(newLocalCompletedTasks);
+      
       setTimeout(() => {
         setShowPraise(false);
-        if (newCompletedTasks.length === animals.length) {
+        if (nextAnimal) {
+          setCurrentAnimal(nextAnimal);
+          setScrambledLetters(scrambleWord(nextAnimal.name));
+          setPlacedLetters(Array(nextAnimal.name.length).fill(null));
+          setCorrectPositions([]);
+        } else {
           showNotification('გილოცავთ! თქვენ ყველა ამოცანა შეასრულეთ! 🎉');
+          setLocalCompletedTasks([]);
+          localStorage.removeItem('scrambleCompletedTasks');
           updateGameProgress('scramble', [], {});
           const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
-          initializeAnimal(randomAnimal);
-        } else {
-          const availableAnimals = animals.filter(animal => !newCompletedTasks.includes(animal.name));
-          const randomIndex = Math.floor(Math.random() * availableAnimals.length);
-          const randomAnimal = availableAnimals[randomIndex];
-          initializeAnimal(randomAnimal);
+          setCurrentAnimal(randomAnimal);
+          setScrambledLetters(scrambleWord(randomAnimal.name));
+          setPlacedLetters(Array(randomAnimal.name.length).fill(null));
+          setCorrectPositions([]);
         }
-      }, 5000);
+      }, 3000);
     }
   };
 
   const startNewGame = () => {
-    const availableAnimals = animals.filter(animal => !gameProgress.completedScrambleTasks.includes(animal.name));
+    const availableAnimals = animals.filter(animal => !localCompletedTasks.includes(animal.name));
     
     if (availableAnimals.length === 0) {
       showNotification('გილოცავთ! თქვენ ყველა ამოცანა შეასრულეთ! 🎉');
@@ -613,6 +677,8 @@ const ScrambleGame = () => {
 
   const handleReset = () => {
     showNotification('თამაში იწყება თავიდან! 🎮');
+    setLocalCompletedTasks([]);
+    localStorage.removeItem('scrambleCompletedTasks');
     updateGameProgress('scramble', [], {});
     const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
     initializeAnimal(randomAnimal);
@@ -639,15 +705,22 @@ const ScrambleGame = () => {
     setScale(prev => Math.max(prev - 0.1, 0.5));
   };
 
+  // ახალი ფუნქცია შემდეგი დავალების ასარჩევად
+  const selectNextAnimal = (completedTasks) => {
+    const availableAnimals = animals.filter(animal => !completedTasks.includes(animal.name));
+    if (availableAnimals.length === 0) return null;
+    return availableAnimals[Math.floor(Math.random() * availableAnimals.length)];
+  };
+
   useEffect(() => {
     const initializeGame = () => {
       const availableAnimals = animals.filter(animal => 
-        !gameProgress?.completedScrambleTasks?.includes(animal.name)
+        !localCompletedTasks.includes(animal.name)
       );
       if (availableAnimals.length === 0) {
         setShowGame(false);
         return;
-    }
+      }
 
       const randomAnimal = availableAnimals[Math.floor(Math.random() * availableAnimals.length)];
       initializeAnimal(randomAnimal);
@@ -663,7 +736,7 @@ const ScrambleGame = () => {
       <GameArea scale={scale}>
         <div className="progress-container">
           <span className="progress-text">
-            შესრულებულია: {gameProgress?.completedScrambleTasks?.length || 0} / 50
+            შესრულებულია: {localCompletedTasks.length} / {animals.length}
           </span>
         </div>
         <p className="game-instructions">გადმოიტანე ასოები და ჩასვი სწორ ადგილას</p>
@@ -681,6 +754,7 @@ const ScrambleGame = () => {
                           ${letter ? 'filled' : ''} 
                           ${wrongPosition === index ? 'wrong' : ''}`}
                 onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, index)}
               >
                 {letter && letter.content}
@@ -696,6 +770,7 @@ const ScrambleGame = () => {
                 className="letter"
                 draggable={true}
                 onDragStart={(e) => handleDragStart(e, letter, index)}
+                onDragEnd={handleDragEnd}
               >
                 {letter.content}
               </div>

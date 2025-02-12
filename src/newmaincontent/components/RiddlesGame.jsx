@@ -266,15 +266,16 @@ const GameContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: linear-gradient(-45deg, 
-    rgba(100, 204, 240, 0.8), 
-    rgba(128, 208, 199, 0.8), 
-    rgba(86, 188, 189, 0.8), 
-    rgba(82, 182, 154, 0.8)
+  background: linear-gradient(135deg, 
+    rgba(100, 204, 240, 0.9), 
+    rgba(128, 208, 199, 0.9), 
+    rgba(86, 188, 189, 0.9), 
+    rgba(82, 182, 154, 0.9)
   );
   background-size: 400% 400%;
   animation: gradientBG 15s ease infinite;
   overflow-y: auto;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 60px);
 
   @keyframes gradientBG {
     0% { background-position: 0% 50%; }
@@ -284,16 +285,25 @@ const GameContainer = styled.div`
 `;
 
 const Message = styled.div`
-  color: white;
-  font-size: 1.5rem;
+  color: #2c3e50;
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
   text-align: center;
-  margin: 20px;
+  margin: 20px auto;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  backdrop-filter: blur(5px);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
   position: relative;
   overflow: hidden;
+  max-width: 90%;
+  transform-origin: center;
+  animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  @keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
 
   &::after {
     content: '';
@@ -301,7 +311,7 @@ const Message = styled.div`
     bottom: 0;
     left: 0;
     height: 4px;
-    background: #4CAF50;
+    background: linear-gradient(90deg, #4CAF50, #81C784);
     animation: progress 5s linear;
     width: 100%;
   }
@@ -316,78 +326,156 @@ const GameArea = styled.div`
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
+  padding: clamp(15px, 3vw, 30px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: clamp(15px, 3vw, 25px);
+  animation: fadeIn 0.5s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 `;
 
 const Question = styled.div`
   background: rgba(255, 255, 255, 0.95);
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: clamp(20px, 4vw, 30px);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
   width: 100%;
   text-align: center;
-  font-size: 1.2rem;
-  margin-bottom: 20px;
+  font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+  margin-bottom: clamp(15px, 3vw, 25px);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #64B5F6, #42A5F5);
+    border-radius: 4px;
+  }
 `;
 
 const OptionsContainer = styled.div`
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
+  gap: clamp(10px, 2vw, 15px);
   width: 100%;
+  padding: 0 clamp(10px, 2vw, 20px);
 `;
 
 const Option = styled.button`
-  padding: 15px 20px;
+  padding: clamp(15px, 3vw, 20px);
   background: ${props => {
     if (props.$isAnswered && props.$isSelected) {
-      return props.$isCorrect ? 'rgba(76, 175, 80, 0.9)' : 'rgba(244, 67, 54, 0.9)';
+      return props.$isCorrect 
+        ? 'linear-gradient(135deg, #66BB6A, #4CAF50)'
+        : 'linear-gradient(135deg, #EF5350, #F44336)';
     }
-    return props.$isSelected ? 'rgba(33, 150, 243, 0.9)' : 'rgba(255, 255, 255, 0.9)';
+    return props.$isSelected 
+      ? 'linear-gradient(135deg, #42A5F5, #2196F3)'
+      : 'rgba(255, 255, 255, 0.95)';
   }};
-  color: ${props => props.$isSelected ? 'white' : 'black'};
+  color: ${props => props.$isSelected ? 'white' : '#2c3e50'};
   border: none;
-  border-radius: 10px;
+  border-radius: 15px;
   cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(1px);
   }
 
   &:disabled {
     cursor: not-allowed;
     opacity: 1;
   }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+  }
+
+  &:focus:not(:active)::after {
+    animation: ripple 1s ease-out;
+  }
+
+  @keyframes ripple {
+    0% {
+      transform: scale(0, 0);
+      opacity: 0.5;
+    }
+    100% {
+      transform: scale(100, 100);
+      opacity: 0;
+    }
+  }
 `;
 
 const Score = styled.div`
-  font-size: 1.2rem;
+  font-size: clamp(1.1rem, 2.5vw, 1.3rem);
   color: white;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  margin: clamp(15px, 3vw, 25px) 0;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 30px;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  animation: slideIn 0.5s ease-out;
+
+  @keyframes slideIn {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
 `;
 
 const PraiseMessage = styled.div`
-  color: #4CAF50;
-  font-size: 1.5rem;
+  color: #2c3e50;
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
   text-align: center;
-  margin: 10px 0;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 10px;
-  animation: fadeIn 0.5s ease-in;
+  margin: 15px 0;
+  padding: 15px 25px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
+  @keyframes bounceIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    50% { transform: scale(1.1); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); opacity: 1; }
   }
 `;
 
@@ -483,7 +571,6 @@ const RiddlesGame = () => {
       let timeLeft = 5;
       const countdownInterval = setInterval(() => {
         timeLeft--;
-        setNextMessage(`შემდეგ გამოცანაზე გადასვლამდე დარჩა ${timeLeft} წამი`);
         
         if (timeLeft === 0) {
           clearInterval(countdownInterval);
