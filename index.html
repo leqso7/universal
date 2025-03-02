@@ -2,8 +2,8 @@
 <html lang="ka">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/pwa-192x192.png" />
-    <link rel="apple-touch-icon" href="/pwa-192x192.png">
+    <link rel="icon" type="image/png" href="/class-manager-web/pwa-192x192.png" />
+    <link rel="apple-touch-icon" href="/class-manager-web/pwa-192x192.png">
     <link rel="manifest" href="/class-manager-web/manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#98D8AA">
@@ -34,7 +34,9 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
+          navigator.serviceWorker.register('/class-manager-web/sw.js', {
+            scope: '/class-manager-web/'
+          })
             .then(registration => {
               console.log('Service Worker რეგისტრირებულია:', registration);
             })
