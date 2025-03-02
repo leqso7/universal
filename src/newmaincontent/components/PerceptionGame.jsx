@@ -166,11 +166,52 @@ const shuffleArray = (array) => {
 
 const shakeAnimation = keyframes`
   0% { transform: translateX(0); background-color: rgba(255, 0, 0, 0.3); }
-  25% { transform: translateX(-5px); }
-  50% { transform: translateX(5px); }
-  75% { transform: translateX(-5px); }
+  25% { transform: translateX(-5px); background-color: rgba(255, 0, 0, 0.4); }
+  50% { transform: translateX(5px); background-color: rgba(255, 0, 0, 0.5); }
+  75% { transform: translateX(-5px); background-color: rgba(255, 0, 0, 0.4); }
   100% { transform: translateX(0); background-color: transparent; }
 `;
+
+const fadeInOut = keyframes`
+  0% { opacity: 0; transform: scale(0.8); }
+  10% { opacity: 1; transform: scale(1); }
+  90% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.9); }
+`;
+
+const redFilter = keyframes`
+  0% { filter: brightness(1) sepia(0.3) hue-rotate(-50deg) saturate(3.5); opacity: 0.9; }
+  25% { filter: brightness(1.1) sepia(0.5) hue-rotate(-40deg) saturate(4.5); opacity: 0.85; }
+  50% { filter: brightness(1.2) sepia(0.7) hue-rotate(-30deg) saturate(5); opacity: 0.8; }
+  75% { filter: brightness(1.1) sepia(0.5) hue-rotate(-40deg) saturate(4.5); opacity: 0.85; }
+  100% { filter: brightness(1) sepia(0) hue-rotate(0deg) saturate(1); opacity: 1; }
+`;
+
+const redOverlay = keyframes`
+  0% { background-color: rgba(255, 0, 0, 0); }
+  50% { background-color: rgba(255, 0, 0, 0.4); }
+  100% { background-color: rgba(255, 0, 0, 0); }
+`;
+
+// წარმატების შეტყობინებების მასივი
+const successMessages = [
+  "ყოჩაღ! შენ წარმატებით დაასრულე დავალება!",
+  "ბრავო! შესანიშნავად გაართვი თავი!",
+  "საოცარია! რა სწრაფი ხარ!",
+  "მაგარი ხარ! კარგი გამოგდის!",
+  "შესანიშნავია! გენიალურად გაართვი თავი!",
+  "უმაღლესი შეფასება!",
+  "ფანტასტიკურია! ასე განაგრძე!",
+  "არაჩვეულებრივია! შენ ნამდვილად ნიჭი გაქვს!",
+  "ვაუ! ძალიან კარგად შეუსაბამე!",
+  "შესანიშნავად გამოგდის"
+];
+
+// შემთხვევითი შეტყობინების არჩევის ფუნქცია
+const getRandomSuccessMessage = () => {
+  const randomIndex = Math.floor(Math.random() * successMessages.length);
+  return successMessages[randomIndex];
+};
 
 const ImageContainer = styled.div`
   position: relative;
@@ -180,6 +221,21 @@ const ImageContainer = styled.div`
   aspect-ratio: 1;
   &.wrong {
     animation: ${shakeAnimation} 0.5s ease-in-out;
+    background-color: rgba(255, 0, 0, 0.3);
+    border: 2px solid #ff0000;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 0, 0, 0.3);
+      animation: ${redOverlay} 1.5s ease-in-out;
+      z-index: 10;
+      pointer-events: none;
+    }
   }
 `;
 
@@ -195,6 +251,8 @@ const PerceptionGame = () => {
   const [scale, setScale] = useState(1);
   const [isShapesMode, setIsShapesMode] = useState(false);
   const [wrongPair, setWrongPair] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const { updateGameProgress } = usePlayer();
 
   useEffect(() => {
@@ -286,10 +344,17 @@ const PerceptionGame = () => {
       setSelectedBottomIndex(null);
 
       if (matchedPairs.length + 1 === topImages.length) {
+        const message = getRandomSuccessMessage();
+        setSuccessMessage(message);
+        setShowSuccess(true);
+        
         setTimeout(() => {
-          updateGameProgress('perception', score + 1, totalAttempts + 1);
-          loadNewRound();
-        }, 1000);
+          setShowSuccess(false);
+          setTimeout(() => {
+            updateGameProgress('perception', score + 1, totalAttempts + 1);
+            loadNewRound();
+          }, 500);
+        }, 3000);
       }
     } else {
       setWrongPair({ top: selectedTopIndex, bottom: index });
@@ -297,7 +362,7 @@ const PerceptionGame = () => {
         setSelectedTopIndex(null);
         setSelectedBottomIndex(null);
         setWrongPair(null);
-      }, 1000);
+      }, 1500);
     }
   };
 
@@ -335,6 +400,11 @@ const PerceptionGame = () => {
           </ModeButton>
         </div>
         <GameArea scale={scale}>
+          {showSuccess && (
+            <SuccessMessageContainer>
+              <SuccessMessage>{successMessage}</SuccessMessage>
+            </SuccessMessageContainer>
+          )}
           <TopArea>
             <TopImages>
               {topImages.map((item, index) => (
@@ -354,6 +424,7 @@ const PerceptionGame = () => {
                     <ShapeText
                       isBottom={false}
                       isMatched={matchedPairs.includes(index)}
+                      className={wrongPair?.top === index ? 'wrong-content' : ''}
                     >
                       {item.src}
                     </ShapeText>
@@ -364,6 +435,7 @@ const PerceptionGame = () => {
                       alt={`Top half ${index + 1}`}
                       isBottom={false}
                       isMatched={matchedPairs.includes(index)}
+                      className={wrongPair?.top === index ? 'wrong-content' : ''}
                     />
                   )}
                 </ImageContainer>
@@ -389,6 +461,7 @@ const PerceptionGame = () => {
                     <ShapeText
                       isBottom={true}
                       isMatched={false}
+                      className={wrongPair?.bottom === index ? 'wrong-content' : ''}
                     >
                       {item.src}
                     </ShapeText>
@@ -399,6 +472,7 @@ const PerceptionGame = () => {
                       alt={`Bottom half ${index + 1}`}
                       isBottom={true}
                       isSelected={selectedBottomIndex === index}
+                      className={wrongPair?.bottom === index ? 'wrong-content' : ''}
                     />
                   )}
                 </ImageContainer>
@@ -509,6 +583,12 @@ const Image = styled.img`
   clip-path: ${props => props.isBottom ? 'inset(50% 0 0 0)' : 'inset(0 0 50% 0)'};
   transform: ${props => props.isBottom ? 'translateY(-50%)' : 'none'};
   transition: all 0.3s ease;
+  
+  &.wrong-content {
+    animation: ${redFilter} 1.5s ease-in-out;
+    z-index: 5;
+  }
+  
   ${props => props.isMatched && `
     clip-path: none;
     height: 100%;
@@ -529,6 +609,13 @@ const ShapeText = styled.div`
   transition: all 0.3s ease;
   position: absolute;
   top: 0;
+  
+  &.wrong-content {
+    animation: ${redFilter} 1.5s ease-in-out;
+    color: red;
+    z-index: 5;
+  }
+  
   ${props => props.isMatched && `
     clip-path: none;
     height: 100%;
@@ -597,6 +684,34 @@ const PlayerInfo = styled.div`
   padding: 8px 16px;
   border-radius: 8px;
   backdrop-filter: blur(4px);
+`;
+
+const SuccessMessageContainer = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+`;
+
+const SuccessMessage = styled.div`
+  background-color: rgba(76, 175, 80, 0.95);
+  color: white;
+  padding: 25px 50px;
+  border-radius: 15px;
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  animation: ${fadeInOut} 3s ease-in-out;
+  max-width: 80%;
+  border: 4px solid white;
 `;
 
 export default PerceptionGame;
