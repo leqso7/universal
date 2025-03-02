@@ -1,46 +1,24 @@
 // Service Worker
-const CACHE_NAME = 'cognitive-games-v1';
+const CACHE_NAME = 'class-manager-v1';
 const urlsToCache = [
   '/',
   '/index.html',
+  '/static/js/main.chunk.js',
+  '/static/js/0.chunk.js',
+  '/static/js/bundle.js',
   '/manifest.json',
-  '/pwa-192x192.png',
-  '/pwa-512x512.png',
-  // Add other static assets and routes that should be cached
+  '/favicon.ico',
+  '/logo192.png',
+  '/logo512.png'
 ];
 
-// Install event - cache static assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
+      .then((cache) => cache.addAll(urlsToCache))
   );
-  // Force the waiting service worker to become the active service worker
-  self.skipWaiting();
 });
 
-// Activate event - clean up old caches
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
-  // Take control of all clients as soon as it activates
-  self.clients.claim();
-});
-
-// Fetch event - serve from cache, falling back to network
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
@@ -50,7 +28,7 @@ self.addEventListener('fetch', (event) => {
           return response;
         }
 
-        // Clone the request
+        // Clone the request because it's a stream and can only be consumed once
         const fetchRequest = event.request.clone();
 
         return fetch(fetchRequest).then(
@@ -60,13 +38,13 @@ self.addEventListener('fetch', (event) => {
               return response;
             }
 
-            // Clone the response
+            // Clone the response because it's a stream and can only be consumed once
             const responseToCache = response.clone();
 
             caches.open(CACHE_NAME)
               .then((cache) => {
                 // Don't cache API calls
-                if (!event.request.url.includes('/api/')) {
+                if (!event.request.url.includes('supabase.co')) {
                   cache.put(event.request, responseToCache);
                 }
               });
@@ -81,18 +59,68 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Background Sync
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-data') {
-    event.waitUntil(syncData());
+// Background Sync რეგისტრაცია
+self.addEventListener('sync', function(event) {
+  if (event.tag === 'status-check') {
+    event.waitUntil(checkStatusInBackground());
   }
 });
 
-async function syncData() {
+async function checkStatusInBackground() {
+  const userCode = await getFromCache('userCode');
+  if (!userCode) return;
+
   try {
-    // Add your sync logic here
-    console.log('Background sync executed');
+    const response = await fetch('https://loyzwjzsjnikmnuqilmv.functions.supabase.co/access-manager/status?code=' + userCode, {
+      method: 'GET',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      }
+    });
+
+    if (!response.ok) throw new Error('Network response was not ok');
+
+    const data = await response.json();
+    
+    if (data.error || data.status === 'blocked') {
+      // ვშლით ყველა ქეშირებულ მონაცემს
+      await clearUserData();
+      return;
+    }
+
+    if (data.status === 'approved') {
+      await saveToCache('approvalStatus', 'approved');
+      await saveToCache('statusTimestamp', Date.now().toString());
+      await saveToCache('wasEverApproved', 'true');
+    }
   } catch (error) {
     console.error('Background sync failed:', error);
   }
+}
+
+async function getFromCache(key) {
+  const cache = await caches.open(CACHE_NAME);
+  const response = await cache.match(`cache-${key}`);
+  if (response) {
+    const data = await response.text();
+    return data;
+  }
+  return null;
+}
+
+async function saveToCache(key, value) {
+  const cache = await caches.open(CACHE_NAME);
+  await cache.put(
+    `cache-${key}`,
+    new Response(value)
+  );
+}
+
+async function clearUserData() {
+  const cache = await caches.open(CACHE_NAME);
+  await cache.delete('cache-userCode');
+  await cache.delete('cache-approvalStatus');
+  await cache.delete('cache-statusTimestamp');
+  await cache.delete('cache-wasEverApproved');
 }
