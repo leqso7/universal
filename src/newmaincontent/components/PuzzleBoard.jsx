@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 
 const GameContainer = styled.div`
@@ -301,6 +301,7 @@ const PuzzleBoard = ({ image, difficulty, onProgress, onComplete, onBackToMenu, 
   const [lastMousePosition, setLastMousePosition] = useState({ x: 0, y: 0 });
   const [currentMousePosition, setCurrentMousePosition] = useState({ x: 0, y: 0 });
   const animationRef = React.useRef();
+  const gameCompleted = useRef(false);
 
   // Memoize the initial pieces calculation
   const initialPieces = useMemo(() => {
@@ -351,6 +352,7 @@ const PuzzleBoard = ({ image, difficulty, onProgress, onComplete, onBackToMenu, 
         setSelectedPiece(null);
         setWrongAttempts(new Set());
         setDraggedPiece(null);
+        gameCompleted.current = false; // გადავტვირთოთ თამაშის დასრულების სტატუსი
       } catch (error) {
         console.error('Error initializing puzzle pieces:', error);
       } finally {
@@ -518,7 +520,11 @@ const PuzzleBoard = ({ image, difficulty, onProgress, onComplete, onBackToMenu, 
     onProgress(Math.round(progress));
     
     if (correctPositions.size === difficulty * difficulty) {
-      onComplete(errorCount);
+      const isComplete = correctPositions.size === difficulty * difficulty;
+      if (isComplete && !gameCompleted.current) {
+        gameCompleted.current = true;
+        onComplete(errorCount);
+      }
     }
   }, [correctPositions, difficulty, onComplete, errorCount, onProgress]);
 

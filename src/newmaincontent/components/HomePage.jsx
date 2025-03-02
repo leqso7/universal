@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { Link } from 'react-router-dom';
+import InstallPWA from '../../components/InstallPWA';
 
 const fadeIn = keyframes`
   from { 
@@ -210,6 +211,13 @@ const GameTitle = styled.h3`
   }
 `;
 
+const InstallPWAWrapper = styled.div`
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 1000;
+`;
+
 const HomePage = () => {
   const [isLoading, setIsLoading] = useState(true);
 
@@ -262,6 +270,9 @@ const HomePage = () => {
           ))}
         </GameGrid>
       </Container>
+      <InstallPWAWrapper>
+        <InstallPWA />
+      </InstallPWAWrapper>
     </PageWrapper>
   );
 };

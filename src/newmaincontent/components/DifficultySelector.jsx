@@ -39,6 +39,7 @@ const DifficultyButton = styled.button`
 `;
 
 const difficulties = [
+  { size: 2, label: 'მარტივი (2x2)' },
   { size: 3, label: 'მარტივი (3x3)' },
   { size: 4, label: 'მარტივი (4x4)' },
   { size: 6, label: 'საშუალო (6x6)' },

@@ -6,6 +6,10 @@ import DifficultySelector from './DifficultySelector';
 import { usePlayer } from '../context/PlayerContext.jsx';
 import NameModal from './NameModal';
 import HomeButton from './HomeButton';
+import Modal from 'react-modal';
+import Notification from './Notification';
+
+Modal.setAppElement('#root');
 
 const Container = styled.div`
   position: fixed;
@@ -260,6 +264,8 @@ const SuccessMessage = styled.div`
   }
 `;
 
+const NOTIFICATION_DURATION = 3000; // 3 წამი მილიწამებში
+
 const PuzzleGame = () => {
   const { playerName } = usePlayer();
   const navigate = useNavigate();
@@ -273,6 +279,19 @@ const PuzzleGame = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [successTimeoutId, setSuccessTimeoutId] = useState(null);
+
+  useEffect(() => {
+    return () => {
+      if (successTimeoutId) {
+        clearTimeout(successTimeoutId);
+      }
+    };
+  }, [successTimeoutId]);
 
   const getRandomPraise = () => {
     const praises = [
@@ -289,31 +308,33 @@ const PuzzleGame = () => {
   };
 
   const showNotification = (message) => {
-    setToastMessage(message);
-    setShowToast(true);
+    setNotificationMessage(message);
+    setIsNotificationOpen(true);
     setTimeout(() => {
-      setIsToastClosing(true);
-      setTimeout(() => {
-        setShowToast(false);
-        setIsToastClosing(false);
-      }, 500);
-    }, 3000);
+      setIsNotificationOpen(false);
+    }, NOTIFICATION_DURATION);
   };
 
   const handleComplete = (errors) => {
-    const progress = {
-      date: new Date().toISOString(),
-      errors: errors || 0,
-      imageUrl: image
-    };
-    // updateGameProgress('puzzle', image, progress);
     const displayName = playerName || 'მოთამაშე';
-    showNotification(`გილოცავთ ${displayName}! თქვენ წარმატებით დაასრულეთ პაზლი ${errors || 0} შეცდომით! 🎉`);
-    setTimeout(() => {
-      setShowToast(false);
-      setIsToastClosing(false);
-      navigate('/');
-    }, 3500);
+    const message = `გილოცავთ ${displayName}! თქვენ წარმატებით დაასრულეთ პაზლი ${errors || 0} შეცდომით! 🎉`;
+    setSuccessMessage(message);
+    setShowSuccess(true);
+    
+    if (successTimeoutId) {
+      clearTimeout(successTimeoutId);
+    }
+    
+    const timeoutId = setTimeout(() => {
+      setShowSuccess(false);
+      setSuccessTimeoutId(null);
+    }, NOTIFICATION_DURATION);
+    
+    setSuccessTimeoutId(timeoutId);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
   };
 
   const handleError = () => {
@@ -366,9 +387,17 @@ const PuzzleGame = () => {
   const handleCorrectAnswer = () => {
     setShowSuccess(true);
     setSuccessMessage(getRandomPraise());
-    setTimeout(() => {
+    
+    if (successTimeoutId) {
+      clearTimeout(successTimeoutId);
+    }
+    
+    const timeoutId = setTimeout(() => {
       setShowSuccess(false);
-    }, 3000);
+      setSuccessTimeoutId(null);
+    }, NOTIFICATION_DURATION);
+    
+    setSuccessTimeoutId(timeoutId);
   };
 
   useEffect(() => {
@@ -379,6 +408,13 @@ const PuzzleGame = () => {
   return (
     <Container>
       <HomeButton />
+      <Modal isOpen={isModalOpen} onRequestClose={handleCloseModal}>
+        <h2>{modalMessage}</h2>
+        <button onClick={handleCloseModal}>OK</button>
+      </Modal>
+      {isNotificationOpen && (
+        <Notification message={notificationMessage} />
+      )}
       {showToast && (
         <Toast isClosing={isToastClosing}>
           {toastMessage}
@@ -417,7 +453,7 @@ const PuzzleGame = () => {
         <DifficultyCard>
           <DifficultyTitle>აირჩიე სირთულის დონე</DifficultyTitle>
           <DifficultyButtons>
-            {[3, 4, 5].map((size) => (
+            {[2, 3, 4, 5].map((size) => (
               <DifficultyButton
                 key={size}
                 isSelected={difficulty === size}
