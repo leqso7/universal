@@ -1,4 +1,4 @@
-import{m as a,d as e,r as o,j as t,L as p}from"./index-DyQsfCfe.js";a`
+import{m as a,d as e,r as o,j as t,I as p,L as x}from"./index-BamzDbfc.js";a`
   from { 
     opacity: 0;
     transform: translateY(10px);
@@ -13,7 +13,7 @@ import{m as a,d as e,r as o,j as t,L as p}from"./index-DyQsfCfe.js";a`
 `,m=a`
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.2); }
-`,x=a`
+`,f=a`
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 `,g=e.div`
@@ -27,7 +27,7 @@ import{m as a,d as e,r as o,j as t,L as p}from"./index-DyQsfCfe.js";a`
   align-items: center;
   z-index: 9999;
   contain: content;
-`,f=e.div`
+`,h=e.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -37,10 +37,10 @@ import{m as a,d as e,r as o,j as t,L as p}from"./index-DyQsfCfe.js";a`
   border-radius: 20px;
   backdrop-filter: blur(8px);
   contain: content;
-`,h=e.div`
+`,b=e.div`
   font-size: 4rem;
   margin-bottom: 20px;
-`,b=e.div`
+`,u=e.div`
   color: white;
   font-size: 1.5rem;
   text-align: center;
@@ -50,7 +50,7 @@ import{m as a,d as e,r as o,j as t,L as p}from"./index-DyQsfCfe.js";a`
   will-change: transform;
   backface-visibility: hidden;
   -webkit-font-smoothing: antialiased;
-`,u=e.div`
+`,w=e.div`
   display: flex;
   gap: 12px;
   padding: 10px;
@@ -62,7 +62,7 @@ import{m as a,d as e,r as o,j as t,L as p}from"./index-DyQsfCfe.js";a`
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1),
               inset 2px 2px 4px rgba(255, 255, 255, 0.5),
               inset -2px -2px 4px rgba(0, 0, 0, 0.05);
-  animation: ${x} 1.5s ease-in-out infinite,
+  animation: ${f} 1.5s ease-in-out infinite,
              ${m} 1.5s ease-in-out infinite;
   animation-delay: ${i=>i.$delay}s;
   transform-origin: center;
@@ -75,7 +75,7 @@ import{m as a,d as e,r as o,j as t,L as p}from"./index-DyQsfCfe.js";a`
   &:nth-child(3) {
     animation-delay: ${i=>i.$delay+.4}s;
   }
-`,w=e.div`
+`,y=e.div`
   position: fixed;
   top: 0;
   left: 0;
@@ -90,7 +90,7 @@ import{m as a,d as e,r as o,j as t,L as p}from"./index-DyQsfCfe.js";a`
   background-size: 400% 400%;
   animation: ${s} 10s linear infinite;
   overflow: auto;
-`,y=e.div`
+`,j=e.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -104,7 +104,7 @@ import{m as a,d as e,r as o,j as t,L as p}from"./index-DyQsfCfe.js";a`
   @media (max-width: 768px) {
     padding: 1rem;
   }
-`,j=e.h1`
+`,v=e.h1`
   font-size: 2.5rem;
   color: #fff;
   margin: 2rem 0;
@@ -116,7 +116,7 @@ import{m as a,d as e,r as o,j as t,L as p}from"./index-DyQsfCfe.js";a`
     font-size: 1.8rem;
     margin: 1rem 0;
   }
-`,v=e.div`
+`,k=e.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
@@ -137,7 +137,7 @@ import{m as a,d as e,r as o,j as t,L as p}from"./index-DyQsfCfe.js";a`
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-`,k=e(p)`
+`,z=e(x)`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -155,14 +155,14 @@ import{m as a,d as e,r as o,j as t,L as p}from"./index-DyQsfCfe.js";a`
     transform: translateY(-5px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
   }
-`,z=e.span`
+`,$=e.span`
   font-size: 2.5rem;
   margin-bottom: 10px;
   
   @media (max-width: 768px) {
     font-size: 2rem;
   }
-`,$=e.h3`
+`,L=e.h3`
   font-size: 1rem;
   text-align: center;
   font-weight: 500;
@@ -172,4 +172,9 @@ import{m as a,d as e,r as o,j as t,L as p}from"./index-DyQsfCfe.js";a`
   @media (max-width: 768px) {
     font-size: 0.9rem;
   }
-`,G=()=>{const[i,d]=o.useState(!0),c=[{path:"tasks",title:"სახალისო ამოცანები",icon:"🎯"},{path:"puzzle",title:"ფაზლი",icon:"🧩"},{path:"scramble",title:"აზროვნების სავარჯიშო",icon:"🔤"},{path:"memory",title:"მეხსიერების სავარჯიშო",icon:"🧠"},{path:"labyrinth",title:"ლაბირინთი",icon:"🎮"},{path:"attention",title:"ყურადღების განვითარების სავარჯიშო",icon:"👀"},{path:"perception",title:"აღქმის სავარჯიშო",icon:"🖼️"},{path:"riddles",title:"სახალისო გამოცანები",icon:"❓"}];return o.useEffect(()=>{const n=setTimeout(()=>{d(!1)},480);return()=>clearTimeout(n)},[]),i?t.jsx(g,{children:t.jsxs(f,{children:[t.jsx(h,{children:"🎮"}),t.jsx(b,{children:"იტვირთება"}),t.jsxs(u,{children:[t.jsx(r,{$delay:0}),t.jsx(r,{$delay:.2}),t.jsx(r,{$delay:.4})]})]})}):t.jsx(w,{children:t.jsxs(y,{children:[t.jsx(j,{children:"შემეცნებითი უნარების სავარჯიშოები"}),t.jsx(v,{children:c.map((n,l)=>t.jsxs(k,{to:n.path,children:[t.jsx(z,{children:n.icon}),t.jsx($,{children:n.title})]},l))})]})})};export{G as default};
+`,G=e.div`
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 1000;
+`,P=()=>{const[i,d]=o.useState(!0),c=[{path:"tasks",title:"სახალისო ამოცანები",icon:"🎯"},{path:"puzzle",title:"ფაზლი",icon:"🧩"},{path:"scramble",title:"აზროვნების სავარჯიშო",icon:"🔤"},{path:"memory",title:"მეხსიერების სავარჯიშო",icon:"🧠"},{path:"labyrinth",title:"ლაბირინთი",icon:"🎮"},{path:"attention",title:"ყურადღების განვითარების სავარჯიშო",icon:"👀"},{path:"perception",title:"აღქმის სავარჯიშო",icon:"🖼️"},{path:"riddles",title:"სახალისო გამოცანები",icon:"❓"}];return o.useEffect(()=>{const n=setTimeout(()=>{d(!1)},480);return()=>clearTimeout(n)},[]),i?t.jsx(g,{children:t.jsxs(h,{children:[t.jsx(b,{children:"🎮"}),t.jsx(u,{children:"იტვირთება"}),t.jsxs(w,{children:[t.jsx(r,{$delay:0}),t.jsx(r,{$delay:.2}),t.jsx(r,{$delay:.4})]})]})}):t.jsxs(y,{children:[t.jsxs(j,{children:[t.jsx(v,{children:"შემეცნებითი უნარების სავარჯიშოები"}),t.jsx(k,{children:c.map((n,l)=>t.jsxs(z,{to:n.path,children:[t.jsx($,{children:n.icon}),t.jsx(L,{children:n.title})]},l))})]}),t.jsx(G,{children:t.jsx(p,{})})]})};export{P as default};

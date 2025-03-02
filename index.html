@@ -1,10 +1,14 @@
 <!doctype html>
-<html lang="en">
+<html lang="ka">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/universal/assets/pwa-192x192-Du2Rf0Pu.png" />
+    <link rel="icon" type="image/png" href="/pwa-192x192.png" />
+    <link rel="apple-touch-icon" href="/pwa-192x192.png">
+    <link rel="manifest" href="/class-manager-web/manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Class Manager</title>
+    <meta name="theme-color" content="#98D8AA">
+    <meta name="description" content="შემეცნებითი უნარების განვითარების აპლიკაცია">
+    <title>შემეცნებითი უნარების სავარჯიშოები</title>
     <!-- Start Single Page Apps for GitHub Pages -->
     <script type="text/javascript">
       // Single Page Apps for GitHub Pages
@@ -22,10 +26,23 @@
       }(window.location))
     </script>
     <!-- End Single Page Apps for GitHub Pages -->
-    <script type="module" crossorigin src="/universal/assets/index-DyQsfCfe.js"></script>
-    <link rel="stylesheet" crossorigin href="/universal/assets/index-BaJReJW6.css">
-  <link rel="manifest" href="/universal/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/universal/registerSW.js"></script></head>
+    <script type="module" crossorigin src="/class-manager-web/assets/index-BamzDbfc.js"></script>
+    <link rel="stylesheet" crossorigin href="/class-manager-web/assets/index-BaJReJW6.css">
+  <link rel="manifest" href="/class-manager-web/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/class-manager-web/registerSW.js"></script></head>
   <body>
     <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('Service Worker რეგისტრირებულია:', registration);
+            })
+            .catch(error => {
+              console.error('Service Worker-ის რეგისტრაციის შეცდომა:', error);
+            });
+        });
+      }
+    </script>
   </body>
 </html>
