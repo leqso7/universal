@@ -30,20 +30,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/class-manager-web/sw.js', {
-            scope: '/class-manager-web/'
-          })
-            .then(registration => {
-              console.log('Service Worker რეგისტრირებულია:', registration);
-            })
-            .catch(error => {
-              console.error('Service Worker-ის რეგისტრაციის შეცდომა:', error);
-            });
-        });
-      }
-    </script>
   </body>
 </html>
