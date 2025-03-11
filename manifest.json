@@ -1,25 +1,103 @@
 {
-  "name": "Class Manager",
-  "short_name": "Class Manager",
-  "description": "Class Management Application",
-  "start_url": "./",
-  "scope": "./",
+  "name": "Universal - სასწავლო აპლიკაცია",
+  "short_name": "Universal",
+  "description": "სასწავლო აპლიკაცია სხვადასხვა უნარების განვითარებისთვის",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#4CAF50",
   "background_color": "#ffffff",
-  "theme_color": "#ffffff",
-  "form_factor": "wide",
+  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "./assets/icons/pwa-192x192.svg",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
+      "src": "icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./assets/icons/pwa-512x512.svg",
+      "src": "icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "maskable any"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable_icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Universal აპლიკაციის მთავარი გვერდი"
+    },
+    {
+      "src": "screenshots/screenshot2.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Universal აპლიკაციის მობილური ვერსია"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "თამაშები",
+      "short_name": "თამაშები",
+      "description": "გახსენით თამაშების გვერდი",
+      "url": "/games",
+      "icons": [{ "src": "icons/games-icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "დავალებები",
+      "short_name": "დავალებები",
+      "description": "გახსენით დავალებების გვერდი",
+      "url": "/tasks",
+      "icons": [{ "src": "icons/tasks-icon.png", "sizes": "192x192" }]
+    }
+  ],
+  "categories": ["education", "games", "kids"],
+  "lang": "ka",
+  "dir": "ltr"
 }
