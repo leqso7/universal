@@ -6,7 +6,8 @@ import { HashRouter } from 'react-router-dom'
 
 // Service Worker-ის რეგისტრაცია
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/universal/service-worker.js')
+  const basePath = location.hostname === 'localhost' ? '.' : '/universal';
+  navigator.serviceWorker.register(`${basePath}/service-worker.js`)
     .then(registration => {
       console.log('Service Worker registered with scope:', registration.scope);
     })
