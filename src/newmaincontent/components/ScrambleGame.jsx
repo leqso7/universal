@@ -143,6 +143,29 @@ const bounceIn = keyframes`
   }
 `;
 
+const correctAnimation = keyframes`
+  0% {
+    background: rgba(46, 204, 113, 0.6);
+    transform: scale(1.15);
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+  }
+  30% {
+    background: rgba(46, 204, 113, 0.4);
+    transform: scale(1.1);
+    box-shadow: 0 0 12px rgba(46, 204, 113, 0.4);
+  }
+  70% {
+    background: rgba(46, 204, 113, 0.2);
+    transform: scale(1.05);
+    box-shadow: 0 0 8px rgba(46, 204, 113, 0.3);
+  }
+  100% {
+    background: rgba(255, 255, 255, 0.95);
+    transform: scale(1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+`;
+
 const Toast = styled.div`
   position: fixed;
   bottom: 2rem;
@@ -223,18 +246,14 @@ const GameContainer = styled.div`
   animation: gradientBG 15s ease infinite;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: calc(env(safe-area-inset-bottom) + 60px);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
 
   @media (max-height: 800px) {
-    padding-bottom: calc(env(safe-area-inset-bottom) + 70px);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
   }
 
   @media (max-height: 700px) {
-    padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
-  }
-
-  @media (max-height: 600px) {
-    padding-bottom: calc(env(safe-area-inset-bottom) + 90px);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 15px);
   }
 `;
 
@@ -259,29 +278,31 @@ const MainContentContainer = styled.div`
 
 const ImageContainer = styled.div`
   width: 100%;
-  max-width: 400px;
-  margin: 20px auto;
-  padding: 10px;
+  max-width: 380px;
+  margin: 5px auto;
+  padding: 7px;
   background: white;
-  border-radius: 15px;
+  border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 
   img {
     width: 100%;
     height: auto;
-    border-radius: 10px;
-    max-height: calc(100vh - 400px);
+    border-radius: 8px;
+    max-height: calc(100vh - 450px);
     object-fit: contain;
   }
 
   @media (max-height: 700px) {
-    margin: 10px auto;
-    padding: 8px;
+    margin: 4px auto;
+    padding: 5px;
+    max-width: 350px;
   }
 
   @media (max-height: 600px) {
-    margin: 5px auto;
-    padding: 5px;
+    margin: 3px auto;
+    padding: 4px;
+    max-width: 320px;
   }
 `;
 
@@ -346,17 +367,25 @@ const LettersContainer = styled.div`
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 
   .letter {
-    width: clamp(30px, 7vw, 40px);
-    height: clamp(30px, 7vw, 40px);
-    font-size: clamp(16px, 4vw, 22px);
+    width: clamp(58px, 12vw, 75px);
+    height: clamp(58px, 12vw, 75px);
+    font-size: clamp(34px, 8vw, 42px);
     background: white;
-    border: 2px solid #87CEEB;
+    border: 3px solid #4a90e2;
     border-radius: clamp(4px, 1vw, 8px);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    font-weight: bold;
+    color: #2c3e50;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
   }
 
   @media (max-width: 480px) {
@@ -364,9 +393,9 @@ const LettersContainer = styled.div`
     padding: 8px;
     
     .letter {
-      width: clamp(28px, 6vw, 35px);
-      height: clamp(28px, 6vw, 35px);
-      font-size: clamp(14px, 3.5vw, 20px);
+      width: clamp(50px, 11vw, 60px);
+      height: clamp(50px, 11vw, 60px);
+      font-size: clamp(28px, 7vw, 36px);
     }
   }
 `;
@@ -383,28 +412,47 @@ const TargetContainer = styled.div`
   flex-wrap: wrap;
 
   .letter-slot {
-    width: clamp(30px, 7vw, 40px);
-    height: clamp(30px, 7vw, 40px);
-    font-size: clamp(16px, 4vw, 22px);
+    width: clamp(58px, 12vw, 75px);
+    height: clamp(58px, 12vw, 75px);
+    font-size: clamp(38px, 9vw, 46px);
     background: white;
-    border: 2px dashed #87CEEB;
+    border: 3px dashed #4a90e2;
     border-radius: clamp(4px, 1vw, 8px);
     display: flex;
     align-items: center;
     justify-content: center;
+    font-weight: bold;
+    color: #2c3e50;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    padding: 0;
+    line-height: 1;
+    text-align: center;
     
     &.filled {
       border-style: solid;
+      background: white;
+      color: #1a1a1a;
+      font-weight: 900;
+      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     }
     
     &.correct {
-      border-color: #4CAF50;
-      background: rgba(76, 175, 80, 0.1);
+      border-color: #2ecc71;
+      border-width: 4px;
+      animation: ${correctAnimation} 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      border-style: solid;
+      color: #000000;
+      font-weight: 900;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      letter-spacing: 0;
     }
     
     &.wrong {
       border-color: #f44336;
       background: rgba(244, 67, 54, 0.1);
+      animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
     }
   }
 
@@ -413,9 +461,9 @@ const TargetContainer = styled.div`
     padding: 8px;
     
     .letter-slot {
-      width: clamp(28px, 6vw, 35px);
-      height: clamp(28px, 6vw, 35px);
-      font-size: clamp(14px, 3.5vw, 20px);
+      width: clamp(50px, 11vw, 60px);
+      height: clamp(50px, 11vw, 60px);
+      font-size: clamp(32px, 8vw, 40px);
     }
   }
 `;
@@ -453,6 +501,82 @@ const ZoomButton = styled.button`
     height: 35px;
     font-size: 16px;
   }
+`;
+
+const HelpButton = styled.button`
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: clamp(50px, 12vw, 60px);
+  height: clamp(50px, 12vw, 60px);
+  border-radius: 50%;
+  border: none;
+  background: #4CAF50;
+  color: white;
+  font-size: clamp(26px, 6vw, 32px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.1);
+    background: #45a049;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  &::before {
+    content: "?";
+    font-weight: bold;
+  }
+
+  @media (max-width: 480px) {
+    width: 45px;
+    height: 45px;
+    font-size: 24px;
+  }
+`;
+
+const HelpText = styled.div`
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 30px 40px;
+  border-radius: 20px;
+  font-size: clamp(32px, 7vw, 40px);
+  text-align: center;
+  z-index: 1100;
+  letter-spacing: 0.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  animation: ${fadeIn} 0.3s ease forwards;
+  width: fit-content;
+  max-width: 90vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const Overlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1090;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: ${fadeIn} 0.3s ease forwards;
 `;
 
 const scrambleWord = (word) => {
@@ -521,6 +645,7 @@ const ScrambleGame = () => {
   const [showPraise, setShowPraise] = useState(false);
   const [praiseMessage, setPraiseMessage] = useState('');
   const [scale, setScale] = useState(1);
+  const [showHelp, setShowHelp] = useState(false);
 
   const selectRandomAnimal = () => {
     const availableAnimals = animals.filter(animal => 
@@ -712,6 +837,17 @@ const ScrambleGame = () => {
     return availableAnimals[Math.floor(Math.random() * availableAnimals.length)];
   };
 
+  const handleHelpClick = () => {
+    setShowHelp(true);
+    setTimeout(() => {
+      setShowHelp(false);
+    }, 4000);
+  };
+
+  const handleHelpTextClick = () => {
+    setShowHelp(false);
+  };
+
   useEffect(() => {
     const initializeGame = () => {
       const availableAnimals = animals.filter(animal => 
@@ -783,6 +919,15 @@ const ScrambleGame = () => {
         <ZoomButton onClick={handleZoomOut}>-</ZoomButton>
         <ZoomButton onClick={handleZoomIn}>+</ZoomButton>
       </ZoomControls>
+      <HelpButton onClick={handleHelpClick} title="დახმარება" />
+      {showHelp && (
+        <>
+          <Overlay />
+          <HelpText onClick={handleHelpTextClick}>
+            {currentAnimal.name}
+          </HelpText>
+        </>
+      )}
       {showNameModal && <NameModal onSubmit={updatePlayerName} />}
       {showToast && (
         <Toast isClosing={isToastClosing}>

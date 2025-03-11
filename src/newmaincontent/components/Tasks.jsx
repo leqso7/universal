@@ -672,7 +672,7 @@ const Tasks = () => {
     toastTimeoutRef.current = setTimeout(() => {
       setToast({ show: false, message: '' });
       setIsToastVisible(false);
-    }, 2000);
+    }, 5000);
   };
 
   // ვამატებთ ეფექტს completedTasks-ის ცვლილებაზე
@@ -690,7 +690,7 @@ const Tasks = () => {
         setAnswers({});
         setFeedback({});
         setCompletedTasksCount(0);
-      }, 4000);
+      }, 5000);
     }
   }, [completedTasks.size, totalTasks, updateGameProgress]);
 
@@ -747,11 +747,11 @@ const Tasks = () => {
     setSelectedColors([]);
     setShuffledItems(prev => prev.map(item => ({ ...item, matched: false })));
     
-    // ვიცდით 3.5 წამს და შემდეგ გადავდივართ შემდეგ დავალებაზე
+    // ვიცდით 5 წამს შემდეგ ამოცანაზე გადასვლამდე
     setTimeout(() => {
       const nextUncompleted = findFirstUncompletedTask();
       setCurrentTaskIndex(nextUncompleted);
-    }, 3500);
+    }, 5000);
   };
 
   const handleAnswerSubmit = useCallback((selectedAnswer) => {
@@ -773,9 +773,12 @@ const Tasks = () => {
       }
 
       showCelebration(currentTask.stickers || ['🌟']);
-      // დაუყოვნებლივ გადავდივართ შემდეგ დავალებაზე
-      const nextUncompleted = findFirstUncompletedTask();
-      setCurrentTaskIndex(nextUncompleted);
+      
+      // ვაყოვნებთ შემდეგ დავალებაზე გადასვლას
+      setTimeout(() => {
+        const nextUncompleted = findFirstUncompletedTask();
+        setCurrentTaskIndex(nextUncompleted);
+      }, 5000);
     } else {
       setIsWrongAnswer(true);
       setTimeout(() => {
@@ -823,7 +826,28 @@ const Tasks = () => {
         const allMatched = newShuffledItems.every((item) => item.matched);
         if (allMatched) {
           if (!completedTasks.has(currentTaskIndex)) {
-            handleSuccess();
+            const praise = currentTask.praise[Math.floor(Math.random() * currentTask.praise.length)];
+            showToast(praise);
+            
+            // ვაჩვენებთ შექებას
+            showCelebration(currentTask.stickers || ['🌟']);
+            
+            // ვანიშნავთ დავალებას შესრულებულად
+            const timestamp = Date.now();
+            updateGameProgress('task', timestamp, { 
+              taskIndex: currentTaskIndex,
+              type: currentTask.type
+            });
+            
+            // ვასუფთავებთ მიმდინარე მდგომარეობას
+            setSelectedNumbers([]);
+            setSelectedColors([]);
+            
+            // ვიცდით 5 წამს შემდეგ ამოცანაზე გადასვლამდე
+            setTimeout(() => {
+              const nextUncompleted = findFirstUncompletedTask();
+              setCurrentTaskIndex(nextUncompleted);
+            }, 5000);
           }
         }
       } else {
@@ -843,7 +867,7 @@ const Tasks = () => {
       setSelectedNumbers([]);
       return [];
     });
-  }, [currentTask, selectedNumbers, shuffledItems, shuffledColors, findFirstUncompletedTask, handleSuccess, completedTasks, currentTaskIndex, showToast]);
+  }, [currentTask, selectedNumbers, shuffledItems, shuffledColors, findFirstUncompletedTask, completedTasks, currentTaskIndex, showToast, updateGameProgress]);
 
   const renderMatchingGame = useCallback((task) => {
     if (!task?.items || !task?.colorOptions) {
