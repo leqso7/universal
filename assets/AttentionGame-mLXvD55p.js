@@ -1,4 +1,4 @@
-import{d,r as l,u as J,a as K,j as s,H as Q}from"./index-BIvZF1eG.js";const U=d.div`
+import{d,r as l,u as J,a as K,j as s,H as Q}from"./index-BCn35WQ0.js";const U=d.div`
   position: fixed;
   inset: 0;
   margin: 0;
@@ -109,52 +109,52 @@ import{d,r as l,u as J,a as K,j as s,H as Q}from"./index-BIvZF1eG.js";const U=d.
 `;const _=d.div`
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  gap: 3px;
+  gap: 6px;
   background: rgba(255, 255, 255, 0.9);
-  padding: 8px;
+  padding: 12px;
   border-radius: 15px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  width: 95%;
-  max-width: min(95vw, 500px);
-  aspect-ratio: 1;
+  width: 98%;
+  max-width: min(98vw, 800px);
+  aspect-ratio: 8/6;
   margin: 1vh auto;
 
   @media (min-width: 1200px) {
-    max-width: 480px;
-    gap: 4px;
-    padding: 10px;
+    max-width: 780px;
+    gap: 8px;
+    padding: 15px;
   }
 
   @media (max-width: 768px) {
-    gap: 2px;
-    padding: 6px;
+    gap: 5px;
+    padding: 10px;
     width: 98%;
   }
 
   @media (max-width: 480px) {
-    gap: 1px;
-    padding: 4px;
+    gap: 3px;
+    padding: 8px;
     width: 100%;
   }
 
   @media (max-height: 800px) {
-    max-width: min(95vw, 450px);
-    padding: 6px;
+    max-width: min(98vw, 700px);
+    padding: 10px;
   }
 
   @media (max-height: 600px) {
-    max-width: min(95vw, 400px);
-    padding: 4px;
-    gap: 1px;
+    max-width: min(98vw, 650px);
+    padding: 8px;
+    gap: 4px;
   }
 `,tt=d.div`
-  font-size: clamp(1rem, 2vw, 1.3rem);
+  font-size: clamp(1.8rem, 3.5vw, 2.4rem);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  padding: 2px;
-  border-radius: 6px;
+  padding: 6px;
+  border-radius: 10px;
   transition: all 0.2s ease;
   background-color: ${e=>e.isFound?"rgba(76, 175, 80, 0.2)":e.$isWrong?"rgba(244, 67, 54, 0.2)":"transparent"};
   aspect-ratio: 1;
@@ -168,23 +168,23 @@ import{d,r as l,u as J,a as K,j as s,H as Q}from"./index-BIvZF1eG.js";const U=d.
   }
 
   @media (min-width: 1200px) {
-    font-size: 1.2rem;
-    padding: 3px;
+    font-size: 2.4rem;
+    padding: 7px;
   }
 
   @media (max-width: 768px) {
-    font-size: clamp(0.8rem, 1.8vw, 1.1rem);
-    padding: 1px;
+    font-size: clamp(1.6rem, 3vw, 2rem);
+    padding: 4px;
   }
 
   @media (max-height: 800px) {
-    font-size: clamp(0.9rem, 1.8vw, 1.1rem);
-    padding: 1px;
+    font-size: clamp(1.5rem, 2.8vw, 1.9rem);
+    padding: 3px;
   }
 
   @media (max-height: 600px) {
-    font-size: clamp(0.7rem, 1.5vw, 0.9rem);
-    padding: 0;
+    font-size: clamp(1.3rem, 2.5vw, 1.7rem);
+    padding: 2px;
   }
 `,et=d.div`
   position: fixed;
