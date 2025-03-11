@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Universal</title>
+    
+    <!-- PWA მეტა ტეგები -->
+    <meta name="theme-color" content="#4CAF50" />
+    <meta name="description" content="Universal - სასწავლო აპლიკაცია" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Universal" />
+    
+    <!-- Apple Touch იკონები -->
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167x167.png" />
+    
+    <!-- მანიფესტის დინამიური დამატება -->
+    <script>
+      // დინამიურად დავამატოთ მანიფესტის ლინკი
+      const manifestLink = document.createElement('link');
+      manifestLink.rel = 'manifest';
+      manifestLink.href = './manifest.json';
+      document.head.appendChild(manifestLink);
+      
+      // დავარეგისტრიროთ სერვის ვორკერი
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then(registration => {
+              console.log('🟢 სერვის ვორკერი წარმატებით დარეგისტრირდა:', registration.scope);
+            })
+            .catch(error => {
+              console.error('🔴 სერვის ვორკერის რეგისტრაციის შეცდომა:', error);
+            });
+        });
+      } else {
+        console.warn('🟠 ბრაუზერი არ უჭერს მხარს სერვის ვორკერებს');
+      }
+      
+      // ხელით გამოვიწვიოთ PWA ინსტალაციის დიალოგი
+      let deferredPrompt;
+      
+      window.addEventListener('beforeinstallprompt', (e) => {
+        // ვაჩერებთ ბრაუზერის ავტომატურ ქცევას
+        e.preventDefault();
+        console.log('🟢 beforeinstallprompt ივენთი დაფიქსირდა გლობალურად');
+        // შევინახოთ ივენთი
+        deferredPrompt = e;
+        
+        // ვცადოთ ხელით გამოვიწვიოთ ინსტალაციის დიალოგი
+        setTimeout(() => {
+          const installButton = document.querySelector('.pwa-install-button');
+          if (installButton) {
+            console.log('ვცდილობთ ავტომატურად გამოვიწვიოთ ინსტალაციის დიალოგი');
+            installButton.click();
+          }
+        }, 5000); // 5 წამის შემდეგ
+      });
+      
+      // დიაგნოსტიკა
+      window.addEventListener('appinstalled', (evt) => {
+        console.log('🟢 აპლიკაცია დაინსტალირდა!');
+      });
+      
+      // შევამოწმოთ არის თუ არა აპლიკაცია უკვე დაინსტალირებული
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        console.log('🟢 აპლიკაცია გაშვებულია standalone რეჟიმში');
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html> 
