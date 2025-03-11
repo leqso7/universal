@@ -83,12 +83,21 @@ const DebugInfo = styled.div`
   word-break: break-word;
 `;
 
+const ManualInstallButton = styled(InstallButton)`
+  background: #2196F3;
+
+  &:hover {
+    background: #0b7dda;
+  }
+`;
+
 const InstallPWA = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [debugInfo, setDebugInfo] = useState('დეტექტირება...');
   const [showDebugInfo, setShowDebugInfo] = useState(false);
   const [detailedInfo, setDetailedInfo] = useState('');
+  const [installationAttempted, setInstallationAttempted] = useState(false);
 
   useEffect(() => {
     console.log('InstallPWA component mounted');
@@ -125,6 +134,11 @@ const InstallPWA = () => {
       Hash: ${window.location.hash}
       Service Worker: ${'serviceWorker' in navigator ? 'Supported' : 'Not Supported'}
       Display Mode: ${window.matchMedia('(display-mode: standalone)').matches ? 'Standalone' : 'Browser'}
+      Icons: ${ 
+        Array.from(document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]'))
+          .map((el: any) => el.href)
+          .join(', ')
+      }
     `);
     
     // Listen for app installed event
@@ -151,6 +165,19 @@ const InstallPWA = () => {
           setDebugInfo('მანიფესტი ვერ მოიძებნა');
         } else {
           console.log('✅ Manifest found');
+          // Try to fetch the manifest
+          try {
+            const manifestLink = manifestLinks[0] as HTMLLinkElement;
+            const response = await fetch(manifestLink.href);
+            if (response.ok) {
+              const manifest = await response.json();
+              console.log('Manifest content:', manifest);
+            } else {
+              console.log('⚠️ Manifest fetch failed:', response.status);
+            }
+          } catch (error) {
+            console.error('Error fetching manifest:', error);
+          }
         }
         
         // Check service worker
@@ -161,6 +188,22 @@ const InstallPWA = () => {
             setDebugInfo('სერვის ვორკერი არ არის რეგისტრირებული');
           } else {
             console.log('✅ Service worker registered:', registrations);
+          }
+        }
+
+        // Check icons
+        const icons = Array.from(document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]'));
+        for (const icon of icons) {
+          const iconEl = icon as HTMLLinkElement;
+          try {
+            const response = await fetch(iconEl.href);
+            if (!response.ok) {
+              console.log(`⚠️ Icon at ${iconEl.href} failed to load: ${response.status}`);
+            } else {
+              console.log(`✅ Icon at ${iconEl.href} loaded successfully`);
+            }
+          } catch (error) {
+            console.error(`Error fetching icon at ${iconEl.href}:`, error);
           }
         }
       } catch (err) {
@@ -176,6 +219,8 @@ const InstallPWA = () => {
   }, []);
 
   const handleInstallClick = async () => {
+    setInstallationAttempted(true);
+    
     if (!deferredPrompt) {
       console.log('⚠️ No installation prompt available');
       setDebugInfo('ინსტალაციის პრომპტი არ არის ხელმისაწვდომი');
@@ -214,6 +259,17 @@ const InstallPWA = () => {
     setDebugInfo(showDebugInfo ? 'დეტალების ჩვენება' : 'დეტალების დამალვა');
   };
 
+  const handleManualInstall = () => {
+    const message = `
+      PWA-ს დასაინსტალირებლად:
+      
+      1. Chrome-ში: დააჭირეთ მენიუს ღილაკს (სამი წერტილი) და აირჩიეთ 'დააინსტალირე აპლიკაცია'
+      2. Safari-ში (iOS): დააჭირეთ 'გაზიარება' ღილაკს და აირჩიეთ 'დაამატე მთავარ ეკრანზე'
+      3. Edge-ში: დააჭირეთ მენიუს ღილაკს (სამი წერტილი) და აირჩიეთ 'დააინსტალირე'
+    `;
+    alert(message);
+  };
+
   return (
     <div>
       {deferredPrompt && !isAppInstalled && (
@@ -221,6 +277,19 @@ const InstallPWA = () => {
           დააინსტალირეთ აპლიკაცია
         </InstallButton>
       )}
+      
+      {!deferredPrompt && !isAppInstalled && installationAttempted && (
+        <ManualInstallButton onClick={handleManualInstall}>
+          მიიღეთ დაინსტალირების ინსტრუქცია
+        </ManualInstallButton>
+      )}
+      
+      {!isAppInstalled && !installationAttempted && (
+        <InstallButton onClick={handleInstallClick}>
+          დააინსტალირეთ აპლიკაცია
+        </InstallButton>
+      )}
+      
       <DebugButton onClick={checkInstallationEligibility}>
         {debugInfo}
       </DebugButton>
