@@ -75,16 +75,16 @@ const Progress = styled.div`
 
 const GameArea = styled.div`
   width: 100%;
-  max-width: min(95vw, 600px);
+  max-width: min(98vw, 950px);
   margin: 0 auto;
-  padding: 10px;
+  padding: 4px;
   transform: scale(${props => props.scale});
   transform-origin: center top;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 1.5vh;
+  gap: 0.3vh;
   opacity: 1;
   visibility: visible;
   transition: all 0.3s ease;
@@ -95,21 +95,24 @@ const GameArea = styled.div`
   }
 
   @media (min-width: 1200px) {
-    max-width: 550px;
-    gap: 2vh;
+    max-width: 900px;
+    gap: 0.4vh;
+    padding: 5px;
   }
 
   @media (max-width: 768px) {
-    padding: 5px;
-    gap: 1vh;
+    padding: 3px;
+    gap: 0.2vh;
   }
 
   @media (max-height: 800px) {
-    gap: 1vh;
+    gap: 0.15vh;
+    padding: 2px;
   }
 
   @media (max-height: 600px) {
-    gap: 0.5vh;
+    gap: 0.1vh;
+    padding: 1px;
   }
 `;
 
@@ -125,55 +128,59 @@ const GameTitle = styled.h1`
 const EmojiGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  gap: 4px;
+  gap: 2px;
   background: rgba(255, 255, 255, 0.9);
-  padding: 10px;
-  border-radius: 15px;
+  padding: 4px;
+  border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   width: 98%;
-  max-width: min(98vw, 800px);
-  aspect-ratio: 8/6;
-  margin: 1vh auto;
+  max-width: min(98vw, 950px);
+  aspect-ratio: 8/5.8;
+  margin: 0.2vh auto;
   overflow: hidden;
 
   @media (min-width: 1200px) {
-    max-width: 780px;
-    gap: 6px;
-    padding: 12px;
+    max-width: 900px;
+    gap: 3px;
+    padding: 6px;
   }
 
   @media (max-width: 768px) {
-    gap: 3px;
-    padding: 8px;
+    gap: 1.5px;
+    padding: 3px;
     width: 98%;
   }
 
   @media (max-width: 480px) {
-    gap: 2px;
-    padding: 6px;
+    gap: 1px;
+    padding: 2px;
     width: 100%;
   }
 
   @media (max-height: 800px) {
-    max-width: min(98vw, 700px);
-    padding: 8px;
+    max-width: min(98vw, 850px);
+    padding: 3px;
+    margin: 0.15vh auto;
+    aspect-ratio: 8/5.7;
   }
 
   @media (max-height: 600px) {
-    max-width: min(98vw, 650px);
-    padding: 6px;
-    gap: 2px;
+    max-width: min(98vw, 800px);
+    padding: 2px;
+    gap: 0.5px;
+    margin: 0.1vh auto;
+    aspect-ratio: 8/5.6;
   }
 `;
 
 const EmojiCell = styled.div`
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: clamp(1.8rem, 3.5vw, 2.4rem);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 8px;
+  padding: 6px;
+  border-radius: 10px;
   transition: all 0.2s ease;
   background-color: ${props => 
     props.isFound ? 'rgba(76, 175, 80, 0.2)' : 
@@ -184,9 +191,6 @@ const EmojiCell = styled.div`
   opacity: ${props => props.$loading ? '0' : '1'};
   transform: scale(${props => props.$loading ? '0.95' : '1'});
   transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.2s ease;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 
   &:hover {
     background: ${props => 
@@ -198,23 +202,23 @@ const EmojiCell = styled.div`
   }
 
   @media (min-width: 1200px) {
-    font-size: 2rem;
-    padding: 5px;
+    font-size: 2.4rem;
+    padding: 7px;
   }
 
   @media (max-width: 768px) {
-    font-size: clamp(1.3rem, 2.5vw, 1.8rem);
-    padding: 3px;
+    font-size: clamp(1.6rem, 3vw, 2rem);
+    padding: 4px;
   }
 
   @media (max-height: 800px) {
-    font-size: clamp(1.2rem, 2.2vw, 1.6rem);
-    padding: 2px;
+    font-size: clamp(1.5rem, 2.8vw, 1.9rem);
+    padding: 3px;
   }
 
   @media (max-height: 600px) {
-    font-size: clamp(1.1rem, 2vw, 1.4rem);
-    padding: 1px;
+    font-size: clamp(1.3rem, 2.5vw, 1.7rem);
+    padding: 2px;
   }
 `;
 
