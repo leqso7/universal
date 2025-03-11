@@ -1,26 +1,103 @@
 {
-  "name": "შემეცნებითი უნარების სავარჯიშოები",
-  "short_name": "სავარჯიშოები",
-  "description": "შემეცნებითი უნარების განვითარების აპლიკაცია",
-  "start_url": "/",
-  "scope": "/",
+  "name": "Universal - სასწავლო აპლიკაცია",
+  "short_name": "Universal",
+  "description": "სასწავლო აპლიკაცია სხვადასხვა უნარების განვითარებისთვის",
+  "start_url": "/universal/",
+  "scope": "/universal/",
   "display": "standalone",
-  "background_color": "#98D8AA",
-  "theme_color": "#98D8AA",
-  "form_factor": "wide",
   "orientation": "portrait",
+  "theme_color": "#4CAF50",
+  "background_color": "#ffffff",
+  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "pwa-192x192.png",
+      "src": "/universal/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/universal/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/universal/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/universal/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/universal/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/universal/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "pwa-512x512.png",
+      "src": "/universal/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/universal/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
+    },
+    {
+      "src": "/universal/icons/maskable_icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "/universal/screenshots/screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Universal აპლიკაციის მთავარი გვერდი"
+    },
+    {
+      "src": "/universal/screenshots/screenshot2.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Universal აპლიკაციის მობილური ვერსია"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "თამაშები",
+      "short_name": "თამაშები",
+      "description": "გახსენით თამაშების გვერდი",
+      "url": "/universal/games",
+      "icons": [{ "src": "/universal/icons/games-icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "დავალებები",
+      "short_name": "დავალებები",
+      "description": "გახსენით დავალებების გვერდი",
+      "url": "/universal/tasks",
+      "icons": [{ "src": "/universal/icons/tasks-icon.png", "sizes": "192x192" }]
+    }
+  ],
+  "categories": ["education", "games", "kids"],
+  "lang": "ka",
+  "dir": "ltr"
 }

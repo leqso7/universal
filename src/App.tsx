@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { createGlobalStyle } from 'styled-components'
 import RequestAccess from './pages/RequestAccess'
 import SearchList, { Student } from './components/SearchList'
+import InstallPWA from './components/InstallPWA'
 import styled, { keyframes } from 'styled-components'
 import { useState, useEffect } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
@@ -466,6 +467,9 @@ function App() {
       <GlobalStyle />
       <AppContainer>
         {isLoading && <LoadingScreenComponent />}
+        <InstallContainer style={{ opacity: isLoading ? 0 : 1, transition: 'opacity 0.3s ease' }}>
+          <InstallPWA />
+        </InstallContainer>
         <ToastContainer position="bottom-right" />
         <Routes>
           <Route

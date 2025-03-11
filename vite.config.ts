@@ -11,30 +11,37 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'univercal',
-        short_name: 'univercal',
-        description: 'Manage your classes efficiently',
-        theme_color: '#ffffff',
+        name: 'Universal - სასწავლო აპლიკაცია',
+        short_name: 'Universal',
+        description: 'სასწავლო აპლიკაცია სხვადასხვა უნარების განვითარებისთვის',
+        theme_color: '#4CAF50',
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '/universal/',
         scope: '/universal/',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: '/universal/icons/icon-192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: '/universal/icons/icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          },
+          {
+            src: '/universal/icons/maskable_icon.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'maskable'
           }
         ]
       },
       devOptions: {
-        enabled: true
+        enabled: true,
+        type: 'module',
+        navigateFallback: 'index.html'
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
@@ -50,6 +57,28 @@ export default defineConfig({
               },
               cacheableResponse: {
                 statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // <== 30 დღე
+              }
+            }
+          },
+          {
+            urlPattern: /\.(?:js|css)$/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'static-resources',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 7 // <== 7 დღე
               }
             }
           }
@@ -68,5 +97,15 @@ export default defineConfig({
         },
       },
     },
+  },
+  server: {
+    port: 5173,
+    strictPort: true,
+    host: true,
+  },
+  preview: {
+    port: 4173,
+    strictPort: true,
+    host: true,
   },
 })
