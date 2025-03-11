@@ -1,4 +1,4 @@
-import{m as a,d as e,r as o,j as t,I as p,L as x}from"./index-BCn35WQ0.js";a`
+import{m as n,d as e,r as o,j as t,I as p,L as x}from"./index-CF34COUB.js";n`
   from { 
     opacity: 0;
     transform: translateY(10px);
@@ -7,13 +7,13 @@ import{m as a,d as e,r as o,j as t,I as p,L as x}from"./index-BCn35WQ0.js";a`
     opacity: 1;
     transform: translateY(0);
   }
-`;const s=a`
+`;const s=n`
   0% { background-position: 0% 50%; }
   100% { background-position: 100% 50%; }
-`,m=a`
+`,m=n`
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.2); }
-`,f=a`
+`,f=n`
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 `,g=e.div`
@@ -64,16 +64,16 @@ import{m as a,d as e,r as o,j as t,I as p,L as x}from"./index-BCn35WQ0.js";a`
               inset -2px -2px 4px rgba(0, 0, 0, 0.05);
   animation: ${f} 1.5s ease-in-out infinite,
              ${m} 1.5s ease-in-out infinite;
-  animation-delay: ${i=>i.$delay}s;
+  animation-delay: ${a=>a.$delay}s;
   transform-origin: center;
   will-change: transform;
 
   &:nth-child(2) {
-    animation-delay: ${i=>i.$delay+.2}s;
+    animation-delay: ${a=>a.$delay+.2}s;
   }
 
   &:nth-child(3) {
-    animation-delay: ${i=>i.$delay+.4}s;
+    animation-delay: ${a=>a.$delay+.4}s;
   }
 `,y=e.div`
   position: fixed;
@@ -177,4 +177,20 @@ import{m as a,d as e,r as o,j as t,I as p,L as x}from"./index-BCn35WQ0.js";a`
   left: 20px;
   bottom: 20px;
   z-index: 1000;
-`,P=()=>{const[i,d]=o.useState(!0),c=[{path:"tasks",title:"სახალისო ამოცანები",icon:"🎯"},{path:"puzzle",title:"ფაზლი",icon:"🧩"},{path:"scramble",title:"აზროვნების სავარჯიშო",icon:"🔤"},{path:"memory",title:"მეხსიერების სავარჯიშო",icon:"🧠"},{path:"labyrinth",title:"ლაბირინთი",icon:"🎮"},{path:"attention",title:"ყურადღების განვითარების სავარჯიშო",icon:"👀"},{path:"perception",title:"აღქმის სავარჯიშო",icon:"🖼️"}];return o.useEffect(()=>{const n=setTimeout(()=>{d(!1)},480);return()=>clearTimeout(n)},[]),i?t.jsx(g,{children:t.jsxs(h,{children:[t.jsx(b,{children:"🎮"}),t.jsx(u,{children:"იტვირთება"}),t.jsxs(w,{children:[t.jsx(r,{$delay:0}),t.jsx(r,{$delay:.2}),t.jsx(r,{$delay:.4})]})]})}):t.jsxs(y,{children:[t.jsxs(j,{children:[t.jsx(v,{children:"შემეცნებითი უნარების სავარჯიშოები"}),t.jsx(k,{children:c.map((n,l)=>t.jsxs(z,{to:n.path,children:[t.jsx($,{children:n.icon}),t.jsx(L,{children:n.title})]},l))})]}),t.jsx(G,{children:t.jsx(p,{})})]})};export{P as default};
+  animation: pulse 2s infinite;
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+    }
+    70% {
+      transform: scale(1.05);
+      box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+  }
+`,P=()=>{const[a,d]=o.useState(!0),c=[{path:"tasks",title:"სახალისო ამოცანები",icon:"🎯"},{path:"puzzle",title:"ფაზლი",icon:"🧩"},{path:"scramble",title:"აზროვნების სავარჯიშო",icon:"🔤"},{path:"memory",title:"მეხსიერების სავარჯიშო",icon:"🧠"},{path:"labyrinth",title:"ლაბირინთი",icon:"🎮"},{path:"attention",title:"ყურადღების განვითარების სავარჯიშო",icon:"👀"},{path:"perception",title:"აღქმის სავარჯიშო",icon:"🖼️"}];return o.useEffect(()=>{const i=setTimeout(()=>{d(!1)},480);return()=>clearTimeout(i)},[]),a?t.jsx(g,{children:t.jsxs(h,{children:[t.jsx(b,{children:"🎮"}),t.jsx(u,{children:"იტვირთება"}),t.jsxs(w,{children:[t.jsx(r,{$delay:0}),t.jsx(r,{$delay:.2}),t.jsx(r,{$delay:.4})]})]})}):t.jsxs(y,{children:[t.jsxs(j,{children:[t.jsx(v,{children:"შემეცნებითი უნარების სავარჯიშოები"}),t.jsx(k,{children:c.map((i,l)=>t.jsxs(z,{to:i.path,children:[t.jsx($,{children:i.icon}),t.jsx(L,{children:i.title})]},l))})]}),t.jsx(G,{children:t.jsx(p,{})})]})};export{P as default};
