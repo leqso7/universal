@@ -6,9 +6,6 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-// Force the banner to be visible for testing
-const FORCE_INSTALL_BANNER = true;
-
 const InstallButton = styled.button`
   background: #4CAF50;
   color: white;
@@ -138,13 +135,40 @@ const InstallPWA = () => {
       setDebugInfo('PWA დაინსტალირდა წარმატებით');
     });
 
-    // Set a timeout to check if beforeinstallprompt fired
-    setTimeout(() => {
-      if (!deferredPrompt) {
-        console.log('⚠️ beforeinstallprompt did not fire within 3 seconds');
-        setDebugInfo('beforeinstallprompt არ გააქტიურდა, შესაძლოა ბრაუზერის შეზღუდვების გამო');
+    // Manual check for PWA installability criteria
+    const checkInstallability = async () => {
+      try {
+        // Check for HTTPS
+        if (window.location.protocol !== 'https:') {
+          console.log('⚠️ Not using HTTPS');
+          setDebugInfo('PWA requires HTTPS');
+        }
+        
+        // Check manifest
+        const manifestLinks = document.querySelectorAll('link[rel="manifest"]');
+        if (manifestLinks.length === 0) {
+          console.log('⚠️ No manifest found');
+          setDebugInfo('მანიფესტი ვერ მოიძებნა');
+        } else {
+          console.log('✅ Manifest found');
+        }
+        
+        // Check service worker
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          if (registrations.length === 0) {
+            console.log('⚠️ No service worker registered');
+            setDebugInfo('სერვის ვორკერი არ არის რეგისტრირებული');
+          } else {
+            console.log('✅ Service worker registered:', registrations);
+          }
+        }
+      } catch (err) {
+        console.error('Error checking installability:', err);
       }
-    }, 3000);
+    };
+    
+    checkInstallability();
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
@@ -192,7 +216,7 @@ const InstallPWA = () => {
 
   return (
     <div>
-      {(deferredPrompt || FORCE_INSTALL_BANNER) && !isAppInstalled && (
+      {deferredPrompt && !isAppInstalled && (
         <InstallButton onClick={handleInstallClick}>
           დააინსტალირეთ აპლიკაცია
         </InstallButton>

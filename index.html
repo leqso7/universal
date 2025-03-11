@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="pwa-192x192.png" />
-    <link rel="manifest" href="manifest.json" />
+    <!-- ეს ჩანაწერი დინამიურად დაემატება JavaScript-ით -->
+    <!-- <link rel="manifest" href="manifest.json" /> -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#ffffff" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -26,6 +27,30 @@
       }(window.location))
     </script>
     <!-- End Single Page Apps for GitHub Pages -->
+    
+    <!-- დინამიურად ემატება manifest.json -->
+    <script type="text/javascript">
+      (function() {
+        // დინამიურად დავამატოთ manifest.json ბმული ჰოსტის მიხედვით
+        var link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = 'manifest.json';
+        document.head.appendChild(link);
+
+        // დინამიურად გავასწოროთ სერვის ვორკერის რეგისტრაცია
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', function() {
+            navigator.serviceWorker.register('service-worker.js')
+              .then(function(registration) {
+                console.log('Service Worker registered with scope:', registration.scope);
+              })
+              .catch(function(error) {
+                console.error('Service Worker registration failed:', error);
+              });
+          });
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
