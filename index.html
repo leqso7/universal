@@ -2,13 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="pwa-192x192.png" />
+    <link rel="icon" type="image/svg+xml" href="./assets/icons/pwa-192x192.svg" />
     <!-- ეს ჩანაწერი დინამიურად დაემატება JavaScript-ით -->
     <!-- <link rel="manifest" href="manifest.json" /> -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#ffffff" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <link rel="apple-touch-icon" href="pwa-192x192.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="apple-touch-icon" href="./assets/icons/pwa-192x192.svg" />
     <title>Class Manager</title>
     <!-- Start Single Page Apps for GitHub Pages -->
     <script type="text/javascript">
@@ -34,13 +35,13 @@
         // დინამიურად დავამატოთ manifest.json ბმული ჰოსტის მიხედვით
         var link = document.createElement('link');
         link.rel = 'manifest';
-        link.href = 'manifest.json';
+        link.href = './manifest.json';
         document.head.appendChild(link);
 
         // დინამიურად გავასწოროთ სერვის ვორკერის რეგისტრაცია
         if ('serviceWorker' in navigator) {
           window.addEventListener('load', function() {
-            navigator.serviceWorker.register('service-worker.js')
+            navigator.serviceWorker.register('./service-worker.js')
               .then(function(registration) {
                 console.log('Service Worker registered with scope:', registration.scope);
               })
@@ -51,7 +52,7 @@
         }
       })();
     </script>
-    <script type="module" crossorigin src="/universal/assets/index-BEG99lLj.js"></script>
+    <script type="module" crossorigin src="/universal/assets/index-Bk4ltbmF.js"></script>
     <link rel="stylesheet" crossorigin href="/universal/assets/index-BaJReJW6.css">
   <link rel="manifest" href="/universal/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/universal/registerSW.js"></script></head>
   <body>
