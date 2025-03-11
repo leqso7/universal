@@ -125,54 +125,55 @@ const GameTitle = styled.h1`
 const EmojiGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  gap: 6px;
+  gap: 4px;
   background: rgba(255, 255, 255, 0.9);
-  padding: 12px;
+  padding: 10px;
   border-radius: 15px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   width: 98%;
   max-width: min(98vw, 800px);
   aspect-ratio: 8/6;
   margin: 1vh auto;
+  overflow: hidden;
 
   @media (min-width: 1200px) {
     max-width: 780px;
-    gap: 8px;
-    padding: 15px;
+    gap: 6px;
+    padding: 12px;
   }
 
   @media (max-width: 768px) {
-    gap: 5px;
-    padding: 10px;
+    gap: 3px;
+    padding: 8px;
     width: 98%;
   }
 
   @media (max-width: 480px) {
-    gap: 3px;
-    padding: 8px;
+    gap: 2px;
+    padding: 6px;
     width: 100%;
   }
 
   @media (max-height: 800px) {
     max-width: min(98vw, 700px);
-    padding: 10px;
+    padding: 8px;
   }
 
   @media (max-height: 600px) {
     max-width: min(98vw, 650px);
-    padding: 8px;
-    gap: 4px;
+    padding: 6px;
+    gap: 2px;
   }
 `;
 
 const EmojiCell = styled.div`
-  font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+  font-size: clamp(1.5rem, 3vw, 2rem);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  padding: 6px;
-  border-radius: 10px;
+  padding: 4px;
+  border-radius: 8px;
   transition: all 0.2s ease;
   background-color: ${props => 
     props.isFound ? 'rgba(76, 175, 80, 0.2)' : 
@@ -183,6 +184,9 @@ const EmojiCell = styled.div`
   opacity: ${props => props.$loading ? '0' : '1'};
   transform: scale(${props => props.$loading ? '0.95' : '1'});
   transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.2s ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 
   &:hover {
     background: ${props => 
@@ -194,23 +198,23 @@ const EmojiCell = styled.div`
   }
 
   @media (min-width: 1200px) {
-    font-size: 2.4rem;
-    padding: 7px;
+    font-size: 2rem;
+    padding: 5px;
   }
 
   @media (max-width: 768px) {
-    font-size: clamp(1.6rem, 3vw, 2rem);
-    padding: 4px;
-  }
-
-  @media (max-height: 800px) {
-    font-size: clamp(1.5rem, 2.8vw, 1.9rem);
+    font-size: clamp(1.3rem, 2.5vw, 1.8rem);
     padding: 3px;
   }
 
-  @media (max-height: 600px) {
-    font-size: clamp(1.3rem, 2.5vw, 1.7rem);
+  @media (max-height: 800px) {
+    font-size: clamp(1.2rem, 2.2vw, 1.6rem);
     padding: 2px;
+  }
+
+  @media (max-height: 600px) {
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    padding: 1px;
   }
 `;
 
