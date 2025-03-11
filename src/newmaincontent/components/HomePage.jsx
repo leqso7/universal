@@ -217,6 +217,7 @@ const InstallPWAWrapper = styled.div`
   bottom: 20px;
   z-index: 1000;
   filter: drop-shadow(0 0 10px rgba(76, 175, 80, 0.7));
+  transform: scale(1.1);
 `;
 
 const HomePage = () => {

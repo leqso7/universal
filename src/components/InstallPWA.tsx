@@ -7,7 +7,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 // გლობალური ცვლადი, რომელიც შეინახავს beforeinstallprompt ივენთს
-let globalDeferredPrompt: BeforeInstallPromptEvent | null = null;
+let deferredPrompt: BeforeInstallPromptEvent | null = null;
 
 // ფუნქცია, რომელიც ამოწმებს არის თუ არა PWA დაინსტალირებული
 export const isPWAInstalled = (): boolean => {
@@ -31,7 +31,7 @@ export const isPWAInstalled = (): boolean => {
 // ფუნქცია, რომელიც ამოწმებს არის თუ არა PWA დაინსტალირებადი
 export const isPWAInstallable = (): boolean => {
   // შევამოწმოთ არის თუ არა globalDeferredPrompt ხელმისაწვდომი
-  if (globalDeferredPrompt) {
+  if (deferredPrompt) {
     return true;
   }
   
@@ -59,22 +59,24 @@ export const isPWAInstallable = (): boolean => {
 
 // ივენთის დამჭერი, რომელიც გლობალურად დარეგისტრირდება
 window.addEventListener('beforeinstallprompt', (e) => {
+  // ვაჩერებთ ბრაუზერის ავტომატურ ქცევას
   e.preventDefault();
-  console.log('🟢 beforeinstallprompt fired and captured globally');
-  globalDeferredPrompt = e as BeforeInstallPromptEvent;
+  console.log('🟢 beforeinstallprompt ივენთი დაფიქსირდა და შენახულია');
+  // შევინახოთ ივენთი, რომ შემდეგ გამოვიყენოთ
+  deferredPrompt = e as BeforeInstallPromptEvent;
 });
 
 // ფუნქცია, რომელიც ხელით გამოიწვევს ბრაუზერის ჩაშენებულ PWA დაინსტალირების ღილაკს
 export const triggerInstallPrompt = async (): Promise<boolean> => {
-  if (globalDeferredPrompt) {
+  if (deferredPrompt) {
     try {
       console.log('Manually triggering install prompt');
-      await globalDeferredPrompt.prompt();
-      const choiceResult = await globalDeferredPrompt.userChoice;
+      await deferredPrompt.prompt();
+      const choiceResult = await deferredPrompt.userChoice;
       
       if (choiceResult.outcome === 'accepted') {
         console.log('User accepted the install prompt');
-        globalDeferredPrompt = null;
+        deferredPrompt = null;
         return true;
       } else {
         console.log('User dismissed the install prompt');
@@ -132,7 +134,7 @@ const InstallButton = styled.button`
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 
     &:after {
-      content: "თუ ამ ღილაკს დააჭერთ თქვენ შეძლებთ დააინსტალიროთ ვებსაიტი და დადოთ დესკტოპზე და გამოიყენოთ ინტერნეტის გარეშე";
+      content: "დააინსტალირეთ აპლიკაცია და გამოიყენეთ ინტერნეტის გარეშე";
       position: absolute;
       bottom: 100%;
       left: 0;
@@ -189,221 +191,80 @@ const ManualInstallButton = styled(InstallButton)`
 `;
 
 const InstallPWA = () => {
-  const [isAppInstalled, setIsAppInstalled] = useState(false);
-  const [debugInfo, setDebugInfo] = useState('დეტექტირება...');
-  const [showDebugInfo, setShowDebugInfo] = useState(false);
-  const [detailedInfo, setDetailedInfo] = useState('');
-  const [installationAttempted, setInstallationAttempted] = useState(false);
-  const [showInstallButton, setShowInstallButton] = useState(false);
+  const [showButton, setShowButton] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
-    console.log('InstallPWA component mounted');
-    
-    // Check if app is already installed
-    if (isPWAInstalled()) {
-      console.log('App is already installed');
-      setIsAppInstalled(true);
-      setDebugInfo('აპლიკაცია უკვე დაინსტალირებულია');
-    } else {
-      console.log('App is not installed yet');
-      setDebugInfo('არ არის დაინსტალირებული, ველოდებით beforeinstallprompt ივენთს');
-      
-      // Check if app is installable
-      if (isPWAInstallable()) {
-        console.log('App is installable');
-        setShowInstallButton(true);
-      } else {
-        console.log('App is not installable yet');
-        setShowInstallButton(true); // ვაჩვენოთ მაინც, რადგან შეიძლება მოგვიანებით გახდეს დაინსტალირებადი
-      }
+    // შევამოწმოთ არის თუ არა აპლიკაცია უკვე დაინსტალირებული
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      console.log('აპლიკაცია უკვე დაინსტალირებულია');
+      setIsInstalled(true);
+      return;
     }
-    
-    // Log browser details
-    const userAgent = navigator.userAgent;
-    console.log('Browser details:', userAgent);
-    
-    // Set detailed info
-    setDetailedInfo(`
-      Browser: ${userAgent}
-      Protocol: ${window.location.protocol}
-      Hostname: ${window.location.hostname}
-      Path: ${window.location.pathname}
-      Hash: ${window.location.hash}
-      Service Worker: ${'serviceWorker' in navigator ? 'Supported' : 'Not Supported'}
-      Display Mode: ${window.matchMedia('(display-mode: standalone)').matches ? 'Standalone' : 'Browser'}
-      Icons: ${ 
-        Array.from(document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]'))
-          .map((el: any) => el.href)
-          .join(', ')
-      }
-      Global Prompt Available: ${globalDeferredPrompt ? 'Yes' : 'No'}
-      Is Installed: ${isPWAInstalled() ? 'Yes' : 'No'}
-      Is Installable: ${isPWAInstallable() ? 'Yes' : 'No'}
-    `);
-    
-    // Listen for app installed event
+
+    // თუ deferredPrompt უკვე არსებობს, ვაჩვენოთ ღილაკი
+    if (deferredPrompt) {
+      setShowButton(true);
+    }
+
+    // ვუსმინოთ appinstalled ივენთს
     window.addEventListener('appinstalled', () => {
-      setIsAppInstalled(true);
-      globalDeferredPrompt = null;
-      console.log('PWA was installed');
-      setDebugInfo('PWA დაინსტალირდა წარმატებით');
-      setShowInstallButton(false);
+      console.log('აპლიკაცია დაინსტალირდა');
+      setIsInstalled(true);
+      setShowButton(false);
+      deferredPrompt = null;
     });
 
-    // შევამოწმოთ ყოველ 2 წამში, ხომ არ გააქტიურდა globalDeferredPrompt
+    // ვუსმინოთ beforeinstallprompt ივენთს კომპონენტის შიგნითაც
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      console.log('beforeinstallprompt ივენთი დაფიქსირდა კომპონენტში');
+      deferredPrompt = e as BeforeInstallPromptEvent;
+      setShowButton(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // ყოველ 2 წამში შევამოწმოთ deferredPrompt
     const checkInterval = setInterval(() => {
-      if (globalDeferredPrompt && !isAppInstalled) {
-        console.log('Global deferred prompt is now available');
-        setDetailedInfo(prev => prev + '\nGlobal Prompt Available: Yes');
-        setShowInstallButton(true);
-      }
-      
-      // შევამოწმოთ ხომ არ დაინსტალირდა აპლიკაცია
-      if (isPWAInstalled()) {
-        console.log('App is now installed');
-        setIsAppInstalled(true);
-        setShowInstallButton(false);
-        clearInterval(checkInterval);
+      if (deferredPrompt && !isInstalled) {
+        setShowButton(true);
       }
     }, 2000);
 
-    // Manual check for PWA installability criteria
-    const checkInstallability = async () => {
-      try {
-        // Check for HTTPS
-        if (window.location.protocol !== 'https:') {
-          console.log('⚠️ Not using HTTPS');
-          setDebugInfo('PWA requires HTTPS');
-        }
-        
-        // Check manifest
-        const manifestLinks = document.querySelectorAll('link[rel="manifest"]');
-        if (manifestLinks.length === 0) {
-          console.log('⚠️ No manifest found');
-          setDebugInfo('მანიფესტი ვერ მოიძებნა');
-        } else {
-          console.log('✅ Manifest found');
-          // Try to fetch the manifest
-          try {
-            const manifestLink = manifestLinks[0] as HTMLLinkElement;
-            const response = await fetch(manifestLink.href);
-            if (response.ok) {
-              const manifest = await response.json();
-              console.log('Manifest content:', manifest);
-            } else {
-              console.log('⚠️ Manifest fetch failed:', response.status);
-            }
-          } catch (error) {
-            console.error('Error fetching manifest:', error);
-          }
-        }
-        
-        // Check service worker
-        if ('serviceWorker' in navigator) {
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          if (registrations.length === 0) {
-            console.log('⚠️ No service worker registered');
-            setDebugInfo('სერვის ვორკერი არ არის რეგისტრირებული');
-          } else {
-            console.log('✅ Service worker registered:', registrations);
-          }
-        }
-
-        // Check icons
-        const icons = Array.from(document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]'));
-        for (const icon of icons) {
-          const iconEl = icon as HTMLLinkElement;
-          try {
-            const response = await fetch(iconEl.href);
-            if (!response.ok) {
-              console.log(`⚠️ Icon at ${iconEl.href} failed to load: ${response.status}`);
-            } else {
-              console.log(`✅ Icon at ${iconEl.href} loaded successfully`);
-            }
-          } catch (error) {
-            console.error(`Error fetching icon at ${iconEl.href}:`, error);
-          }
-        }
-      } catch (err) {
-        console.error('Error checking installability:', err);
-      }
-    };
-    
-    checkInstallability();
-
     return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       clearInterval(checkInterval);
     };
-  }, []);
+  }, [isInstalled]);
 
   const handleInstallClick = async () => {
-    setInstallationAttempted(true);
-    
-    if (isPWAInstallable()) {
-      const success = await triggerInstallPrompt();
-      
-      if (success) {
-        setDebugInfo('მომხმარებელმა დაადასტურა ინსტალაცია');
-      } else {
-        console.log('⚠️ Installation failed or was dismissed');
-        setDebugInfo('ინსტალაცია ვერ მოხერხდა ან უარყოფილ იქნა');
-        handleManualInstall();
-      }
-    } else {
-      console.log('⚠️ PWA is not installable');
-      setDebugInfo('PWA არ არის დაინსტალირებადი');
-      handleManualInstall();
+    if (!deferredPrompt) {
+      console.log('დაინსტალირების პრომპტი არ არის ხელმისაწვდომი');
+      return;
     }
+
+    // ვაჩვენოთ დაინსტალირების პრომპტი
+    deferredPrompt.prompt();
+
+    // ველოდებით მომხმარებლის არჩევანს
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`მომხმარებელმა აირჩია: ${outcome}`);
+
+    // გამოყენების შემდეგ ვასუფთავებთ deferredPrompt-ს
+    deferredPrompt = null;
+    setShowButton(false);
   };
 
-  const checkInstallationEligibility = () => {
-    // Log device and browser support information
-    console.log('Navigator details:', {
-      standalone: window.matchMedia('(display-mode: standalone)').matches,
-      serviceWorker: 'serviceWorker' in navigator,
-      userAgent: navigator.userAgent,
-      globalPromptAvailable: globalDeferredPrompt ? 'Yes' : 'No',
-      isInstalled: isPWAInstalled(),
-      isInstallable: isPWAInstallable()
-    });
-    
-    setShowDebugInfo(!showDebugInfo);
-    setDebugInfo(showDebugInfo ? 'დეტალების ჩვენება' : 'დეტალების დამალვა');
-  };
-
-  const handleManualInstall = () => {
-    const message = `
-      PWA-ს დასაინსტალირებლად:
-      
-      1. Chrome-ში: დააჭირეთ მისამართის ველის მარჯვენა მხარეს ინსტალაციის ღილაკს ან მენიუს ღილაკს (სამი წერტილი) და აირჩიეთ 'დააინსტალირე აპლიკაცია'
-      2. Safari-ში (iOS): დააჭირეთ 'გაზიარება' ღილაკს და აირჩიეთ 'დაამატე მთავარ ეკრანზე'
-      3. Edge-ში: დააჭირეთ მენიუს ღილაკს (სამი წერტილი) და აირჩიეთ 'დააინსტალირე'
-    `;
-    alert(message);
-  };
-
-  // ვაჩვენოთ ღილაკი მხოლოდ თუ აპლიკაცია არ არის დაინსტალირებული
-  if (isAppInstalled) {
+  // თუ აპლიკაცია უკვე დაინსტალირებულია ან ღილაკი არ უნდა ჩანდეს, არაფერი გამოვაჩინოთ
+  if (isInstalled || !showButton) {
     return null;
   }
 
   return (
-    <div>
-      {showInstallButton && (
-        <InstallButton onClick={handleInstallClick}>
-          დააინსტალირეთ აპლიკაცია
-        </InstallButton>
-      )}
-      
-      <DebugButton onClick={checkInstallationEligibility}>
-        {debugInfo}
-      </DebugButton>
-      {showDebugInfo && (
-        <DebugInfo>
-          {detailedInfo}
-        </DebugInfo>
-      )}
-    </div>
+    <InstallButton onClick={handleInstallClick}>
+      დააინსტალირეთ აპლიკაცია
+    </InstallButton>
   );
 };
 
