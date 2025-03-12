@@ -85,51 +85,62 @@ const ContentWrapper = styled.div`
 const SetupContainer = styled.div`
   width: 100%;
   max-width: 500px;
-  margin: 40px auto;
+  margin: 20px auto;
   background: rgba(255, 255, 255, 0.9);
-  padding: 40px;
+  padding: 25px;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(10px);
   animation: fadeIn 0.5s ease-out;
 
   @media (max-width: 768px) {
-    padding: 30px;
-    margin: 20px auto;
+    padding: 20px;
+    margin: 15px auto;
   }
 
   @media (max-width: 480px) {
-    padding: 20px;
+    padding: 15px;
     margin: 10px auto;
   }
 
   h1 {
     color: #2c3e50;
-    font-size: 2.5em;
-    margin-bottom: 30px;
+    font-size: 2em;
+    margin-bottom: 20px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   h2 {
     color: #34495e;
-    font-size: 1.5em;
-    margin-bottom: 25px;
+    font-size: 1.3em;
+    margin-bottom: 15px;
     font-weight: 500;
+  }
+
+  .select-group {
+    margin: 12px 0;
+    
+    h3 {
+      color: #34495e;
+      font-size: 1.1em;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
   }
 `;
 
 const NumberSelect = styled.select`
-  padding: 15px 25px;
-  margin: 20px;
-  font-size: 18px;
+  padding: 10px 20px;
+  margin: 8px;
+  font-size: 16px;
   border: 2px solid #e0e0e0;
-  border-radius: 12px;
+  border-radius: 10px;
   background-color: white;
   cursor: pointer;
   outline: none;
   transition: all 0.3s ease;
   width: 80%;
-  max-width: 300px;
+  max-width: 280px;
   color: #2c3e50;
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
@@ -152,25 +163,25 @@ const GameModeToggle = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 15px;
-  margin: 30px 0;
-  padding: 5px;
+  gap: 10px;
+  margin: 15px 0;
+  padding: 4px;
   background: #f5f5f5;
-  border-radius: 15px;
+  border-radius: 12px;
   width: 90%;
-  max-width: 400px;
+  max-width: 380px;
   margin-left: auto;
   margin-right: auto;
 `;
 
 const ToggleButton = styled.button`
-  padding: 12px 24px;
+  padding: 8px 16px;
   background-color: ${props => props.active ? '#4CAF50' : 'transparent'};
   color: ${props => props.active ? 'white' : '#666'};
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 500;
   transition: all 0.3s ease;
   flex: 1;
@@ -186,18 +197,18 @@ const ToggleButton = styled.button`
 `;
 
 const StartButton = styled.button`
-  padding: 16px 40px;
-  margin: 30px;
-  font-size: 20px;
+  padding: 12px 30px;
+  margin: 15px;
+  font-size: 18px;
   background: linear-gradient(45deg, #4CAF50, #45a049);
   color: white;
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
   width: 80%;
-  max-width: 300px;
+  max-width: 280px;
   font-weight: 600;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -215,9 +226,9 @@ const StartButton = styled.button`
 `;
 
 const GameTitle = styled.h1`
-  font-size: 3em;
+  font-size: 2.2em;
   color: #2c3e50;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
   font-weight: 700;
   letter-spacing: -1px;
@@ -623,6 +634,7 @@ const MemoryGame = () => {
   const [selectedImages, setSelectedImages] = useState([]);
   const [shuffledImages, setShuffledImages] = useState([]);
   const [timer, setTimer] = useState(5);
+  const [selectedTime, setSelectedTime] = useState(5);
   const [userSequence, setUserSequence] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
@@ -724,14 +736,14 @@ const MemoryGame = () => {
     try {
       await selectRandomImages();
       setGameState('showing');
-      setTimer(5);
+      setTimer(selectedTime);
       setSelectedOption(null);
     } catch (error) {
       console.error('Error starting game:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [selectRandomImages]);
+  }, [selectRandomImages, selectedTime]);
 
   // მომხმარებლის არჩევანის დამუშავება
   const handleImageClick = useCallback((image, index) => {
@@ -861,15 +873,29 @@ const MemoryGame = () => {
           ) : gameState === 'setup' && (
             <SetupContainer>
               <GameTitle>მეხსიერების სავარჯიშო <span>🧠</span></GameTitle>
-              <h2>აირჩიე რამდენი სურათი გინდა დაიმახსოვრო:</h2>
-              <NumberSelect 
-                value={numberOfImages} 
-                onChange={(e) => setNumberOfImages(Number(e.target.value))}
-              >
-                <option value={3}>3 სურათი</option>
-                <option value={4}>4 სურათი</option>
-                <option value={5}>5 სურათი</option>
-              </NumberSelect>
+              
+              <div className="select-group">
+                <h3>აირჩიე რამდენი სურათი გინდა დაიმახსოვრო:</h3>
+                <NumberSelect 
+                  value={numberOfImages} 
+                  onChange={(e) => setNumberOfImages(Number(e.target.value))}
+                >
+                  <option value={3}>3 სურათი</option>
+                  <option value={4}>4 სურათი</option>
+                  <option value={5}>5 სურათი</option>
+                </NumberSelect>
+              </div>
+
+              <div className="select-group">
+                <h3>აირჩიე დროის ხანგრძლივობა:</h3>
+                <NumberSelect 
+                  value={selectedTime} 
+                  onChange={(e) => setSelectedTime(Number(e.target.value))}
+                >
+                  <option value={5}>5 წამი</option>
+                  <option value={10}>10 წამი</option>
+                </NumberSelect>
+              </div>
               
               <GameModeToggle>
                 <ToggleButton 

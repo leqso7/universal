@@ -259,7 +259,7 @@ const GameContainer = styled.div`
 
 const MainContentContainer = styled.div`
   width: 100%;
-  max-width: min(600px, 90vw);
+  max-width: min(1000px, 98vw);
   background: rgba(255, 255, 255, 0.9);
   border-radius: clamp(10px, 3vw, 20px);
   padding: clamp(8px, 2vw, 15px);
@@ -272,15 +272,15 @@ const MainContentContainer = styled.div`
   @media (max-width: 480px) {
     padding: 8px;
     gap: 8px;
-    max-width: 95vw;
+    max-width: 99vw;
   }
 `;
 
 const ImageContainer = styled.div`
   width: 100%;
   max-width: 380px;
-  margin: 5px auto;
-  padding: 7px;
+  margin: 3px auto;
+  padding: 5px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -289,26 +289,26 @@ const ImageContainer = styled.div`
     width: 100%;
     height: auto;
     border-radius: 8px;
-    max-height: calc(100vh - 450px);
+    max-height: calc(100vh - 420px);
     object-fit: contain;
   }
 
   @media (max-height: 700px) {
-    margin: 4px auto;
-    padding: 5px;
+    margin: 2px auto;
+    padding: 4px;
     max-width: 350px;
   }
 
   @media (max-height: 600px) {
-    margin: 3px auto;
-    padding: 4px;
+    margin: 2px auto;
+    padding: 3px;
     max-width: 320px;
   }
 `;
 
 const GameArea = styled.div`
   width: 100%;
-  max-width: min(800px, 95vw);
+  max-width: min(1000px, 98vw);
   margin: 0 auto;
   padding: 10px;
   transform: scale(${props => props.scale});
@@ -316,19 +316,19 @@ const GameArea = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: calc(100vh - 120px);
+  min-height: calc(100vh - 80px);
   justify-content: flex-start;
   
   @media (max-height: 800px) {
-    min-height: calc(100vh - 140px);
+    min-height: calc(100vh - 100px);
   }
 
   @media (max-height: 700px) {
-    min-height: calc(100vh - 160px);
+    min-height: calc(100vh - 120px);
   }
 
   @media (max-height: 600px) {
-    min-height: calc(100vh - 180px);
+    min-height: calc(100vh - 140px);
   }
 
   .progress-container {
@@ -342,92 +342,53 @@ const GameArea = styled.div`
     text-align: center;
   }
 
-  .game-instructions {
-    margin: 0;
-    font-size: clamp(0.8em, 3vw, 1em);
-    text-align: center;
-  }
-
   @media (max-width: 480px) {
     padding: 5px;
     gap: 8px;
-  }
-`;
-
-const LettersContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(4px, 1.5vw, 8px);
-  justify-content: center;
-  margin: clamp(5px, 1.5vw, 10px) auto;
-  width: 100%;
-  padding: clamp(8px, 2vw, 15px);
-  background: rgba(135, 206, 235, 0.3);
-  border-radius: clamp(8px, 2vw, 15px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-
-  .letter {
-    width: clamp(58px, 12vw, 75px);
-    height: clamp(58px, 12vw, 75px);
-    font-size: clamp(34px, 8vw, 42px);
-    background: white;
-    border: 3px solid #4a90e2;
-    border-radius: clamp(4px, 1vw, 8px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-    font-weight: bold;
-    color: #2c3e50;
-    transition: all 0.2s ease;
-    
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-  }
-
-  @media (max-width: 480px) {
-    gap: 4px;
-    padding: 8px;
-    
-    .letter {
-      width: clamp(50px, 11vw, 60px);
-      height: clamp(50px, 11vw, 60px);
-      font-size: clamp(28px, 7vw, 36px);
-    }
+    max-width: 99vw;
   }
 `;
 
 const TargetContainer = styled.div`
   display: flex;
-  gap: clamp(4px, 1vw, 8px);
+  gap: clamp(8px, 1.8vw, 12px);
   justify-content: center;
-  margin: clamp(5px, 1.5vw, 10px) auto;
-  padding: clamp(8px, 2vw, 15px);
+  margin: clamp(6px, 1.8vw, 12px) auto;
+  padding: clamp(12px, 2.8vw, 22px);
   background: rgba(135, 206, 235, 0.3);
-  border-radius: clamp(8px, 2vw, 15px);
+  border-radius: clamp(12px, 2.5vw, 20px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
 
   .letter-slot {
-    width: clamp(58px, 12vw, 75px);
-    height: clamp(58px, 12vw, 75px);
-    font-size: clamp(38px, 9vw, 46px);
+    width: clamp(55px, 12vw, 75px);
+    height: clamp(55px, 12vw, 75px);
+    font-size: clamp(35px, 8.5vw, 48px);
     background: white;
-    border: 3px dashed #4a90e2;
-    border-radius: clamp(4px, 1vw, 8px);
+    border: 4px dashed #4a90e2;
+    border-radius: clamp(8px, 2vw, 12px);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
     color: #2c3e50;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     transition: all 0.3s ease;
     padding: 0;
     line-height: 1;
     text-align: center;
+    flex: 0 0 auto;
     
     &.filled {
       border-style: solid;
@@ -435,12 +396,12 @@ const TargetContainer = styled.div`
       color: #1a1a1a;
       font-weight: 900;
       text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
     }
     
     &.correct {
       border-color: #2ecc71;
-      border-width: 4px;
+      border-width: 5px;
       animation: ${correctAnimation} 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
       border-style: solid;
       color: #000000;
@@ -457,13 +418,61 @@ const TargetContainer = styled.div`
   }
 
   @media (max-width: 480px) {
-    gap: 4px;
-    padding: 8px;
+    gap: 5px;
+    padding: 10px;
     
     .letter-slot {
-      width: clamp(50px, 11vw, 60px);
-      height: clamp(50px, 11vw, 60px);
-      font-size: clamp(32px, 8vw, 40px);
+      width: clamp(48px, 11vw, 65px);
+      height: clamp(48px, 11vw, 65px);
+      font-size: clamp(32px, 7.5vw, 42px);
+    }
+  }
+`;
+
+const LettersContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(8px, 1.8vw, 12px);
+  justify-content: center;
+  margin: clamp(6px, 1.8vw, 12px) auto;
+  width: 100%;
+  min-width: 0;
+  padding: clamp(12px, 2.8vw, 22px);
+  background: rgba(135, 206, 235, 0.3);
+  border-radius: clamp(12px, 2.5vw, 20px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+  .letter {
+    width: clamp(55px, 12vw, 75px);
+    height: clamp(55px, 12vw, 75px);
+    font-size: clamp(35px, 8.5vw, 48px);
+    background: white;
+    border: 4px solid #4a90e2;
+    border-radius: clamp(8px, 2vw, 12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    font-weight: bold;
+    color: #2c3e50;
+    transition: all 0.2s ease;
+    flex: 0 0 auto;
+    
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  @media (max-width: 480px) {
+    gap: 5px;
+    padding: 10px;
+    
+    .letter {
+      width: clamp(48px, 11vw, 65px);
+      height: clamp(48px, 11vw, 65px);
+      font-size: clamp(32px, 7.5vw, 42px);
     }
   }
 `;
@@ -875,7 +884,6 @@ const ScrambleGame = () => {
             შესრულებულია: {localCompletedTasks.length} / {animals.length}
           </span>
         </div>
-        <p className="game-instructions">გადმოიტანე ასოები და ჩასვი სწორ ადგილას</p>
         
         <MainContentContainer>
           <ImageContainer>
